@@ -1,7 +1,7 @@
 # node-suggestive-search
 A node module to help type-ahead search boxes and also correct misspelled searches.
 
-This module requires NeDB, The JavaScript Database from Louis Chatriot https://github.com/louischatriot/nedb
+This module requires NeDB 1.8.0, The JavaScript Database from Louis Chatriot https://github.com/louischatriot/nedb
 
 ## API
 * <a href="#loading-a-database">Loading a database</a>
