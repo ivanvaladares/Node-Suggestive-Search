@@ -103,6 +103,17 @@ nss.query("whisky").then(
 );
 
 //did you mean search result
+nss.query("wisk").then(
+	function(data) {
+		res.send(JSON.stringify(data));
+		//response: {"query":"wisk","words":["WHISKY"],"itemsId":["1","2"],"timeElapsed":"1 ms"}
+	},
+	function(err){
+		res.send("Error: " + err.message);
+	}
+);
+
+//did you mean search result
 nss.query("wisk read lbel").then(
 	function(data) {
 		res.send(JSON.stringify(data));
