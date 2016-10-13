@@ -1,3 +1,11 @@
+/* 
+node-suggestive-search v1.0 
+https://github.com/ivanvaladares/node-suggestive-search/
+
+by Ivan Valadares 
+http://ivanvaladares.com 
+*/
+
 var fs = require('fs'),
 	Datastore = require('nedb'),
 	path = require('path');
