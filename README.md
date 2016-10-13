@@ -13,16 +13,28 @@ It uses an in-memory datastore to build a dictionary composed by itens that need
 
 Here is an example of a JSON to be imported (Itens.json): 
 ```javascript
-  [  
-     {  
-        "itemName":"WHISKY RED LABEL",
-        "itemId":"1"
-     },
-     {  
-        "itemName":"WHISKY BLACK LABEL",
-        "itemId":"2"
-     }
-  ]
+[  
+   {  
+      "itemName":"WHISKY RED LABEL",
+      "itemId":"1"
+   },
+   {  
+      "itemName":"WHISKY BLACK LABEL",
+      "itemId":"2"
+   },
+   {  
+      "itemName":"BLACK FOREST BEECHWOOD HAM L/S",
+      "itemId":"3"
+   },
+   {  
+      "itemName":"PESTO PARMESAN HAM",
+      "itemId":"4"
+   },
+   {  
+      "itemName":"DELI SWEET SLICE SMOKED HAM",
+      "itemId":"5"
+   }  
+]
 ```
 
 Code to load the JSON
@@ -32,7 +44,7 @@ Code to load the JSON
   nss.loadJson("Itens.json.json").then(
 		function(data){
 			res.send(JSON.stringify(data)); 
-      // response: {"words":15,"items":5,"timeElapsed":"13 ms"}
+      			// response: {"words":15,"items":5,"timeElapsed":"13 ms"}
 		},
 		function(err){
 			res.send("Error: " + err.message);
@@ -52,14 +64,14 @@ Examples of how to call the api and responses:
 	nss.getSuggestedWords("whisky").then(
 		function (data){
 			res.send(JSON.stringify(data));
-      //response: {"suggestions":["WHISKY","WHISKY BLACK","WHISKY LABEL","WHISKY RED"],"information":{"timeElapsed":"1 ms"}}
+      			//response: {"suggestions":["WHISKY","WHISKY BLACK","WHISKY LABEL","WHISKY RED"],"information":{"timeElapsed":"1 ms"}}
 		}
 	)
   
   nss.getSuggestedWords("whisky re").then(
 		function (data){
 			res.send(JSON.stringify(data));
-      //response: {"suggestions":["WHISKY","WHISKY RED","WHISKY RED LABEL"],"information":{"timeElapsed":"2 ms"}}
+  			//response: {"suggestions":["WHISKY","WHISKY RED","WHISKY RED LABEL"],"information":{"timeElapsed":"2 ms"}}
 		}
 	)
   
@@ -76,7 +88,7 @@ Examples of how to call the api and responses:
 	nss.query("whisky").then(
 		function(data) {
 			res.send(JSON.stringify(data));
-      //response: {"query":"whisky","words":["WHISKY"],"itemsId":["1","2"],"timeElapsed":"1 ms"}
+      			//response: {"query":"whisky","words":["WHISKY"],"itemsId":["1","2"],"timeElapsed":"1 ms"}
 		},
 		function(err){
 			res.send("Error: " + err.message);
@@ -87,7 +99,7 @@ Examples of how to call the api and responses:
   nss.query("wisk read lbel").then(
 		function(data) {
 			res.send(JSON.stringify(data));
-      //response: {"query":"wisk read lbel","words":["WHISKY","RED","LABEL"],"itemsId":["1"],"timeElapsed":"4 ms"}
+      			//response: {"query":"wisk read lbel","words":["WHISKY","RED","LABEL"],"itemsId":["1"],"timeElapsed":"4 ms"}
 		},
 		function(err){
 			res.send("Error: " + err.message);
