@@ -61,6 +61,13 @@ Examples of how to call the api and responses:
 ```javascript
 var nss = require('node-suggestive-search.js');
 
+nss.getSuggestedWords("whi").then(
+	function (data){
+		res.send(JSON.stringify(data));
+		//response: {"suggestions":["WHISKY","WHISKY BLACK","WHISKY LABEL","WHISKY RED"],"information":{"timeElapsed":"1 ms"}}
+	}
+)
+
 nss.getSuggestedWords("whisky").then(
 	function (data){
 		res.send(JSON.stringify(data));
