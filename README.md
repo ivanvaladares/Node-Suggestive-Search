@@ -137,8 +137,8 @@ If you submit a pull request, thanks! There are a couple rules to follow though 
 
 ## Bug reporting guidelines
 If you report a bug, thank you! That said for the process to be manageable please strictly adhere to the following guidelines. I'll not be able to handle bug reports that don't:
-* Your bug report should be a self-containing gist complete with a package.json for any dependencies you need. I need to run through a simple `git clone gist; npm install; node bugreport.js`.
-* It should use assertions to showcase the expected vs actual behavior and be hysteresis-proof.
+* Your bug report should be a self-containing project with a package.json for any dependencies you need. I need to run through a simple `npm install; node bugreport.js`.
+* It should use assertions to showcase the expected vs actual behavior.
 * Simplify as much as you can. Strip all your application-specific code.
 * Please explain precisely in the issue.
 * The code should be Javascript.
