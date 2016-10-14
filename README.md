@@ -9,7 +9,7 @@ This module requires NeDB 1.8.0, The JavaScript Database from Louis Chatriot htt
 * <a href="#searching-for-items">Searching for items</a>
 
 ### Loading a database
-It uses an in-memory datastore to build a dictionary composed by itens that needs to be searched. 
+It uses an in-memory database to build a dictionary composed by itens and words that need to be searched. 
 
 Here is an example of a JSON to be imported (Itens.json): 
 ```javascript
@@ -41,7 +41,7 @@ Code to load the JSON
 ```javascript
 var nss = require('node-suggestive-search.js');
 
-nss.loadJson("Itens.json.json").then(
+nss.loadJson("Itens.json").then(
 	function(data){
 		res.send(JSON.stringify(data)); 
 		// response: {"words":15,"items":5,"timeElapsed":"13 ms"}
