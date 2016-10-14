@@ -126,6 +126,11 @@ nss.query("wisk read lbel").then(
   
 ```
 
+## Rodamap
+* Support for MongoDb.
+* Support for plain memmory javascript objects.
+* Browser version.
+
 
 ## Pull requests
 If you submit a pull request, thanks! There are a couple rules to follow though to make it manageable:
