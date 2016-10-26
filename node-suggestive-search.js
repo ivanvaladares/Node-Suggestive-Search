@@ -1,30 +1,59 @@
 /* 
-node-suggestive-search v1.0 
+node-suggestive-search v1.1 
 https://github.com/ivanvaladares/node-suggestive-search/
-
 by Ivan Valadares 
 http://ivanvaladares.com 
 */
 
 var fs = require('fs'),
-	Datastore = require('nedb'),
 	path = require('path');
 
-var db = {};
-db.words = new Datastore({ inMemoryOnly: true });
-db.items = new Datastore({ inMemoryOnly: true });
+var db;
+var _thisModule = this;
+var initialized = false;
 
+//roadmap
+// getSuggestedItems
+// loadJson by json string
+// validade input json
+// catalog
 
-//http://alistapart.com/article/accent-folding-for-auto-complete
-var accentMap = {'á':'a', 'é':'e', 'í':'i','ó':'o','ú':'u'};
-function accent_fold (s) {
-	if (!s) { return ''; }
-	var ret = '';
-	for (var i = 0; i < s.length; i++) {
-		ret += accentMap[s.charAt(i)] || s.charAt(i);
+exports.init = function (options) {
+
+	if (!options) {
+		throw new Error("Options are required!");
 	}
-	return ret;
+
+	if (options.dataBase.toLowerCase() == "mongodb" || options.dataBase.toLowerCase() == "nedb") {
+		db = require("./plugins/" + options.dataBase.toLowerCase() + ".js");
+	} else {
+		throw new Error("This module requires MongoDB or NeDB!");
+	}
+
+	//todo: validade options before passing them to databases
+
+	db.init(options, function (err) {
+		if (err) { throw err; }
+
+		initialized = true;
+	});
+
+	initialized = true;
+
+	return this;
 };
+
+function checkInitialized() {
+	if (!initialized) {
+		throw new Error("Module not initialized!!");
+	}
+}
+
+
+//http://semplicewebsites.com/removing-accents-javascript
+latin_map = { "Á": "A", "Ă": "A", "Ắ": "A", "Ặ": "A", "Ằ": "A", "Ẳ": "A", "Ẵ": "A", "Ǎ": "A", "Â": "A", "Ấ": "A", "Ậ": "A", "Ầ": "A", "Ẩ": "A", "Ẫ": "A", "Ä": "A", "Ǟ": "A", "Ȧ": "A", "Ǡ": "A", "Ạ": "A", "Ȁ": "A", "À": "A", "Ả": "A", "Ȃ": "A", "Ā": "A", "Ą": "A", "Å": "A", "Ǻ": "A", "Ḁ": "A", "Ⱥ": "A", "Ã": "A", "Ꜳ": "AA", "Æ": "AE", "Ǽ": "AE", "Ǣ": "AE", "Ꜵ": "AO", "Ꜷ": "AU", "Ꜹ": "AV", "Ꜻ": "AV", "Ꜽ": "AY", "Ḃ": "B", "Ḅ": "B", "Ɓ": "B", "Ḇ": "B", "Ƀ": "B", "Ƃ": "B", "Ć": "C", "Č": "C", "Ç": "C", "Ḉ": "C", "Ĉ": "C", "Ċ": "C", "Ƈ": "C", "Ȼ": "C", "Ď": "D", "Ḑ": "D", "Ḓ": "D", "Ḋ": "D", "Ḍ": "D", "Ɗ": "D", "Ḏ": "D", "ǲ": "D", "ǅ": "D", "Đ": "D", "Ƌ": "D", "Ǳ": "DZ", "Ǆ": "DZ", "É": "E", "Ĕ": "E", "Ě": "E", "Ȩ": "E", "Ḝ": "E", "Ê": "E", "Ế": "E", "Ệ": "E", "Ề": "E", "Ể": "E", "Ễ": "E", "Ḙ": "E", "Ë": "E", "Ė": "E", "Ẹ": "E", "Ȅ": "E", "È": "E", "Ẻ": "E", "Ȇ": "E", "Ē": "E", "Ḗ": "E", "Ḕ": "E", "Ę": "E", "Ɇ": "E", "Ẽ": "E", "Ḛ": "E", "Ꝫ": "ET", "Ḟ": "F", "Ƒ": "F", "Ǵ": "G", "Ğ": "G", "Ǧ": "G", "Ģ": "G", "Ĝ": "G", "Ġ": "G", "Ɠ": "G", "Ḡ": "G", "Ǥ": "G", "Ḫ": "H", "Ȟ": "H", "Ḩ": "H", "Ĥ": "H", "Ⱨ": "H", "Ḧ": "H", "Ḣ": "H", "Ḥ": "H", "Ħ": "H", "Í": "I", "Ĭ": "I", "Ǐ": "I", "Î": "I", "Ï": "I", "Ḯ": "I", "İ": "I", "Ị": "I", "Ȉ": "I", "Ì": "I", "Ỉ": "I", "Ȋ": "I", "Ī": "I", "Į": "I", "Ɨ": "I", "Ĩ": "I", "Ḭ": "I", "Ꝺ": "D", "Ꝼ": "F", "Ᵹ": "G", "Ꞃ": "R", "Ꞅ": "S", "Ꞇ": "T", "Ꝭ": "IS", "Ĵ": "J", "Ɉ": "J", "Ḱ": "K", "Ǩ": "K", "Ķ": "K", "Ⱪ": "K", "Ꝃ": "K", "Ḳ": "K", "Ƙ": "K", "Ḵ": "K", "Ꝁ": "K", "Ꝅ": "K", "Ĺ": "L", "Ƚ": "L", "Ľ": "L", "Ļ": "L", "Ḽ": "L", "Ḷ": "L", "Ḹ": "L", "Ⱡ": "L", "Ꝉ": "L", "Ḻ": "L", "Ŀ": "L", "Ɫ": "L", "ǈ": "L", "Ł": "L", "Ǉ": "LJ", "Ḿ": "M", "Ṁ": "M", "Ṃ": "M", "Ɱ": "M", "Ń": "N", "Ň": "N", "Ņ": "N", "Ṋ": "N", "Ṅ": "N", "Ṇ": "N", "Ǹ": "N", "Ɲ": "N", "Ṉ": "N", "Ƞ": "N", "ǋ": "N", "Ñ": "N", "Ǌ": "NJ", "Ó": "O", "Ŏ": "O", "Ǒ": "O", "Ô": "O", "Ố": "O", "Ộ": "O", "Ồ": "O", "Ổ": "O", "Ỗ": "O", "Ö": "O", "Ȫ": "O", "Ȯ": "O", "Ȱ": "O", "Ọ": "O", "Ő": "O", "Ȍ": "O", "Ò": "O", "Ỏ": "O", "Ơ": "O", "Ớ": "O", "Ợ": "O", "Ờ": "O", "Ở": "O", "Ỡ": "O", "Ȏ": "O", "Ꝋ": "O", "Ꝍ": "O", "Ō": "O", "Ṓ": "O", "Ṑ": "O", "Ɵ": "O", "Ǫ": "O", "Ǭ": "O", "Ø": "O", "Ǿ": "O", "Õ": "O", "Ṍ": "O", "Ṏ": "O", "Ȭ": "O", "Ƣ": "OI", "Ꝏ": "OO", "Ɛ": "E", "Ɔ": "O", "Ȣ": "OU", "Ṕ": "P", "Ṗ": "P", "Ꝓ": "P", "Ƥ": "P", "Ꝕ": "P", "Ᵽ": "P", "Ꝑ": "P", "Ꝙ": "Q", "Ꝗ": "Q", "Ŕ": "R", "Ř": "R", "Ŗ": "R", "Ṙ": "R", "Ṛ": "R", "Ṝ": "R", "Ȑ": "R", "Ȓ": "R", "Ṟ": "R", "Ɍ": "R", "Ɽ": "R", "Ꜿ": "C", "Ǝ": "E", "Ś": "S", "Ṥ": "S", "Š": "S", "Ṧ": "S", "Ş": "S", "Ŝ": "S", "Ș": "S", "Ṡ": "S", "Ṣ": "S", "Ṩ": "S", "Ť": "T", "Ţ": "T", "Ṱ": "T", "Ț": "T", "Ⱦ": "T", "Ṫ": "T", "Ṭ": "T", "Ƭ": "T", "Ṯ": "T", "Ʈ": "T", "Ŧ": "T", "Ɐ": "A", "Ꞁ": "L", "Ɯ": "M", "Ʌ": "V", "Ꜩ": "TZ", "Ú": "U", "Ŭ": "U", "Ǔ": "U", "Û": "U", "Ṷ": "U", "Ü": "U", "Ǘ": "U", "Ǚ": "U", "Ǜ": "U", "Ǖ": "U", "Ṳ": "U", "Ụ": "U", "Ű": "U", "Ȕ": "U", "Ù": "U", "Ủ": "U", "Ư": "U", "Ứ": "U", "Ự": "U", "Ừ": "U", "Ử": "U", "Ữ": "U", "Ȗ": "U", "Ū": "U", "Ṻ": "U", "Ų": "U", "Ů": "U", "Ũ": "U", "Ṹ": "U", "Ṵ": "U", "Ꝟ": "V", "Ṿ": "V", "Ʋ": "V", "Ṽ": "V", "Ꝡ": "VY", "Ẃ": "W", "Ŵ": "W", "Ẅ": "W", "Ẇ": "W", "Ẉ": "W", "Ẁ": "W", "Ⱳ": "W", "Ẍ": "X", "Ẋ": "X", "Ý": "Y", "Ŷ": "Y", "Ÿ": "Y", "Ẏ": "Y", "Ỵ": "Y", "Ỳ": "Y", "Ƴ": "Y", "Ỷ": "Y", "Ỿ": "Y", "Ȳ": "Y", "Ɏ": "Y", "Ỹ": "Y", "Ź": "Z", "Ž": "Z", "Ẑ": "Z", "Ⱬ": "Z", "Ż": "Z", "Ẓ": "Z", "Ȥ": "Z", "Ẕ": "Z", "Ƶ": "Z", "Ĳ": "IJ", "Œ": "OE", "ᴀ": "A", "ᴁ": "AE", "ʙ": "B", "ᴃ": "B", "ᴄ": "C", "ᴅ": "D", "ᴇ": "E", "ꜰ": "F", "ɢ": "G", "ʛ": "G", "ʜ": "H", "ɪ": "I", "ʁ": "R", "ᴊ": "J", "ᴋ": "K", "ʟ": "L", "ᴌ": "L", "ᴍ": "M", "ɴ": "N", "ᴏ": "O", "ɶ": "OE", "ᴐ": "O", "ᴕ": "OU", "ᴘ": "P", "ʀ": "R", "ᴎ": "N", "ᴙ": "R", "ꜱ": "S", "ᴛ": "T", "ⱻ": "E", "ᴚ": "R", "ᴜ": "U", "ᴠ": "V", "ᴡ": "W", "ʏ": "Y", "ᴢ": "Z", "á": "a", "ă": "a", "ắ": "a", "ặ": "a", "ằ": "a", "ẳ": "a", "ẵ": "a", "ǎ": "a", "â": "a", "ấ": "a", "ậ": "a", "ầ": "a", "ẩ": "a", "ẫ": "a", "ä": "a", "ǟ": "a", "ȧ": "a", "ǡ": "a", "ạ": "a", "ȁ": "a", "à": "a", "ả": "a", "ȃ": "a", "ā": "a", "ą": "a", "ᶏ": "a", "ẚ": "a", "å": "a", "ǻ": "a", "ḁ": "a", "ⱥ": "a", "ã": "a", "ꜳ": "aa", "æ": "ae", "ǽ": "ae", "ǣ": "ae", "ꜵ": "ao", "ꜷ": "au", "ꜹ": "av", "ꜻ": "av", "ꜽ": "ay", "ḃ": "b", "ḅ": "b", "ɓ": "b", "ḇ": "b", "ᵬ": "b", "ᶀ": "b", "ƀ": "b", "ƃ": "b", "ɵ": "o", "ć": "c", "č": "c", "ç": "c", "ḉ": "c", "ĉ": "c", "ɕ": "c", "ċ": "c", "ƈ": "c", "ȼ": "c", "ď": "d", "ḑ": "d", "ḓ": "d", "ȡ": "d", "ḋ": "d", "ḍ": "d", "ɗ": "d", "ᶑ": "d", "ḏ": "d", "ᵭ": "d", "ᶁ": "d", "đ": "d", "ɖ": "d", "ƌ": "d", "ı": "i", "ȷ": "j", "ɟ": "j", "ʄ": "j", "ǳ": "dz", "ǆ": "dz", "é": "e", "ĕ": "e", "ě": "e", "ȩ": "e", "ḝ": "e", "ê": "e", "ế": "e", "ệ": "e", "ề": "e", "ể": "e", "ễ": "e", "ḙ": "e", "ë": "e", "ė": "e", "ẹ": "e", "ȅ": "e", "è": "e", "ẻ": "e", "ȇ": "e", "ē": "e", "ḗ": "e", "ḕ": "e", "ⱸ": "e", "ę": "e", "ᶒ": "e", "ɇ": "e", "ẽ": "e", "ḛ": "e", "ꝫ": "et", "ḟ": "f", "ƒ": "f", "ᵮ": "f", "ᶂ": "f", "ǵ": "g", "ğ": "g", "ǧ": "g", "ģ": "g", "ĝ": "g", "ġ": "g", "ɠ": "g", "ḡ": "g", "ᶃ": "g", "ǥ": "g", "ḫ": "h", "ȟ": "h", "ḩ": "h", "ĥ": "h", "ⱨ": "h", "ḧ": "h", "ḣ": "h", "ḥ": "h", "ɦ": "h", "ẖ": "h", "ħ": "h", "ƕ": "hv", "í": "i", "ĭ": "i", "ǐ": "i", "î": "i", "ï": "i", "ḯ": "i", "ị": "i", "ȉ": "i", "ì": "i", "ỉ": "i", "ȋ": "i", "ī": "i", "į": "i", "ᶖ": "i", "ɨ": "i", "ĩ": "i", "ḭ": "i", "ꝺ": "d", "ꝼ": "f", "ᵹ": "g", "ꞃ": "r", "ꞅ": "s", "ꞇ": "t", "ꝭ": "is", "ǰ": "j", "ĵ": "j", "ʝ": "j", "ɉ": "j", "ḱ": "k", "ǩ": "k", "ķ": "k", "ⱪ": "k", "ꝃ": "k", "ḳ": "k", "ƙ": "k", "ḵ": "k", "ᶄ": "k", "ꝁ": "k", "ꝅ": "k", "ĺ": "l", "ƚ": "l", "ɬ": "l", "ľ": "l", "ļ": "l", "ḽ": "l", "ȴ": "l", "ḷ": "l", "ḹ": "l", "ⱡ": "l", "ꝉ": "l", "ḻ": "l", "ŀ": "l", "ɫ": "l", "ᶅ": "l", "ɭ": "l", "ł": "l", "ǉ": "lj", "ſ": "s", "ẜ": "s", "ẛ": "s", "ẝ": "s", "ḿ": "m", "ṁ": "m", "ṃ": "m", "ɱ": "m", "ᵯ": "m", "ᶆ": "m", "ń": "n", "ň": "n", "ņ": "n", "ṋ": "n", "ȵ": "n", "ṅ": "n", "ṇ": "n", "ǹ": "n", "ɲ": "n", "ṉ": "n", "ƞ": "n", "ᵰ": "n", "ᶇ": "n", "ɳ": "n", "ñ": "n", "ǌ": "nj", "ó": "o", "ŏ": "o", "ǒ": "o", "ô": "o", "ố": "o", "ộ": "o", "ồ": "o", "ổ": "o", "ỗ": "o", "ö": "o", "ȫ": "o", "ȯ": "o", "ȱ": "o", "ọ": "o", "ő": "o", "ȍ": "o", "ò": "o", "ỏ": "o", "ơ": "o", "ớ": "o", "ợ": "o", "ờ": "o", "ở": "o", "ỡ": "o", "ȏ": "o", "ꝋ": "o", "ꝍ": "o", "ⱺ": "o", "ō": "o", "ṓ": "o", "ṑ": "o", "ǫ": "o", "ǭ": "o", "ø": "o", "ǿ": "o", "õ": "o", "ṍ": "o", "ṏ": "o", "ȭ": "o", "ƣ": "oi", "ꝏ": "oo", "ɛ": "e", "ᶓ": "e", "ɔ": "o", "ᶗ": "o", "ȣ": "ou", "ṕ": "p", "ṗ": "p", "ꝓ": "p", "ƥ": "p", "ᵱ": "p", "ᶈ": "p", "ꝕ": "p", "ᵽ": "p", "ꝑ": "p", "ꝙ": "q", "ʠ": "q", "ɋ": "q", "ꝗ": "q", "ŕ": "r", "ř": "r", "ŗ": "r", "ṙ": "r", "ṛ": "r", "ṝ": "r", "ȑ": "r", "ɾ": "r", "ᵳ": "r", "ȓ": "r", "ṟ": "r", "ɼ": "r", "ᵲ": "r", "ᶉ": "r", "ɍ": "r", "ɽ": "r", "ↄ": "c", "ꜿ": "c", "ɘ": "e", "ɿ": "r", "ś": "s", "ṥ": "s", "š": "s", "ṧ": "s", "ş": "s", "ŝ": "s", "ș": "s", "ṡ": "s", "ṣ": "s", "ṩ": "s", "ʂ": "s", "ᵴ": "s", "ᶊ": "s", "ȿ": "s", "ɡ": "g", "ᴑ": "o", "ᴓ": "o", "ᴝ": "u", "ť": "t", "ţ": "t", "ṱ": "t", "ț": "t", "ȶ": "t", "ẗ": "t", "ⱦ": "t", "ṫ": "t", "ṭ": "t", "ƭ": "t", "ṯ": "t", "ᵵ": "t", "ƫ": "t", "ʈ": "t", "ŧ": "t", "ᵺ": "th", "ɐ": "a", "ᴂ": "ae", "ǝ": "e", "ᵷ": "g", "ɥ": "h", "ʮ": "h", "ʯ": "h", "ᴉ": "i", "ʞ": "k", "ꞁ": "l", "ɯ": "m", "ɰ": "m", "ᴔ": "oe", "ɹ": "r", "ɻ": "r", "ɺ": "r", "ⱹ": "r", "ʇ": "t", "ʌ": "v", "ʍ": "w", "ʎ": "y", "ꜩ": "tz", "ú": "u", "ŭ": "u", "ǔ": "u", "û": "u", "ṷ": "u", "ü": "u", "ǘ": "u", "ǚ": "u", "ǜ": "u", "ǖ": "u", "ṳ": "u", "ụ": "u", "ű": "u", "ȕ": "u", "ù": "u", "ủ": "u", "ư": "u", "ứ": "u", "ự": "u", "ừ": "u", "ử": "u", "ữ": "u", "ȗ": "u", "ū": "u", "ṻ": "u", "ų": "u", "ᶙ": "u", "ů": "u", "ũ": "u", "ṹ": "u", "ṵ": "u", "ᵫ": "ue", "ꝸ": "um", "ⱴ": "v", "ꝟ": "v", "ṿ": "v", "ʋ": "v", "ᶌ": "v", "ⱱ": "v", "ṽ": "v", "ꝡ": "vy", "ẃ": "w", "ŵ": "w", "ẅ": "w", "ẇ": "w", "ẉ": "w", "ẁ": "w", "ⱳ": "w", "ẘ": "w", "ẍ": "x", "ẋ": "x", "ᶍ": "x", "ý": "y", "ŷ": "y", "ÿ": "y", "ẏ": "y", "ỵ": "y", "ỳ": "y", "ƴ": "y", "ỷ": "y", "ỿ": "y", "ȳ": "y", "ẙ": "y", "ɏ": "y", "ỹ": "y", "ź": "z", "ž": "z", "ẑ": "z", "ʑ": "z", "ⱬ": "z", "ż": "z", "ẓ": "z", "ȥ": "z", "ẕ": "z", "ᵶ": "z", "ᶎ": "z", "ʐ": "z", "ƶ": "z", "ɀ": "z", "ﬀ": "ff", "ﬃ": "ffi", "ﬄ": "ffl", "ﬁ": "fi", "ﬂ": "fl", "ĳ": "ij", "œ": "oe", "ﬆ": "st", "ₐ": "a", "ₑ": "e", "ᵢ": "i", "ⱼ": "j", "ₒ": "o", "ᵣ": "r", "ᵤ": "u", "ᵥ": "v", "ₓ": "x" };
+String.prototype.latinize = function () { return this.replace(/[^A-Za-z0-9\[\] ]/g, function (a) { return latin_map[a] || a }) };
+
 
 //https://en.wikipedia.org/wiki/Levenshtein_distance
 function similarity(s1, s2) {
@@ -66,190 +95,232 @@ function editDistance(s1, s2) {
 	return costs[s2.length];
 }
 
-
-
 //https://en.wikipedia.org/wiki/Soundex
 function soundex(str) {
-	var string = str.toUpperCase().replace(/[^A-Z]/g,"");
+	var string = str.toUpperCase().replace(/[^A-Z]/g, "");
 	string = [
-		string.substr(0,1),
+		string.substr(0, 1),
 		string.substr(1)
-			  .replace(/A|E|H|I|O|U|W|Y/g,0)
-			  .replace(/B|F|P|V/g,1)
-			  .replace(/C|G|J|K|Q|S|X|Z/g,2)
-			  .replace(/D|T/g,3)
-			  .replace(/L/g,4)
-			  .replace(/M|N/g,5)
-			  .replace(/R/g,6)
-			  .replace(/1{2}|2{2}|3{2}|4{2}|5{2}|6{2}/g,"")
-			  .replace(/0/g,"")
-	].join("").substr(0,4);
+			.replace(/A|E|H|I|O|U|W|Y/g, 0)
+			.replace(/B|F|P|V/g, 1)
+			.replace(/C|G|J|K|Q|S|X|Z/g, 2)
+			.replace(/D|T/g, 3)
+			.replace(/L/g, 4)
+			.replace(/M|N/g, 5)
+			.replace(/R/g, 6)
+			.replace(/1{2}|2{2}|3{2}|4{2}|5{2}|6{2}/g, "")
+			.replace(/0/g, "")
+	].join("").substr(0, 4);
 
-	return string+
-		  (string.length==4?"":(new Array(5-string.length)).join("0"));
+	return string +
+		(string.length == 4 ? "" : (new Array(5 - string.length)).join("0"));
 };
 
-function deduplicateArray(arr) {
-    return arr.sort().
-			filter(function(item, pos, arr) {
-        		return !pos || item != arr[pos - 1];
-    })
-}
-
-function arrToJson(arr){
-	var json = { };
-
-	for(var i = 0, l = arr.length; i < l; i++) {
-		json[arr[i]] = 1;
+function cloneObjJson(obj) {
+	if (obj == null || typeof (obj) != 'object') {
+		return obj;
 	}
-
-	return json;
+	var temp = new obj.constructor();
+	for (var key in obj) {
+		temp[key] = cloneObjJson(obj[key]);
+	}
+	return temp;
 }
-
 
 /**
  * Split words from a string
  * @param {string} text to be broken into words
  * returns {Array}
  */
-function splitWords(text){
+function splitWords(text) {
 
 	//separate words using this regexp pattern
-	text = text.replace(/[.,\/#!$%\^&\*;:{}=+\-_`~()\?<>"”“]/gi, ' '); 
-		
+	text = text.replace(/[.,\/#!$%\^&\*;:{}=+\-_`~()\?<>"”“]/gi, ' ');
+
 	//split words from the text variable
 	var arr = text.split(" ");
-	
+
 	var words = [];
-	
-	for (var i=0; i<arr.length; i++){
+
+	for (var i = 0; i < arr.length; i++) {
 		var word = arr[i].trim(); // .replace(/[^0-9a-z#]/gi, ''); 
 
-		if (word.length > 0){
+		if (word.length > 0) {
 			words.push(word);
 		}
 	}
-	
+
 	return words;
 }
 
 /**
- * Create an object dictionary with related words 
+ * Create an object dictionary inside the objWord from the arrWords array 
  * @param {JSON} word from the dictionary
  * @param {array} array of related words
  * returns nothing
  */
-function setRelatedWords(objWord, arrWords){
+function setRelatedWords(objWord, arrWords) {
 
-	for (var w in arrWords){
+	for (var w in arrWords) {
 
-		var strWord = arrWords[w].toLowerCase()
-	
-		if (strWord in objWord.relatedWords){
-			
-			objWord.relatedWords[strWord] = (objWord.relatedWords[strWord] || 0) + 1; 	
+		var strWord = arrWords[w];
 
-		}else{
+		if (strWord.length <= 1) {
+			continue;
+		}
+
+		if (objWord.word.toLowerCase() == strWord.toLowerCase()) {
+			continue;
+		}
+
+		if (strWord in objWord.relatedWords) {
+
+			objWord.relatedWords[strWord] = (objWord.relatedWords[strWord] || 0) + 1;
+
+		} else {
 
 			objWord.relatedWords[strWord] = 1;
 
 		}
 
 	}
+
 }
 
-
 /**
- * Find words using soundex function
+ * function used by LoadJson to store create word dictionary 
  * @param {JSON} json with items to be broken into words to construct our dictionary
  * returns {Promise(JSON)}
  */
-function populateWordsJson(itemsJson){
+function populateWordsJson(itemsJson) {
 
-	return new Promise(function(resolve, reject) {	
-	
+	return new Promise(function (resolve, reject) {
+
 		//create a dictionary like object
 		var objWords = {};
-		
+		var repeatedObjWords = {};
+
 		for (var x in itemsJson) {
-			
+
 			//get words from each item
 			var arrWords = splitWords(itemsJson[x].itemName);
-		
-			//associate each word with items. ex: {word, [item1, item2, item3...]} 
-			for (var w in arrWords){
-			
-				var strWord = arrWords[w].toLowerCase()
+
+			//associate each word with items. ex: {word, [item1, item2, item3...]}
+			for (var w = 0; w < arrWords.length; w++) {
+
+				var strWord = arrWords[w].toLowerCase();
 
 				//if there is already this word in our dictionary, associate it with this item
-				if (strWord in objWords){
-					
-					objWords[strWord].items.push(itemsJson[x].itemId);	
+				if (strWord in objWords) {
+
+					objWords[strWord].items[itemsJson[x].itemId] = 1;
 
 					setRelatedWords(objWords[strWord], arrWords);
 
-				}else{
+				} else {
 					//keep the word without accent and lowercase
-					var wordLcase = accent_fold(strWord);
-					objWords[strWord] = { word: arrWords[w], wordLcase: wordLcase, soundex: soundex(arrWords[w]), relatedWords: {} };
+					var wordLcase = strWord.latinize();
 
-					for (var i=2; i <= wordLcase.length && i <= 4; i++){
+					objWords[strWord] = { word: arrWords[w], wordLcase: wordLcase, soundex: soundex(arrWords[w]), relatedWords: {}, items: {} };
+
+					for (var i = 2; i <= wordLcase.length && i <= 4; i++) {
 						objWords[strWord]["p" + i + "i"] = wordLcase.substr(0, i).toLowerCase();
-						objWords[strWord]["p" + i + "e"] = wordLcase.substr(wordLcase.length-i, wordLcase.length).toLowerCase();
+						objWords[strWord]["p" + i + "e"] = wordLcase.substr(wordLcase.length - i, wordLcase.length).toLowerCase();
 					}
 
-					objWords[strWord].items = [itemsJson[x].itemId];
+					objWords[strWord].items[itemsJson[x].itemId] = 1;
 
 					setRelatedWords(objWords[strWord], arrWords);
+
+					if (repeatedObjWords[wordLcase]) {
+						repeatedObjWords[wordLcase].push(strWord);
+					} else {
+						repeatedObjWords[wordLcase] = [strWord];
+					}
 
 				}
 
 			}
 
 		}
-		
+
+
+		//lets make this module accent insensitive when searching for items
+		//all the similar words will have the same itemsId
+		for (var item in repeatedObjWords) {
+			if (repeatedObjWords[item].length > 1) {
+
+				var itemsId = {};
+
+				for (var index = 0; index < repeatedObjWords[item].length; index++) {
+					var objWord = objWords[repeatedObjWords[item][index]];
+
+					for (var idResultItem in objWord.items) {
+						if (!itemsId[idResultItem]) {
+							itemsId[idResultItem] = objWord.items[idResultItem];
+						}
+					}
+
+				}
+
+				for (var index = 0; index < repeatedObjWords[item].length; index++) {
+					var objWord = objWords[repeatedObjWords[item][index]];
+
+					objWord.items = cloneObjJson(itemsId);
+				}
+			}
+		}
+
+
 		//create a nedb compatible JSON from the above dictionary
 		var wordsJson = [];
-		for (var item in objWords){
+		for (var item in objWords) {
 			wordsJson.push(objWords[item]);
 		}
-		
+
+
 		//clean the words database
-		db.words.remove({}, { multi: true }, function (err, numRemoved) {
+		db.remove(db.dbWords, {}, { multi: true }, function (err, numRemoved) {
 			if (err) return reject(err);
-				
+
 			//insert all words at once in database
-			db.words.insert(wordsJson, function (err, wordsJsonInserted) {
+			db.insert(db.dbWords, wordsJson, function (err, wordsJsonInserted) {
 				if (err) return reject(err);
 
 				//try to create an index for [wordLcase] 
-				db.words.ensureIndex({ fieldName: 'wordLcase' }, function (err) {
+				db.createIndex(db.dbWords, "word", 1, function (err) {
 					//lets not propagate for now
 					if (err) console.log(err);
-				});				
+				});
+
+				//try to create an index for [wordLcase] 
+				db.createIndex(db.dbWords, "wordLcase", 1, function (err) {
+					//lets not propagate for now
+					if (err) console.log(err);
+				});
 
 				//try to create an index for [soundex] 
-				db.words.ensureIndex({ fieldName: 'soundex'}, function (err) {
+				db.createIndex(db.dbWords, "soundex", 1, function (err) {
 					//lets not propagate for now
 					if (err) console.log(err);
 				});
 
 				//try to create an index for [pXi]
-				for (var i=2; i<=4; i++){
-					db.words.ensureIndex( JSON.parse('{ "fieldName" : "p' + i + 'i" }') , function (err) {
+				for (var i = 2; i <= 4; i++) {
+					db.createIndex(db.dbWords, ('p' + i + 'i'), 1, function (err) {
 						//lets not propagate for now
 						if (err) console.log(err);
 					});
-					db.words.ensureIndex( JSON.parse('{ "fieldName" : "p' + i + 'e" }') , function (err) {
+					db.createIndex(db.dbWords, ('p' + i + 'e'), 1, function (err) {
 						//lets not propagate for now
 						if (err) console.log(err);
-					});					
+					});
 				}
 
 				//return some information about this process
-				resolve({words: wordsJsonInserted.length});
+				resolve({ words: wordsJson.length });
 
-			}); 
+			});
 
 		});
 
@@ -257,44 +328,57 @@ function populateWordsJson(itemsJson){
 
 }
 
-
 /**
- * Find words using soundex function
+ * Find words using soundex function and nGram like method
  * @param {String} word used in the search
  * returns {Promise(JSON)} 
  */
-function queryWordBySoundexAndParts(word){
-	
-	return new Promise(function(resolve, reject) {
+function getWordsBySoundexAndParts(word) {
+
+	return new Promise(function (resolve, reject) {
 
 		//try to find an word is our dictionary using soundex and parts of the word
-		//todo: research a better way to improve the performance
+		//todo: research a better way to improve the performance of this query
 		var queryCriteria = [{ soundex: soundex(word) }];
 
-		var wordWithoutAccents = accent_fold(word);
+		var wordWithoutAccents = word.latinize();
 
-		for (var i=2; i<=4 && i<=wordWithoutAccents.length; i++){
-			var objCriteriaIni = JSON.parse('{ "p' + i + 'i" : "" }');
-			objCriteriaIni[Object.keys(objCriteriaIni)[0]] = wordWithoutAccents.substr(0, i).toLowerCase();
-			queryCriteria.push(objCriteriaIni);
+		for (var i = 4; i >= 2; i--) {
 
-			var objCriteriaEnd = JSON.parse('{ "p' + i + 'e" : "" }');
-			objCriteriaEnd[Object.keys(objCriteriaEnd)[0]] = wordWithoutAccents.substr(wordWithoutAccents.length-i, wordWithoutAccents.length).toLowerCase();
-			queryCriteria.push(objCriteriaEnd);
+			if (wordWithoutAccents.length >= i) {
+
+				var objCriteriaIni = JSON.parse('{ "p' + i + 'i" : "" }');
+				objCriteriaIni[Object.keys(objCriteriaIni)[0]] = wordWithoutAccents.substr(0, i).toLowerCase();
+				queryCriteria.push(objCriteriaIni);
+
+				var objCriteriaEnd = JSON.parse('{ "p' + i + 'e" : "" }');
+				objCriteriaEnd[Object.keys(objCriteriaEnd)[0]] = wordWithoutAccents.substr(wordWithoutAccents.length - i, wordWithoutAccents.length).toLowerCase();
+				queryCriteria.push(objCriteriaEnd);
+
+			}
+
+			//we already have too many search criterias for this word, lets stop to not slow down this query
+			if (queryCriteria.length >= 5) {
+				break;
+			}
 		}
 
-		db.words.find({$or: queryCriteria}).exec(function (err, items) {
+
+		db.find(db.dbWords, { $or: queryCriteria }, function (err, items) {
 
 			if (err) return reject(err);
 
 			if (items.length > 0) {
 
-				// before return the result, lets give a similarity rank for each result	
-				resolve(items.map(function (obj, i){
-								obj.similarity = similarity(obj.word, word);
-								return obj;
-							})
-					);
+				//before return the result, lets give a similarity rank for each result	
+				//and filter top 10 most similar result 
+				resolve(items.map(function (obj, i) {
+					obj.similarity = similarity(obj.word, word);
+					return obj;
+				}).sort(function (x, y) {
+					return ((x.similarity > y.similarity) ? -1 : 1)
+				}).slice(0, 10)
+				);
 
 			} else {
 
@@ -305,7 +389,7 @@ function queryWordBySoundexAndParts(word){
 			}
 
 		});
-	
+
 	});
 
 }
@@ -316,41 +400,49 @@ function queryWordBySoundexAndParts(word){
  * @param {Int} limit the result
  * returns {Promise(JSON)}
  */
-function listMoreWordsLike(word, limit){
+function getWordsStartingWith(word, limit) {
 
-	return new Promise(function(resolve, reject) {
+	return new Promise(function (resolve, reject) {
 
 		var queryCriteria;
+		var hasCriteria = false;
 
-		//create a search criteria for 2 to 4 letters to try to find words that starts like this one
-		for (var i=4; i>=2; i--){
+		//create a search criteria from 4 to 2 letters to try to find words that starts like this one
+		for (var i = 4; i >= 2; i--) {
 			if (word.length >= i) {
 				queryCriteria = JSON.parse('{ "p' + i + 'i" : "" }');
 				queryCriteria[Object.keys(queryCriteria)[0]] = word.substr(0, i).toLowerCase();
+
+				hasCriteria = true;
+				//lets search with only one criteria
 				break;
 			}
 		}
 
+		if (!hasCriteria) {
+			return resolve(null);
+		}
+
 		//execute the query
-		db.words.find(queryCriteria).exec(function (err, foundItems) {
+		db.find(db.dbWords, queryCriteria, function (err, foundItems) {
 			if (err) return reject(err);
 
 			if (foundItems.length > 0) {
 
 				//return item that begins with same characters, from smallest to biggest and then alphabetically
 				resolve(foundItems.filter(function (objWord) {
-						return objWord.wordLcase.indexOf(word.toLowerCase()) == 0;
-					}).sort(function(a, b){
-						if (a.word.length > b.word.length) {
-							return 1;
-						} else if (a.word.length < b.word.length) {
-							return -1;
-						}
-						return a.word > b.word;
-					})
+					return objWord.wordLcase.indexOf(word.toLowerCase()) == 0;
+				}).sort(function (a, b) {
+					if (a.word.length > b.word.length) {
+						return 1;
+					} else if (a.word.length < b.word.length) {
+						return -1;
+					}
+					return a.word > b.word;
+				})
 					.slice(0, ((limit > 0) ? limit : foundItems.length)));
-	
-			}else{
+
+			} else {
 
 				resolve(null);
 
@@ -362,353 +454,563 @@ function listMoreWordsLike(word, limit){
 
 }
 
-
-
 /**
- * Return array of words from words objects with same itemsID (it is like a join... must improve a lot...) 
- * @param {String} word to search
- * @param {Int} limit the result
+ * Insert a new item into the dictionary database from json object
+ * @param {Json object} with item {itemId: 0 , itemName: "item name"}
  * returns {Promise(JSON)}
  */
-function selectWordsWithSameItems(items, moreThanOneWord){
+module.exports.insertItem = function (itemJson) {
 
-	return new Promise(function(resolve, reject) {
+	checkInitialized();
+			
 
-		//response
-		var arrResponse = [];
+	return new Promise(function (resolve, reject) {
 
-		//acumulated itemsId to use to offers more words from those items
-		var arrItemsId = null;
+		var time = new Date();
 
-		//acumulated related words
-		var arrRelatedWords = [];
-
-		//take care of all the words but the last
-		for (var word = 0; word<items.length; word ++){
-			var objWord = items[word];
-
-			if (objWord && !Array.isArray(objWord)){
-
-				if (!objWord.correct){
-					//some word is not correct
-					resolve(null);
-					return;
-				}
-
-				if (!arrItemsId){
-					arrResponse.push("");
-					arrItemsId = objWord.items;
-				}
-				
-				var newarrItemsId = [];
-
-				for (var i = 0; i < arrItemsId.length; i++) {
-					for (var x = 0; x < objWord.items.length; x++) {
-						if (arrItemsId[i] == objWord.items[x]){
-							newarrItemsId.push(arrItemsId[i]);
-						}
-					}
-				}
-
-				arrItemsId = newarrItemsId;
-
-				if (arrItemsId.length == 0 && moreThanOneWord){
-					//some word does not have itens related.. break the response
-					resolve(null);
-					return;
-				}
-
-				arrResponse[0] = (arrResponse[0] + " " + objWord.word).trim();
-				arrRelatedWords.push(objWord.relatedWords);
-			}
-		}
-
-		//take care of the last separatedelly because this could be an array with more results
-		for (var word in items){
-			var objWord = items[word];
-
-			if (!arrItemsId){
-				arrItemsId = [];
-			}
-
-			if (objWord && Array.isArray(objWord)){
-
-				for (var i=0; i < objWord.length; i++){
-
-					var itemExist = false;
-
-					var newarrItemsId = [];
-
-					if (moreThanOneWord){
-
-						for (var j = 0; j < arrItemsId.length; j++) {
-							for (var x = 0; x < objWord[i].items.length; x++) {
-								if (arrItemsId[j] == objWord[i].items[x]){
-									itemExist = true;
-									newarrItemsId.push(arrItemsId[j]);
-								}
-							}
-						}
-
-						if (itemExist) {
-							arrItemsId = newarrItemsId;
-							arrResponse.push(arrResponse[0] + " " + objWord[i].word);
-							arrRelatedWords.push(objWord[i].relatedWords);
-						}
-
-					}else{
-
-						arrResponse.push(objWord[i].word);
-
-						for (var x = 0; x < objWord[i].items.length; x++) {
-							newarrItemsId.push(objWord[i].items[x]);
-						}
-
-						arrItemsId = arrItemsId.concat(newarrItemsId);
-					}
-				}
-
-			}
+		//todo: validade json object
 		
-		}
+		_thisModule.removeItem(itemJson.itemId).then(
+			function (data){
 
-		if (arrResponse.length > 3){
+				//insert item into items dictionary
+				db.insert(db.dbItems, itemJson, function (err, itemJsonInserted) {
+					if (err) return reject(err);
 
-			resolve(arrResponse);
+					//get words from item
+					var arrWords = splitWords(itemJson.itemName);
 
-		}else{
 
-			getMoreWordsFromItemsID(arrResponse, arrItemsId, arrRelatedWords).then(function(arr){
+					//get each word from dictionary and associate with this new item
+					//also check if is a repeating word with different accents
+					//make a promise for each word and create an array of promises
+					var promises = arrWords.map(function (word) {
 
-				resolve(arr);
+						return new Promise(function (resolve, reject) {
 
-			});
+							//try to find the exact word in our dictionary
+							db.find(db.dbWords, { wordLcase: word.toLowerCase().latinize() }, function (err, foundItems) {
+								if (err) return reject(err);
 
-		}
+								if (!foundItems || foundItems.length <= 0) {
+
+									//instead of returning an error, lets return null
+									resolve(null);
+
+								} else {
+
+									resolve(foundItems);
+
+								}
+
+							});
+
+						});
+
+					});
+
+					Promise.all(promises).then(function (foundItems) {
+
+						var notFoundedWords = [];
+						var foundedWords = [];
+						var foundedWordsDifferentAccents = [];
+
+						//set an array with the not founded words
+						//set an array with the founded words
+						for (var index = 0; index < foundItems.length; index++) {
+							var foundItem = foundItems[index];
+
+							if (foundItem == null) {
+
+								notFoundedWords.push(arrWords[index]);
+
+							} else {
+
+								var wordFound = false;
+
+								for (var iWord in foundItem) {
+									var objWord = foundItem[iWord];
+
+									if (objWord.word.toLowerCase() == arrWords[index].toLowerCase()) {
+										foundedWords.push(arrWords[index]);
+										wordFound = true;
+									}
+								}
+
+								if (!wordFound) {
+									foundedWordsDifferentAccents.push(arrWords[index]);
+									notFoundedWords.push(arrWords[index]);
+								}
+
+							}
+
+						}
+
+
+						//associate this words with this new item and its words
+						for (var index = 0; index < foundedWords.length; index++) {
+							var word = foundedWords[index];
+
+							db.find(db.dbWords, { wordLcase: word.toLowerCase().latinize() }, function (err, existingWords) {
+								if (err) return reject(err);
+
+								for (var index = 0; index < existingWords.length; index++) {
+
+									//associate with new words
+									setRelatedWords(existingWords[index], arrWords);
+
+									//associate with this itemId
+									existingWords[index].items[itemJson.itemId] = 1;
+
+									//send it back to the database
+									db.update(db.dbWords, { wordLcase: existingWords[index].wordLcase }, 
+														{ $set: { "items": existingWords[index].items, "relatedWords": existingWords[index].relatedWords } },
+														{ multi: true },
+														function(err, numReplaced){
+										//nothing
+									});
+
+								}
+
+							});
+
+						}
+
+
+						//create new words objects to insert into the dictionary
+						var objWords = {};
+
+						for (var index = 0; index < notFoundedWords.length; index++) {
+							var word = notFoundedWords[index];
+
+							var wordLcase = word.toLowerCase().latinize();
+
+							var objWord = { word: word, wordLcase: wordLcase, soundex: soundex(word), relatedWords: {}, items: {} };
+
+							for (var i = 2; i <= wordLcase.length && i <= 4; i++) {
+								objWord["p" + i + "i"] = wordLcase.substr(0, i).toLowerCase();
+								objWord["p" + i + "e"] = wordLcase.substr(wordLcase.length - i, wordLcase.length).toLowerCase();
+							}
+
+							//add this new item into related items of this word
+							objWord.items[itemJson.itemId] = 1;
+
+							//set all related words of this new one
+							setRelatedWords(objWord, arrWords);
+
+							//mount the array to bulk insert later 
+							objWords[word] = objWord;
+						}
+
+
+						//create a nedb compatible JSON from the above dictionary
+						var wordsJson = [];
+						for (var item in objWords) {
+							wordsJson.push(objWords[item]);
+						}
+
+						//insert all the new words in a bulk insert
+						if (wordsJson.length > 0) {
+							db.insert(db.dbWords, wordsJson, function (err, wordJsonInserted) {
+								if (err) return reject(err);
+
+								//lets treat all similar words with different accents
+								if (foundedWordsDifferentAccents.length > 0){
+
+									//associate this words with this new item and its words
+									for (var index = 0; index < foundedWordsDifferentAccents.length; index++) {
+										var word = foundedWordsDifferentAccents[index];
+
+										db.find(db.dbWords, { wordLcase: word.toLowerCase().latinize() }, function (err, existingWords) {
+											if (err) return reject(err);
+
+											var itemsId = {};
+
+											for (var index = 0; index < existingWords.length; index++) {
+												for (var idItem in existingWords[index].items) {
+													if (!itemsId[idItem]) {
+														itemsId[idItem] = existingWords[index].items[idItem];
+													}
+												}
+											}
+
+											if (existingWords.length > 0){
+												itemsId[itemJson.itemId] = 1;
+
+												//send it back to the database
+												db.update(db.dbWords, { wordLcase: word.toLowerCase().latinize() }, 
+																	{ $set: { "items": itemsId} }, 
+																	{ multi: true },
+																	function(err, numReplaced){
+													//nothing
+												});
+											}
+
+										});
+
+									}
+
+									//return some information about this process
+									resolve({timeElapsed: (new Date() - time)});
+
+								}else{
+									//nothing to update
+
+									//return some information about this process
+									resolve({timeElapsed: (new Date() - time)});
+								}
+
+							});
+
+						}else{
+							//nothing to insert
+
+							//return some information about this process
+							resolve({timeElapsed: (new Date() - time)});
+
+						}
+
+					});
+
+				});
+
+			},
+			function (err){
+				return reject({ message: "Could not insert this item!" });
+			}
+		);
 
 	});
+
+
 }
 
-
 /**
- * Return array of suggestions from a previous suggestions  
- * @param {String} word to search
- * @param {Int} limit the result
+ * Removes an item and its words from the dictionary database
+ * @param {string} itemId
  * returns {Promise(JSON)}
  */
-function getMoreWordsFromItemsID(arrResponse, arrItemsId, arrRelatedWords){
+module.exports.removeItem = function (itemId) {
 
-	//todo: change this query for related words for every result,  arrRelatedWords is unused
+	checkInitialized();
 
-	return new Promise(function(resolve, reject) {
+	return new Promise(function (resolve, reject) {
 
+		var time = new Date();
 
-		var arrWords = deduplicateArray(arrResponse.join(" ").split(" "))
+		db.find(db.dbItems, {itemId: itemId}, function (err, existingItem) {
+			if (err) return reject(err);
 
-		var arrCriteria = "";
-		for (var i=0; i<arrWords.length; i++){
-			arrCriteria += '"objWords.'+ arrWords[i] +'": 1,';
-		}
-
-		arrCriteria = "{" + arrCriteria.substring(0, arrCriteria.length - 1) + "}";
-
-		var jsonCriteria = JSON.parse(arrCriteria);
-
-		db.items.find(jsonCriteria).exec(function(err, othersItems){
-
-			//keep the last line from previous suggestions
-			var lastLine = arrResponse[arrResponse.length-1];
-
-			//get all item's names from items returned from query
-			var strNames = "";
-			for (var w=0; w < othersItems.length; w++){
-				strNames += othersItems[w].itemName + " "; 
+			if (!existingItem || existingItem.length <= 0){
+				return resolve({timeElapsed: (new Date() - time)});
 			}
 
-			var arrOtherWords = splitWords(strNames);
+			var arrWords = splitWords(existingItem[0].itemName);
 
-			var hist = {};
-			arrOtherWords.map( function (a) { if (a in hist) hist[a] ++; else hist[a] = 1; } );
-			//console.log(hist);
+			//remove item from items dictionary
+			db.remove(db.dbItems, {itemId: itemId}, { multi: false }, function (err, numRemoved) {
+				if (err) return reject(err);
 
-			//deduplicate, order bigger words fisrt and then alphabetically
-			//remove number elements if array is bigger than 2
-			arrOtherWords = deduplicateArray(arrOtherWords)
-				.sort(function(a, b){
-					if (a.length < b.length) {
-						return 1;
-					} else if (a.length > b.length) {
-						return -1;
+				//get each word from dictionary and associate with this new item
+				//also check if is a repeating word with different accents
+				//make a promise for each word and create an array of promises
+				var promises = arrWords.map(function (word) {
+
+					return new Promise(function (resolve, reject) {
+
+						//try to find the exact word in our dictionary
+						db.find(db.dbWords, { wordLcase: word.toLowerCase().latinize() }, function (err, foundItems) {
+							if (err) return reject(err);
+
+							if (!foundItems || foundItems.length <= 0) {
+
+								//instead of returning an error, lets return null
+								resolve([]);
+
+							} else {
+
+								resolve(foundItems);
+
+							}
+
+						});
+
+					});
+
+				});
+
+				Promise.all(promises).then(function (foundWords) {
+
+					//get all words and remove itemsId and relatedWords = 1
+					for (var index = 0; index < foundWords.length; index++) {
+						var foundWord = foundWords[index];
+
+						if (foundWord != null && foundWord.length > 0){
+
+							for (var iWord = 0; iWord < foundWord.length; iWord++) {
+								var element = foundWord[iWord];
+								
+								//remove itemsId 
+								if (element.items[itemId] == 1){
+									delete element.items[itemId];
+								}
+
+								//remove relatedWords = 1
+								arrWords.map(function (word) {
+									if (element.relatedWords[word] === 1){
+										delete element.relatedWords[word];
+									}
+								});
+
+							}
+						}
 					}
-					return a.toLowerCase() > b.toLowerCase()})
-				.filter(function (objWord) {
-					return lastLine.indexOf(objWord) == -1 && ((arrOtherWords.length > 2) ? isNaN(parseInt(objWord.substr(0, 1))) : true);
+
+					var innerPromises = [];
+
+					//delete words with empty itemId or relatedWords
+					for (var index = 0; index < foundWords.length; index++) {
+						var foundWord = foundWords[index];
+
+						if (foundWord != null && foundWord.length > 0){
+
+							for (var iWord = 0; iWord < foundWord.length; iWord++) {
+								var element = foundWord[iWord];
+								
+								if(Object.keys(element.items).length <= 0 || Object.keys(element.relatedWords).length <= 0){
+									//remove this one 
+
+									var p = new Promise(function (resolve, reject) {
+
+										db.remove(db.dbWords, {word: element.word }, { multi: false }, function (err, numRemoved) {
+											if (err) return reject(err);
+
+											resolve(numRemoved);
+										});
+
+									});
+
+									innerPromises.push(p);									
+
+								}else{
+									//update this one
+									//send it back to the database
+									var p = new Promise(function (resolve, reject) {
+
+										db.update(db.dbWords, { word: element.word }, 
+															{ $set: { "items": element.items, "relatedWords": element.relatedWords } },
+															{ multi: false },
+															function(err, numReplaced){
+
+													resolve(numReplaced);
+										});										
+
+									});
+
+									innerPromises.push(p);
+
+								}
+								
+							}
+						}
+					}	
+
+					Promise.all(innerPromises).then(function (operations) {
+
+						for (var index = 0; index < operations.length; index++) {
+							var element = operations[index];
+
+							//todo: test if any operation had failed 
+						}
+
+						//return some information about this process
+						resolve({timeElapsed: (new Date() - time)});
+
+					});
+
+				});
+
 			});
 
-			//add suggestions to the end of response array
-			for (var w=0; w < arrOtherWords.length; w++){
-				arrResponse.push(lastLine + " " + arrOtherWords[w]);
-			}
-
-			resolve(arrResponse.slice(0, 10));
 		});
 
 	});
 
 }
 
-
 /**
- * Load the dictionary database
- * @param {String} filename, jSon file with items
+ * Load the dictionary database from json file or string
+ * @param {String} filename or json string, jSon file with items
  * @param {String} charset, Charset used in file 
  * returns {Promise(JSON)}
  */
-module.exports.loadJson = function(jSonFilePath, charset){
+module.exports.loadJson = function (jSonFilePath, charset) {
 
-	return new Promise(function(resolve, reject) {
-	
+	checkInitialized();
+
+	return new Promise(function (resolve, reject) {
+
 		var time = new Date();
-		
-		if (!charset){
+
+		if (!charset) {
 			charset = "utf8";
 		}
 
 		//get the file from the path
 		fs.readFile(jSonFilePath, charset, function (err, data) {
 			if (err) return reject(err);
-			
+
 			var itemsJson = JSON.parse(data);
 
-			//todo: test this helper when in getMoreWordsFromItemsID function
+			/*
 			itemsJson.map(function (obj, i){
-						obj.objWords = arrToJson(splitWords(obj.itemName));
+						obj.objWords = splitWords(obj.itemName);
 						return obj;
-					});
-			
+			});
+			*/
+
 			//clean the database
-			db.items.remove({}, { multi: true }, function (err, numRemoved) {
+			db.remove(db.dbItems, {}, { multi: true }, function (err, numRemoved) {
 				if (err) return reject(err);
-				
+
 				//insert all items in the database
-				db.items.insert(itemsJson, function (err, itemsJsonInserted) {
+				db.insert(db.dbItems, itemsJson, function (err, itemsJsonInserted) {
 					if (err) return reject(err);
 
-					//try to create an unique index for [itemId] 
-					db.items.ensureIndex({ fieldName: 'itemId', unique: true }, function (err) {
-						if (err) return reject(err);
-					});				
+					db.createIndex(db.dbItems, "itemId", 1, function (err) {
+						//lets not propagate for now
+						if (err) console.log(err);
+					});
 
 					//from the items, lets extract our dictionary 
-					populateWordsJson(itemsJsonInserted).then(function (information){
-										
-						information.items = itemsJsonInserted.length;
-						information.timeElapsed = (new Date() - time) + " ms"
+					populateWordsJson(itemsJson).then(function (information) {
+
+						information.items = itemsJson.length;
+						information.timeElapsed = (new Date() - time);
 
 						//return some information about this process
 						resolve(information);
 
-					}, function (err){
+					}, function (err) {
 						return reject(err);
 					});
 
-				});		
-				
+				});
+
 			});
-			
+
 		});
-	
+
 	});
 
-}  
-
+}
 
 /**
- * Return items array and words used in the query
- * @param {String} words used in the search
+ * Return itemsId array and words used in the query
+ * @param {String} word(s) used in the search
  * returns {Promise(JSON)}
+ * depends: latinize, getWordsBySoundexAndParts, cloneObjJson, 
  */
-module.exports.query = function(words){
-	
-	return new Promise(function(resolve, reject) {
+module.exports.query = function (words) {
+
+	checkInitialized();
+
+	return new Promise(function (resolve, reject) {
 
 		var time = new Date().getTime();
-		
+
 		var arrWords = splitWords(words);
 
 		if (arrWords.length <= 0) {
-			return resolve({Error : "No word was given to search!"});
+			return reject({ message: "No word was given to search!" });
 		}
 
 		//make a promise for each word from query and create an array of promises
-		var promises = arrWords.map(function(word) {
+		var promises = arrWords.map(function (word) {
 
-			return new Promise(function(resolve, reject) {
+			return new Promise(function (resolve, reject) {
 
 				//first, lets try to find the exact word in our dictionary
-				db.words.findOne({ wordLcase: accent_fold( word.toLowerCase() ) }).exec(function (err, foundItem) {
-					if (err) return reject(err); 
+				db.find(db.dbWords, { wordLcase: word.toLowerCase().latinize() }, function (err, foundItem) {
+					if (err) return reject(err);
 
 					//no results :(, lets try with soundex and parts
-					if (!foundItem) {
+					if (!foundItem || foundItem.length <= 0) {
 
 						//this function will try to get words in our dictionary that is similar to the word from the query
-						queryWordBySoundexAndParts(word).then(
-							function (soudexFoundItems){
+						getWordsBySoundexAndParts(word).then(
+							function (soudexFoundItems) {
 
 								if (soudexFoundItems != null) {
-									resolve({word: word, correct: false, results: soudexFoundItems});
-								}else{
-									resolve({word: word, correct: false, results: []})
+									resolve({ word: word, correct: false, results: soudexFoundItems });
+								} else {
+									resolve({ word: word, correct: false, results: [] })
 								}
 
 							},
-							function (){
+							function () {
 								//instead of returning an error, lets return an empty result
-								resolve({word: word, correct: false, results: []})
+								resolve({ word: word, correct: false, results: [] })
 							}
 						);
 
-					}else{
+					} else {
+
+						if (foundItem.length == 1) {
+
+							foundItem = foundItem[0];
+
+						} else if (foundItem.length > 1) {
+
+							var tempFoundItem = foundItem.slice(0);
+							foundItem = foundItem.map(function (obj, i) {
+								obj.similarity = similarity(obj.word, word);
+								return obj;
+							}).sort(function (x, y) {
+								return ((x.similarity > y.similarity) ? -1 : 1);
+							}).slice(0, 1)[0]
+
+						}
 
 						//returning the exact match
-						resolve({word: word, correct: true, results: [foundItem]});
+						resolve({ word: word, correct: true, results: [foundItem] });
 
-					}			
-					
+					}
+
 				});
-			
+
 			});
-		
+
 		});
 
 
 		//now, lets resolve all promises from the array of promises
-		Promise.all(promises).then(function(items) { 
+		Promise.all(promises).then(function (items) {
 
-			//items variable contains an array of word and results for each word from the query
+			//items variable contains an array of words objects and results for each word from the query
+			// {correct:bool, results: db.words[], word: string from query } 
 			//if there is any incorrect word, lets choose the best match between the results 
 			//to acomplish this, lets iterate over all words and their items to check how many items are similar between the words
-			//todo: this is taking too looooooong!!! must improve this when working with 5k more itens
-			for (var word in items){
-				var objWord = items[word];
-					
-				for (var otherWord in items){
-					var objOtherWord = items[otherWord];
 
-					if (objOtherWord.word.toLowerCase() != objWord.word.toLowerCase()) {
+			if (items.length > 1) {
 
-						for (var result in objWord.results){
-							var objResult = objWord.results[result];
-					
-							for (var otherWordResult in objOtherWord.results){
-								var objOtherWordResult = objOtherWord.results[otherWordResult];
-								
-								for (var idxResultItem=0; idxResultItem < objResult.items.length; idxResultItem++){
+				for (var i = 0; i < items.length; i++) {
+					var objWord = items[i];
 
-									for (var idxResultItemOtherWord=0; idxResultItemOtherWord < objOtherWordResult.items.length; idxResultItemOtherWord++){
-									
-										if (objResult.items[idxResultItem] == objOtherWordResult.items[idxResultItemOtherWord]){
+					for (var x = 0; x < items.length; x++) {
+						var objOtherWord = items[x];
+
+						if (objOtherWord.word.toLowerCase() != objWord.word.toLowerCase() && objOtherWord.results.length > 0 && objWord.results.length > 0) {
+
+							for (var result in objWord.results) {
+								var objResult = objWord.results[result];
+
+								for (var otherWordResult in objOtherWord.results) {
+									var objOtherWordResult = objOtherWord.results[otherWordResult];
+
+									for (var idResultItem in objResult.items) {
+
+										if (objOtherWordResult.items[idResultItem]) {
 											// lets give a boost in similarity because this word contains items from other words
 											objResult.similarity = (objResult.similarity || 0) + 1;
 										}
@@ -721,204 +1023,263 @@ module.exports.query = function(words){
 			}
 
 			//get the best match over similarity and transform results in only one result json object for each word from the query
-			for (var word in items){
+			for (var word in items) {
 				var objWord = items[word];
 
-				if (objWord.results.length > 0){
-				
-					objWord.results = objWord.results.reduce(function(x, y){
-						return ((x.similarity > y.similarity) ? x : y ) 
+				if (objWord.results.length > 0) {
+
+					objWord.results = objWord.results.reduce(function (x, y) {
+						return ((x.similarity > y.similarity) ? x : y);
 					});
-				
 				}
-			
 			}
 
 
-			//join all itemsId from all word's results
-			var arrItemsId;
+			//join all itemsId from all word's results and get the words
+			var finalWords = [];
+			var objsItemsId;
 
-			for (var word in items){
+			for (var word in items) {
 				var objWord = items[word];
 
-				if (!arrItemsId){
-					arrItemsId = objWord.results.items;
+				finalWords.push(objWord.results.word);
+
+				//get from the first word its itemsId and continue to another word 
+				if (!objsItemsId) {
+					objsItemsId = objWord.results.items;
 					continue;
 				}
 
-				var itemExist = false;
-				var newarrItemsId = [];
+				if (objWord.results.length == 0) {
+					//if this word was not found, lets remove from the results
+					finalWords[word] = null;
+				} else {
 
-				for (var j = 0; j < arrItemsId.length; j++) {
-					for (var x = 0; x < objWord.results.items.length; x++) {
-						if (arrItemsId[j] === objWord.results.items[x]){
+					var newarrItemsId = {};
+					var itemExist = false;
+					for (var itemId in objsItemsId) {
+						if (objWord.results.items[itemId]) {
 							itemExist = true;
-							newarrItemsId.push(arrItemsId[j]);
+							newarrItemsId[itemId] = null;
 						}
+					}
+
+					//if this word have no itemId that matches with the previous word, lets remove from the results
+					if (!itemExist) {
+						finalWords[word] = null;
+					} else {
+						//acumulate itemsId to another round
+						objsItemsId = cloneObjJson(newarrItemsId);
 					}
 				}
 
-				arrItemsId = newarrItemsId;
 			}
 
-
-			// todo: 
-			// check if all words have the same item
-			// if not, remove word from the final result
-			// return items found sorted by quantity of items
-
-
-			var finalWords = [];
-			for (var word in items){
-				var objWord = items[word];
-
-				//this word has this item
-				finalWords.push(objWord.results.word);
-
+			//tranform objsItemsId to array
+			var arrItemsId = [];
+			for (var item in objsItemsId) {
+				arrItemsId.push(item);
 			}
 
-			
-			var information = {query: words , words: finalWords, itemsId: arrItemsId };
-			information.timeElapsed = (new Date().getTime() - time) + " ms"
+			var information = { query: words, words: finalWords, itemsId: arrItemsId, timeElapsed: (new Date() - time) };
 
 			resolve(information);
 
-
-		
-		},function(err){
+		}, function (err) {
 			reject(err)
 		});
 
 	});
-	
+
 }
 
 /**
- * Return json words object similar to the word parameter 
- * @param {String} word to search
- * @param {Int} limit the result
+ * Return words suggestions 
+ * @param {String} word(s) to search
  * returns {Promise(JSON)}
  */
-module.exports.getSuggestedWords = function(words){
+module.exports.getSuggestedWords = function (words) {
 
-	return new Promise(function(resolve, reject) {
-		
+	checkInitialized();
+
+	return new Promise(function (resolve, reject) {
+
 		var time = new Date();
-		
+
 		var arrWords = splitWords(words);
 
-		if (arrWords.length <= 0) {
-			return resolve({Error : "No word was given to search!"});
+		if (words.lastIndexOf(" ") == words.length - 1) {
+			arrWords.push("");
 		}
 
-		//only one word came from query
-		if (arrWords.length == 1){
+		if (arrWords.length <= 0) {
+			return reject({ message: "No word was given to search!" });
+		}
 
-			//try to get more words like this one
-			listMoreWordsLike(accent_fold(arrWords[0]), 10).then(
-				function (results){
+		//only one word came from query and no space at the end
+		if (arrWords.length == 1 && words.indexOf(" ") == -1) {
 
-					var newResults = [];
-					var arrTemp = []
+			//try to get more words like this one. Limit 5
+			getWordsStartingWith(arrWords[0].latinize(), 5).then(
+				function (queryResponse) {
 
-					for (var word in results){
-						var objWord = results[word];
+					var arrResponse = [];
 
-						arrTemp.push({word: objWord.word, correct: true, items: objWord.items, relatedWords: objWord.relatedWords});
+					if (queryResponse != null) {
+
+						for (var index = 0; index < queryResponse.length; index++) {
+							arrResponse.push(queryResponse[index].word);
+						}
+
 					}
 
-					newResults.push(arrTemp);
-
-					selectWordsWithSameItems(newResults, false).then(function(arr){
-						
-						var information = {timeElapsed: (new Date() - time) + " ms"};
-
-						resolve({ suggestions: arr, information: information});
-
-					});
+					//todo: filter words that begins with numbers and stopwords if we have others results to show
+					resolve({ suggestions: arrResponse, timeElapsed: (new Date() - time) });
 
 				},
-				function (err){
+				function (err) {
 
-					reject(err);					
+					reject(err);
 
 				}
 			);
 
-		//more than one word came from the query
-		}else{ 
+			//two or more words came from the query. Filter the relatedWords
+		} else {
 
 			//make a promise for each word from query, but last one and create an array of promises
-			var promises = arrWords.slice(0, arrWords.length-1).map(function(word) {
+			var promises = arrWords.slice(0, arrWords.length - 1).map(function (word) {
 
-				return new Promise(function(resolve, reject) {
+				return new Promise(function (resolve, reject) {
 
 					//try to find the exact word in our dictionary
-					db.words.findOne({ wordLcase: accent_fold( word.toLowerCase() ) }).exec(function (err, foundItem) {
-						if (err) return reject(err); 
+					db.find(db.dbWords, { wordLcase: word.toLowerCase().latinize() }, function (err, foundItem) {
+						if (err) return reject(err);
 
-						if (foundItem) {
-
-							//returning the exact match
-							resolve({word: foundItem.word, correct: true, items: foundItem.items, relatedWords: foundItem.relatedWords});
-
-						}else{
+						if (!foundItem || foundItem.length <= 0) {
 
 							//instead of returning an error, lets return null
 							resolve(null);
 
-						}			
-						
+						} else {
+
+							if (foundItem.length == 1) {
+
+								foundItem = foundItem[0];
+
+							} else if (foundItem.length > 1) {
+
+								foundItem = foundItem.map(function (obj, i) {
+									obj.similarity = similarity(obj.word, word);
+									return obj;
+								}).sort(function (x, y) {
+									return ((x.similarity > y.similarity) ? -1 : 1);
+								}).slice(0, 1)[0]
+
+							}
+
+							//returning the exact match
+							resolve({ word: foundItem.word, relatedWords: foundItem.relatedWords });
+
+						}
+
 					});
-				
+
 				});
-			
+
 			});
-
-			//make a promise for the last word from the query to get words like this one
-			promises.push(listMoreWordsLike(accent_fold(arrWords[arrWords.length-1]), -1));
-
 
 
 			//now, lets resolve all promises from the array of promises
-			Promise.all(promises).then(function(items) { 
+			Promise.all(promises).then(function (foundItems) {
 
-				var newResults = [];
-				var arrTemp = [];
+				var previousWords = "";
 
-				for (var word in items){
-					var objWord = items[word];
-					
-					if (objWord && !Array.isArray(objWord)){
-						newResults.push({word: objWord.word, correct: true, items: objWord.items, relatedWords: objWord.relatedWords});
+				//test if all words exists
+				for (var index in foundItems) {
+					if (foundItems[index] == null) {
+						//some word is not correct, break the response
+						return resolve({ suggestions: [], timeElapsed: (new Date() - time) });
 					}
-					if (objWord && Array.isArray(objWord)){
-						
-						for (var at=0; at< objWord.length; at++){
-							arrTemp.push({word: objWord[at].word, correct: true, items: objWord[at].items, relatedWords: objWord[at].relatedWords});
+
+					previousWords += foundItems[index].word + " ";
+				}
+
+				previousWords = previousWords.trim();
+
+				//query for the previous words to check if there is items with this combination
+				_thisModule.query(previousWords).then(function (queryResponse) {
+
+
+					//after this query, one or more words could be missing because it's items did not match
+					//if that is true, break the response
+					for (var index = 0; index < queryResponse.words.length; index++) {
+						if (queryResponse.words[index] == null) {
+							//some word is not correct, break the response
+							return resolve({ suggestions: [], timeElapsed: (new Date() - time) });
+						}
+					}
+
+
+					var arrResponse = [];
+					arrResponse.push(previousWords);
+
+					var lastWord = arrWords[arrWords.length - 1].toLowerCase().latinize();
+
+					var objRelatedWords = {};
+
+					//iterate in the first item relatedWords to the others words relatedWords to make a join like operations
+					for (var objWord in foundItems[0].relatedWords) {
+
+						if (lastWord != "") {
+							//only continue if this word is like to last word from query
+							if (objWord.toLowerCase().latinize().indexOf(lastWord) != 0) {
+								continue;
+							}
 						}
 
-						newResults.push(arrTemp);
-					}
-					
-				}
-				
-				selectWordsWithSameItems(newResults, true).then(function(arr){
-					
-					var information = {timeElapsed: (new Date() - time) + " ms"};
+						var wordExist = true;
+						var wordPoints = foundItems[0].relatedWords[objWord];
 
-					resolve({ suggestions: arr, information: information});
+						//this loop will filter the other relatedWords from foundItems from the query based on their relatedWords with first word relatedWords
+						for (var i = 1; i < foundItems.length; i++) {
+
+							if (!foundItems[i].relatedWords[objWord]) {
+								wordExist = false;
+								break;
+							}
+							wordPoints += foundItems[i].relatedWords[objWord];
+						}
+
+						if (wordExist) {
+							objRelatedWords[objWord] = wordPoints;
+						}
+
+					}
+
+					// First create the array of keys/values with relatedWords so that we can sort it
+					var relatedWords = [];
+					for (var key in objRelatedWords) {
+						relatedWords.push({ word: key, value: objRelatedWords[key] });
+					}
+
+					// And then, sort it by popularity
+					relatedWords.sort(function (x, y) { return ((x.value > y.value) ? -1 : 1) });
+
+
+					//todo: filter words that begins with numbers and stopwords if we have others results to show
+					for (var index = 0; index < relatedWords.length && index < 5; index++) {
+						arrResponse.push(arrResponse[0] + " " + relatedWords[index].word);
+					}
+
+					resolve({ suggestions: arrResponse, timeElapsed: (new Date() - time) });
 
 				});
 
 			});
-			
+
 		}
-	
+
 	});
 
 }
-
-
-//todo:
-//module.exports.getSuggestedItems function(words){...}
