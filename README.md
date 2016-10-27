@@ -215,6 +215,7 @@ nss.removetItem(newItem).then(
 * loadJson by json string
 * validade input json
 * catalog (several dictionaries)
+* filter stopwords
 * Browser version.
 
 
