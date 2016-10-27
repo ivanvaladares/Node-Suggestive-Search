@@ -1,5 +1,5 @@
 # Node suggestive search
-A node module to help type-ahead and dropdown search boxes and also correct misspelled searches.
+A node module to help type-ahead and dropdown search boxes and also correct misspelled searches (did you mean?).
 
 
 This module requires:
@@ -84,7 +84,7 @@ Code to load the JSON
 nss.loadJson("Itens.json").then(
 	function(data){
 		res.send(data); 
-		// response: {"words":15,"items":5,"timeElapsed":"13 ms"}
+		// response: {"words":15,"items":5,"timeElapsed":13}
 	},
 	function(err){
 		res.send("Error: " + err.message);
@@ -103,21 +103,21 @@ Examples of how to call the api and responses:
 nss.getSuggestedWords("whi").then(
 	function (data){
 		res.send(data);
-		//response: {"suggestions":["WHISKY","WHISKY BLACK","WHISKY LABEL","WHISKY RED"],"information":{"timeElapsed":"1 ms"}}
+		//response: {"suggestions":["WHISKY","WHISKY BLACK","WHISKY LABEL","WHISKY RED"],"timeElapsed":1}
 	}
 )
 
-nss.getSuggestedWords("whisky").then(
+nss.getSuggestedWords("whisky ").then(
 	function (data){
 		res.send(data);
-		//response: {"suggestions":["WHISKY","WHISKY BLACK","WHISKY LABEL","WHISKY RED"],"information":{"timeElapsed":"1 ms"}}
+		//response: {"suggestions":["WHISKY","WHISKY BLACK","WHISKY LABEL","WHISKY RED"],"timeElapsed":1}
 	}
 )
 
 nss.getSuggestedWords("whisky re").then(
 	function (data){
 		res.send(data);
-		//response: {"suggestions":["WHISKY","WHISKY RED","WHISKY RED LABEL"],"information":{"timeElapsed":"2 ms"}}
+		//response: {"suggestions":["WHISKY","WHISKY RED","WHISKY RED LABEL"],"timeElapsed":2}
 	}
 )
   
@@ -133,7 +133,7 @@ Examples of how to call the api and responses:
 nss.query("whisky").then(
 	function(data) {
 		res.send(data);
-		//response: {"query":"whisky","words":["WHISKY"],"itemsId":["1","2"],"timeElapsed":"1 ms"}
+		//response: {"query":"whisky","words":["WHISKY"],"itemsId":["1","2"],"timeElapsed":1}
 	},
 	function(err){
 		res.send("Error: " + err.message);
@@ -144,7 +144,7 @@ nss.query("whisky").then(
 nss.query("wisk").then(
 	function(data) {
 		res.send(data);
-		//response: {"query":"wisk","words":["WHISKY"],"itemsId":["1","2"],"timeElapsed":"1 ms"}
+		//response: {"query":"wisk","words":["WHISKY"],"itemsId":["1","2"],"timeElapsed":1}
 	},
 	function(err){
 		res.send("Error: " + err.message);
@@ -155,7 +155,7 @@ nss.query("wisk").then(
 nss.query("wisk read lbel").then(
 	function(data) {
 		res.send(data);
-		//response: {"query":"wisk read lbel","words":["WHISKY","RED","LABEL"],"itemsId":["1"],"timeElapsed":"4 ms"}
+		//response: {"query":"wisk read lbel","words":["WHISKY","RED","LABEL"],"itemsId":["1"],"timeElapsed":4}
 	},
 	function(err){
 		res.send("Error: " + err.message);
