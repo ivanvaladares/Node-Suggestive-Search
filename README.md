@@ -27,7 +27,7 @@ var nss = require('node-suggestive-search.js').init(
 			mongoDatabase: "mongodb://127.0.0.1:27017/nodeSugestiveSearch"
 			});
 
-'''
+```
 Here is an example of a configuration to use NeDB with a datafile: 
 ```javascript
 var nss = require('node-suggestive-search.js').init(
@@ -37,7 +37,7 @@ var nss = require('node-suggestive-search.js').init(
 			neDbInMemoryOnly: false
 			});
 
-'''
+```
 Here is an example of a configuration to use NeDB without a datafile (in memory): 
 ```javascript
 var nss = require('../node-suggestive-search.js').init(
@@ -47,7 +47,7 @@ var nss = require('../node-suggestive-search.js').init(
 			neDbInMemoryOnly: true
 			});
 
-'''
+```
 
 ### Loading a database
 It uses an in-memory database to build a dictionary composed by itens and words that need to be searched. 
