@@ -32,8 +32,6 @@ exports.init = function (options) {
 		initialized = true;
 	});
 
-	initialized = true;
-
 	return this;
 };
 
