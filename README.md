@@ -1,12 +1,53 @@
 # Node suggestive search
 A node module to help type-ahead and dropdown search boxes and also correct misspelled searches.
 
-This module requires NeDB 1.8.0, The JavaScript Database from Louis Chatriot https://github.com/louischatriot/nedb
+
+This module requires:
+- NeDB 1.8.0, The JavaScript Database from Louis Chatriot https://github.com/louischatriot/nedb
+- MongoDB Node.JS Driver 2.2.11, Driver to connect with MongoDB 3.2 http://mongodb.github.io/node-mongodb-native/
+
 
 ## API
+* <a href="#Setting-options">Setting options</a>
 * <a href="#loading-a-database">Loading a database</a>
 * <a href="#getting-suggestions">Getting suggestions</a>
 * <a href="#searching-for-items">Searching for items</a>
+* <a href="#insert-items">Insert item</a>
+* <a href="#remove-items">Remove item</a>
+
+
+### Setting options
+This module supports MongoDB and NeDB. You must set this options in order to use this module. 
+
+Here is an example of a configuration to use MongoDB: 
+```javascript
+var nss = require('node-suggestive-search.js').init(
+			{
+			dataBase: "mongodb", 
+			mongoDatabase: "mongodb://127.0.0.1:27017/nodeSugestiveSearch"
+			});
+
+'''
+Here is an example of a configuration to use NeDB with a datafile: 
+```javascript
+var nss = require('node-suggestive-search.js').init(
+			{
+			dataBase: "nedb", 
+			neDbDataPath: path.join(__dirname, "..", "data"),
+			neDbInMemoryOnly: false
+			});
+
+'''
+Here is an example of a configuration to use NeDB without a datafile (in memory): 
+```javascript
+var nss = require('../node-suggestive-search.js').init(
+			{
+			dataBase: "nedb", 
+			neDbDataPath: "",
+			neDbInMemoryOnly: true
+			});
+
+'''
 
 ### Loading a database
 It uses an in-memory database to build a dictionary composed by itens and words that need to be searched. 
@@ -39,11 +80,10 @@ Here is an example of a JSON to be imported (Itens.json):
 
 Code to load the JSON
 ```javascript
-var nss = require('node-suggestive-search.js');
 
 nss.loadJson("Itens.json").then(
 	function(data){
-		res.send(JSON.stringify(data)); 
+		res.send(data); 
 		// response: {"words":15,"items":5,"timeElapsed":"13 ms"}
 	},
 	function(err){
@@ -59,25 +99,24 @@ Getting suggestions to fill dropdown boxes or type ahead in text fields.
 
 Examples of how to call the api and responses:
 ```javascript
-var nss = require('node-suggestive-search.js');
 
 nss.getSuggestedWords("whi").then(
 	function (data){
-		res.send(JSON.stringify(data));
+		res.send(data);
 		//response: {"suggestions":["WHISKY","WHISKY BLACK","WHISKY LABEL","WHISKY RED"],"information":{"timeElapsed":"1 ms"}}
 	}
 )
 
 nss.getSuggestedWords("whisky").then(
 	function (data){
-		res.send(JSON.stringify(data));
+		res.send(data);
 		//response: {"suggestions":["WHISKY","WHISKY BLACK","WHISKY LABEL","WHISKY RED"],"information":{"timeElapsed":"1 ms"}}
 	}
 )
 
 nss.getSuggestedWords("whisky re").then(
 	function (data){
-		res.send(JSON.stringify(data));
+		res.send(data);
 		//response: {"suggestions":["WHISKY","WHISKY RED","WHISKY RED LABEL"],"information":{"timeElapsed":"2 ms"}}
 	}
 )
@@ -90,11 +129,10 @@ Getting itemsId from searched words.
 
 Examples of how to call the api and responses:
 ```javascript
-var nss = require('node-suggestive-search.js');
 
 nss.query("whisky").then(
 	function(data) {
-		res.send(JSON.stringify(data));
+		res.send(data);
 		//response: {"query":"whisky","words":["WHISKY"],"itemsId":["1","2"],"timeElapsed":"1 ms"}
 	},
 	function(err){
@@ -105,7 +143,7 @@ nss.query("whisky").then(
 //did you mean search result
 nss.query("wisk").then(
 	function(data) {
-		res.send(JSON.stringify(data));
+		res.send(data);
 		//response: {"query":"wisk","words":["WHISKY"],"itemsId":["1","2"],"timeElapsed":"1 ms"}
 	},
 	function(err){
@@ -116,7 +154,7 @@ nss.query("wisk").then(
 //did you mean search result
 nss.query("wisk read lbel").then(
 	function(data) {
-		res.send(JSON.stringify(data));
+		res.send(data);
 		//response: {"query":"wisk read lbel","words":["WHISKY","RED","LABEL"],"itemsId":["1"],"timeElapsed":"4 ms"}
 	},
 	function(err){
@@ -126,9 +164,57 @@ nss.query("wisk read lbel").then(
   
 ```
 
+
+### Insert items
+Insert a new item into the database.
+
+Examples of how to call the api and responses:
+```javascript
+
+var newItem = {  
+	"itemName":"VODKA ABSOLUT",
+	"itemId":"6"
+	};
+
+nss.insertItem(newItem).then(
+	function(data) {
+		res.json(data);
+		//response: {"timeElapsed":2}
+	},
+	function(err){
+		res.send("Error: " + err.message);
+	}
+);
+
+```
+
+
+### Remove itemm
+Remove an item from the database.
+
+Examples of how to call the api and responses:
+```javascript
+
+var itemId = "6";
+
+nss.removetItem(newItem).then(
+	function(data) {
+		res.json(data);
+		//response: {"timeElapsed":2}
+	},
+	function(err){
+		res.send("Error: " + err.message);
+	}
+);
+
+```
+
+
 ## Roadmap
-* Support for MongoDb.
-* Support for plain memmory javascript objects.
+* getSuggestedItems
+* loadJson by json string
+* validade input json
+* catalog (several dictionaries)
 * Browser version.
 
 
