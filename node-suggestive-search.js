@@ -12,6 +12,7 @@ var db;
 var _thisModule = this;
 var initialized = false;
 
+
 exports.init = function (options) {
 
 	if (!options) {
@@ -201,6 +202,10 @@ function populateWordsJson(itemsJson) {
 			for (var w = 0; w < arrWords.length; w++) {
 
 				var strWord = arrWords[w].toLowerCase();
+
+				if (strWord.length <= 1){
+					continue;
+				}
 
 				//if there is already this word in our dictionary, associate it with this item
 				if (strWord in objWords) {
