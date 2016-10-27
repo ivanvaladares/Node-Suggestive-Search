@@ -12,8 +12,8 @@ This module requires:
 * <a href="#loading-a-database">Loading a database</a>
 * <a href="#getting-suggestions">Getting suggestions</a>
 * <a href="#searching-for-items">Searching for items</a>
-* <a href="#insert-items">Insert item</a>
-* <a href="#remove-items">Remove item</a>
+* <a href="#insert-items">Insert items</a>
+* <a href="#remove-items">Remove items</a>
 
 
 ### Setting options
@@ -189,7 +189,7 @@ nss.insertItem(newItem).then(
 ```
 
 
-### Remove itemm
+### Remove items
 Remove an item from the database.
 
 Examples of how to call the api and responses:
