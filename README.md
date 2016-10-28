@@ -138,7 +138,7 @@ nss.query("wisk read lbel").then(
 ```
 
 
-### Getting words Suggestions
+### Getting words suggestions
 Getting suggestions to fill dropdown boxes or type ahead in text fields.
 
 Examples of how to call the api and responses:
@@ -169,7 +169,7 @@ nss.getSuggestedWords("whisky re").then(
 
 
 
-### Getting items Suggestions
+### Getting items suggestions
 Getting suggestions to fill dropdown boxes.
 
 Examples of how to call the api and responses:
@@ -253,7 +253,6 @@ nss.removetItem(newItem).then(
 
 
 ## Roadmap
-* getSuggestedItems
 * loadJson by json string
 * validade input json
 * catalog (several dictionaries)
