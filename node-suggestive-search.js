@@ -12,11 +12,6 @@ var db;
 var _thisModule = this;
 var initialized = false;
 
-//roadmap
-// getSuggestedItems
-// loadJson by json string
-// validade input json
-// catalog
 
 exports.init = function (options) {
 
