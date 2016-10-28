@@ -10,8 +10,9 @@ This module requires:
 ## API
 * <a href="#Setting-options">Setting options</a>
 * <a href="#loading-a-database">Loading a database</a>
-* <a href="#getting-suggestions">Getting suggestions</a>
 * <a href="#searching-for-items">Searching for items</a>
+* <a href="#getting-words-suggestions">Getting words suggestions</a>
+* <a href="#getting-items-suggestions">Getting items suggestions</a>
 * <a href="#insert-items">Insert items</a>
 * <a href="#remove-items">Remove items</a>
 
@@ -57,11 +58,13 @@ Here is an example of a JSON to be imported (Itens.json):
 [  
    {  
       "itemName":"WHISKY RED LABEL",
-      "itemId":"1"
+      "itemId":"1",
+      "keywords":"FANCY" 
    },
    {  
       "itemName":"WHISKY BLACK LABEL",
-      "itemId":"2"
+      "itemId":"2",
+      "keywords":"EXPENSIVE"
    },
    {  
       "itemName":"BLACK FOREST BEECHWOOD HAM L/S",
@@ -91,36 +94,6 @@ nss.loadJson("Itens.json").then(
 	}
 );
 
-```
-
-
-### Getting Suggestions
-Getting suggestions to fill dropdown boxes or type ahead in text fields.
-
-Examples of how to call the api and responses:
-```javascript
-
-nss.getSuggestedWords("whi").then(
-	function (data){
-		res.send(data);
-		//response: {"suggestions":["WHISKY","WHISKY BLACK","WHISKY LABEL","WHISKY RED"],"timeElapsed":1}
-	}
-)
-
-nss.getSuggestedWords("whisky ").then(
-	function (data){
-		res.send(data);
-		//response: {"suggestions":["WHISKY","WHISKY BLACK","WHISKY LABEL","WHISKY RED"],"timeElapsed":1}
-	}
-)
-
-nss.getSuggestedWords("whisky re").then(
-	function (data){
-		res.send(data);
-		//response: {"suggestions":["WHISKY","WHISKY RED","WHISKY RED LABEL"],"timeElapsed":2}
-	}
-)
-  
 ```
 
 
@@ -161,6 +134,75 @@ nss.query("wisk read lbel").then(
 		res.send("Error: " + err.message);
 	}
 );
+  
+```
+
+
+### Getting words Suggestions
+Getting suggestions to fill dropdown boxes or type ahead in text fields.
+
+Examples of how to call the api and responses:
+```javascript
+
+nss.getSuggestedWords("whi").then(
+	function (data){
+		res.send(data);
+		//response: {"suggestions":["WHISKY","WHISKY BLACK","WHISKY LABEL","WHISKY RED"],"timeElapsed":1}
+	}
+)
+
+nss.getSuggestedWords("whisky ").then(
+	function (data){
+		res.send(data);
+		//response: {"suggestions":["WHISKY","WHISKY BLACK","WHISKY LABEL","WHISKY RED"],"timeElapsed":1}
+	}
+)
+
+nss.getSuggestedWords("whisky re").then(
+	function (data){
+		res.send(data);
+		//response: {"suggestions":["WHISKY","WHISKY RED","WHISKY RED LABEL"],"timeElapsed":2}
+	}
+)
+  
+```
+
+
+
+### Getting items Suggestions
+Getting suggestions to fill dropdown boxes.
+
+Examples of how to call the api and responses:
+```javascript
+
+
+nss.getSuggestedItems("parme").then(
+	function (data){
+		res.send(data);
+		//response: {"items":[{"itemId":"4","itemName":"PESTO PARMESAN HAM"}],"timeElapsed":2}
+	}
+)
+
+nss.getSuggestedItems("whisky fancy").then(
+	function (data){
+		res.send(data);
+		//response: {"items":[{"itemId":"1","itemName":"WHISKY RED LABEL"}],"timeElapsed":1}
+	}
+)
+
+nss.getSuggestedWords("whisky re").then(
+	function (data){
+		res.send(data);
+		//response: {"items":[{"itemId":"1","itemName":"WHISKY RED LABEL"}],"timeElapsed":1}
+	}
+)
+
+nss.getSuggestedWords("whisky label").then(
+	function (data){
+		res.send(data);
+		//response: {"items":[{"itemId":"1","itemName":"WHISKY RED LABEL"},{"itemId":"2","itemName":"WHISKY BLACK LABEL"}],"timeElapsed":2}
+	}
+)
   
 ```
 
