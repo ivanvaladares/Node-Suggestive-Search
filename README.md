@@ -6,6 +6,13 @@ This module requires:
 - NeDB 1.8.0, The JavaScript Database from Louis Chatriot https://github.com/louischatriot/nedb
 - MongoDB Node.JS Driver 2.2.11, Driver to connect with MongoDB 3.2 http://mongodb.github.io/node-mongodb-native/
 
+## Installation, tests
+Module name on npm is "node-suggestive-search".
+
+```
+npm install node-suggestive-search --save   # Put latest version in your package.json
+```
+
 
 ## API
 * <a href="#Setting-options">Setting options</a>
