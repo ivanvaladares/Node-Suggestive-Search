@@ -29,7 +29,7 @@ This module supports MongoDB and NeDB. You must set this options in order to use
 
 Here is an example of a configuration to use MongoDB: 
 ```javascript
-var nss = require('node-suggestive-search.js').init(
+var nss = require('node-suggestive-search').init(
 			{
 			dataBase: "mongodb", 
 			mongoDatabase: "mongodb://127.0.0.1:27017/nodeSugestiveSearch"
@@ -38,7 +38,7 @@ var nss = require('node-suggestive-search.js').init(
 ```
 Here is an example of a configuration to use NeDB with a datafile: 
 ```javascript
-var nss = require('node-suggestive-search.js').init(
+var nss = require('node-suggestive-search').init(
 			{
 			dataBase: "nedb", 
 			neDbDataPath: path.join(__dirname, "..", "data"),
@@ -48,7 +48,7 @@ var nss = require('node-suggestive-search.js').init(
 ```
 Here is an example of a configuration to use NeDB without a datafile (in memory): 
 ```javascript
-var nss = require('../node-suggestive-search.js').init(
+var nss = require('node-suggestive-search').init(
 			{
 			dataBase: "nedb", 
 			neDbDataPath: "",
