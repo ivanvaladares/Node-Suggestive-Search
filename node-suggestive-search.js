@@ -1,9 +1,10 @@
 /* 
-node-suggestive-search v1.2
+node-suggestive-search v1.3
 https://github.com/ivanvaladares/node-suggestive-search/
 by Ivan Valadares 
 http://ivanvaladares.com 
 */
+
 
 var fs = require('fs'),
 	path = require('path');
@@ -159,134 +160,154 @@ function populateWordsJson(itemsJson) {
 		var objWords = {};
 		var repeatedObjWords = {};
 
-		for (var x in itemsJson) {
-
-			//get words from each item
-			var arrWords = splitWords(itemsJson[x].itemName);
-
-			//get keywords
-			if (itemsJson[x].keywords){
-				arrWords = arrWords.concat(splitWords(itemsJson[x].keywords));
-			}
-
-			//associate each word with items. ex: {word, [item1, item2, item3...]}
-			for (var w = 0; w < arrWords.length; w++) {
-
-				var strWord = arrWords[w].toLowerCase();
-
-				if (strWord.length <= 1) {
-					continue;
-				}
-
-				//if there is already this word in our dictionary, associate it with this item
-				if (strWord in objWords) {
-
-					objWords[strWord].items[itemsJson[x].itemId] = 1;
-
-				} else {
-					//keep the word without accent and lowercase
-					var cleanWord = strWord.latinize();
-
-					objWords[strWord] = { word: arrWords[w], cleanWord: cleanWord, soundex: soundex(arrWords[w]), items: {} };
-
-					for (var i = 2; i <= cleanWord.length && i <= 4; i++) {
-						objWords[strWord]["p" + i + "i"] = cleanWord.substr(0, i).toLowerCase();
-						objWords[strWord]["p" + i + "e"] = cleanWord.substr(cleanWord.length - i, cleanWord.length).toLowerCase();
-					}
-
-					objWords[strWord].items[itemsJson[x].itemId] = 1;
-
-					if (repeatedObjWords[cleanWord]) {
-						repeatedObjWords[cleanWord].push(strWord);
-					} else {
-						repeatedObjWords[cleanWord] = [strWord];
-					}
-
-				}
-
-			}
-
-		}
-
-
-		//lets make this module accent insensitive when searching for items
-		//all the similar words will have the same itemsId
-		for (var item in repeatedObjWords) {
-			if (repeatedObjWords[item].length > 1) {
-
-				var itemsId = {};
-
-				for (var index = 0; index < repeatedObjWords[item].length; index++) {
-					var objWord = objWords[repeatedObjWords[item][index]];
-
-					for (var idResultItem in objWord.items) {
-						if (!itemsId[idResultItem]) {
-							itemsId[idResultItem] = objWord.items[idResultItem];
-						}
-					}
-
-				}
-
-				for (var index = 0; index < repeatedObjWords[item].length; index++) {
-					var objWord = objWords[repeatedObjWords[item][index]];
-
-					objWord.items = cloneObjJson(itemsId);
-				}
-			}
-		}
-
-
-		//create a nedb compatible JSON from the above dictionary
-		var wordsJson = [];
-		for (var item in objWords) {
-			wordsJson.push(objWords[item]);
-		}
-
-
-		//clean the words database
-		db.remove(db.dbWords, {}, { multi: true }, function (err, numRemoved) {
+		db.remove(db.dbItems, {}, { multi: true }, function (err, numRemoved) {
 			if (err) return reject(err);
 
-			//insert all words at once in database
-			db.insert(db.dbWords, wordsJson, function (err, wordsJsonInserted) {
+			//insert all items in the database
+			db.insert(db.dbItems, itemsJson, function (err, itemsJsonInserted) {
 				if (err) return reject(err);
 
-				//try to create an index for [word] 
-				db.createIndex(db.dbWords, "word", 1, function (err) {
+				db.createIndex(db.dbItems, "itemId", 1, function (err) {
 					//lets not propagate for now
 					if (err) console.log(err);
 				});
 
-				//try to create an index for [cleanWord] 
-				db.createIndex(db.dbWords, "cleanWord", 1, function (err) {
-					//lets not propagate for now
-					if (err) console.log(err);
-				});
 
-				//try to create an index for [soundex] 
-				db.createIndex(db.dbWords, "soundex", 1, function (err) {
-					//lets not propagate for now
-					if (err) console.log(err);
-				});
+				for (var x in itemsJson) {
 
-				//try to create an index for [pXi]
-				for (var i = 2; i <= 4; i++) {
-					db.createIndex(db.dbWords, ('p' + i + 'i'), 1, function (err) {
-						//lets not propagate for now
-						if (err) console.log(err);
-					});
-					db.createIndex(db.dbWords, ('p' + i + 'e'), 1, function (err) {
-						//lets not propagate for now
-						if (err) console.log(err);
-					});
+					//get words from each item
+					var arrWords = splitWords(itemsJson[x].itemName);
+
+					//get keywords
+					if (itemsJson[x].keywords){
+						arrWords = arrWords.concat(splitWords(itemsJson[x].keywords));
+					}
+
+					//associate each word with items. ex: {word, [item1, item2, item3...]}
+					for (var w = 0; w < arrWords.length; w++) {
+
+						var strWord = arrWords[w].toLowerCase();
+
+						if (strWord.length <= 1) {
+							continue;
+						}
+
+						//if there is already this word in our dictionary, associate it with this item
+						if (strWord in objWords) {
+
+							objWords[strWord].items[itemsJson[x].itemId] = 1;
+
+						} else {
+							//keep the word without accent and lowercase
+							var cleanWord = strWord.latinize();
+
+							objWords[strWord] = { word: arrWords[w], cleanWord: cleanWord, soundex: soundex(arrWords[w]), items: {} };
+
+							for (var i = 2; i <= cleanWord.length && i <= 4; i++) {
+								objWords[strWord]["p" + i + "i"] = cleanWord.substr(0, i).toLowerCase();
+								objWords[strWord]["p" + i + "e"] = cleanWord.substr(cleanWord.length - i, cleanWord.length).toLowerCase();
+							}
+
+							objWords[strWord].items[itemsJson[x].itemId] = 1;
+
+							if (repeatedObjWords[cleanWord]) {
+								repeatedObjWords[cleanWord].push(strWord);
+							} else {
+								repeatedObjWords[cleanWord] = [strWord];
+							}
+
+						}
+
+					}
+
 				}
 
-				//return some information about this process
-				resolve({ words: wordsJson.length });
+
+				//lets make this module accent insensitive when searching for items
+				//all the similar words will have the same itemsId
+				for (var item in repeatedObjWords) {
+					if (repeatedObjWords[item].length > 1) {
+
+						var itemsId = {};
+
+						for (var index = 0; index < repeatedObjWords[item].length; index++) {
+							var objWord = objWords[repeatedObjWords[item][index]];
+
+							for (var idResultItem in objWord.items) {
+								if (!itemsId[idResultItem]) {
+									itemsId[idResultItem] = objWord.items[idResultItem];
+								}
+							}
+
+						}
+
+						for (var index = 0; index < repeatedObjWords[item].length; index++) {
+							var objWord = objWords[repeatedObjWords[item][index]];
+
+							objWord.items = cloneObjJson(itemsId);
+						}
+					}
+				}
+
+
+				//create a nedb compatible JSON from the above dictionary
+				var wordsJson = [];
+				for (var item in objWords) {
+					wordsJson.push(objWords[item]);
+				}
+
+
+				//clean the words database
+				db.remove(db.dbWords, {}, { multi: true }, function (err, numRemoved) {
+					if (err) return reject(err);
+
+					//insert all words at once in database
+					db.insert(db.dbWords, wordsJson, function (err, wordsJsonInserted) {
+						if (err) return reject(err);
+
+						//try to create an index for [word] 
+						db.createIndex(db.dbWords, "word", 1, function (err) {
+							//lets not propagate for now
+							if (err) console.log(err);
+						});
+
+						//try to create an index for [cleanWord] 
+						db.createIndex(db.dbWords, "cleanWord", 1, function (err) {
+							//lets not propagate for now
+							if (err) console.log(err);
+						});
+
+						//try to create an index for [soundex] 
+						db.createIndex(db.dbWords, "soundex", 1, function (err) {
+							//lets not propagate for now
+							if (err) console.log(err);
+						});
+
+						//try to create an index for [pXi]
+						for (var i = 2; i <= 4; i++) {
+							db.createIndex(db.dbWords, ('p' + i + 'i'), 1, function (err) {
+								//lets not propagate for now
+								if (err) console.log(err);
+							});
+							db.createIndex(db.dbWords, ('p' + i + 'e'), 1, function (err) {
+								//lets not propagate for now
+								if (err) console.log(err);
+							});
+						}
+
+						//return some information about this process
+						resolve({ words: wordsJson.length });
+
+
+					});
+
+				});
+
+
 
 			});
 
-		});
+		});						
 
 	});
 
@@ -789,8 +810,8 @@ module.exports.removeItem = function (itemId) {
 }
 
 /**
- * Load the dictionary database from json file or string
- * @param {String} filename or json string, jSon file with items
+ * Load the dictionary database from json file
+ * @param {String} filename. jSon file with items
  * @param {String} charset, Charset used in file 
  * returns {Promise(JSON)}
  */
@@ -802,6 +823,8 @@ module.exports.loadJson = function (jSonFilePath, charset) {
 
 		var time = new Date();
 
+		var itemsJson = null;
+
 		if (!charset) {
 			charset = "utf8";
 		}
@@ -810,44 +833,60 @@ module.exports.loadJson = function (jSonFilePath, charset) {
 		fs.readFile(jSonFilePath, charset, function (err, data) {
 			if (err) return reject(err);
 
-			var itemsJson = JSON.parse(data);
+			try {
+				itemsJson = JSON.parse(jSonString);
+			} catch (err) {
+				return reject(err);	
+			}
 
-			/*
-			itemsJson.map(function (obj, i){
-						obj.objWords = splitWords(obj.itemName);
-						return obj;
-			});
-			*/
+			//from the items, lets extract our dictionary 
+			populateWordsJson(itemsJson).then(function (information) {
 
-			//clean the database
-			db.remove(db.dbItems, {}, { multi: true }, function (err, numRemoved) {
-				if (err) return reject(err);
+				information.items = itemsJson.length;
+				information.timeElapsed = (new Date() - time);
 
-				//insert all items in the database
-				db.insert(db.dbItems, itemsJson, function (err, itemsJsonInserted) {
-					if (err) return reject(err);
-
-					db.createIndex(db.dbItems, "itemId", 1, function (err) {
-						//lets not propagate for now
-						if (err) console.log(err);
-					});
-
-					//from the items, lets extract our dictionary 
-					populateWordsJson(itemsJson).then(function (information) {
-
-						information.items = itemsJson.length;
-						information.timeElapsed = (new Date() - time);
-
-						//return some information about this process
-						resolve(information);
-
-					}, function (err) {
-						return reject(err);
-					});
-
-				});
+				//return some information about this process
+				resolve(information);
 
 			});
+
+		});
+
+	});
+
+}
+
+/**
+ * Load the dictionary database from json string
+ * @param {String} json string with items
+ * returns {Promise(JSON)}
+ */
+module.exports.loadJsonString = function (jSonString) {
+
+	checkInitialized();
+
+	return new Promise(function (resolve, reject) {
+
+		var time = new Date();
+		
+		var itemsJson = null;
+
+		//get the json string from the parameter
+		
+		try {
+			itemsJson = JSON.parse(jSonString);
+		} catch (err) {
+			return reject(err);	
+		}
+
+		//from the items, lets extract our dictionary 
+		populateWordsJson(itemsJson).then(function (information) {
+
+			information.items = itemsJson.length;
+			information.timeElapsed = (new Date() - time);
+
+			//return some information about this process
+			resolve(information);
 
 		});
 
