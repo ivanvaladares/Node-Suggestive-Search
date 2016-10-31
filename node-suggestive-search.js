@@ -1,5 +1,5 @@
 /* 
-node-suggestive-search v1.3
+node-suggestive-search v1.5
 https://github.com/ivanvaladares/node-suggestive-search/
 by Ivan Valadares 
 http://ivanvaladares.com 
@@ -834,7 +834,7 @@ module.exports.loadJson = function (jSonFilePath, charset) {
 			if (err) return reject(err);
 
 			try {
-				itemsJson = JSON.parse(jSonString);
+				itemsJson = JSON.parse(data);
 			} catch (err) {
 				return reject(err);	
 			}
