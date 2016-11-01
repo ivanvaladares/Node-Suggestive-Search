@@ -14,6 +14,10 @@ npm install node-suggestive-search --save   # Put latest version in your package
 ```
 
 
+## Example of usage
+http://node-suggestive-search.azurewebsites.net/
+
+
 ## API
 * <a href="#Setting-options">Setting options</a>
 * <a href="#loading-a-database">Loading a database</a>
