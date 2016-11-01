@@ -1,5 +1,5 @@
 /* 
-node-suggestive-search v1.5
+node-suggestive-search v1.6
 https://github.com/ivanvaladares/node-suggestive-search/
 by Ivan Valadares 
 http://ivanvaladares.com 
@@ -1231,7 +1231,6 @@ module.exports.getSuggestedWords = function (words) {
 					}
 
 					var arrResponse = [];
-					arrResponse.push(previousWords);
 
 					var lastWord = arrWords[arrWords.length - 1].toLowerCase().latinize();
 
@@ -1240,7 +1239,7 @@ module.exports.getSuggestedWords = function (words) {
 						objResponse[el.toLowerCase().latinize()] = 1;
 					});
 
-					db.find(db.dbItems, { itemId: { $in: queryResponse.itemsId.slice(0, 100) } }, function (err, othersItems) {
+					db.find(db.dbItems, { itemId: { $in: queryResponse.itemsId.slice(0, 1000) } }, function (err, othersItems) {
 
 						//get all item's names from items returned from query and create a relatedWords dictionary
 						var objRelatedWords = {};
@@ -1311,7 +1310,7 @@ module.exports.getSuggestedWords = function (words) {
 
 							//todo: filter words that begins with numbers and stopwords if we have others results to show
 							for (var index = 0; index < relatedWords.length && index < 5; index++) {
-								arrResponse.push(arrResponse[0] + " " + relatedWords[index].word);
+								arrResponse.push(previousWords + " " + relatedWords[index].word);
 							}
 
 						}
