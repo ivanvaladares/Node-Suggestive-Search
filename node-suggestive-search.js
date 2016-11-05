@@ -1,5 +1,5 @@
 /* 
-node-suggestive-search v1.6
+node-suggestive-search v1.7
 https://github.com/ivanvaladares/node-suggestive-search/
 by Ivan Valadares 
 http://ivanvaladares.com 
@@ -1486,12 +1486,41 @@ module.exports.getSuggestedItems = function (words) {
 
 							foundItems.map(function (item) {
 
-								if (lastWord == "" || 
-									item.itemName.toLowerCase().latinize().indexOf(lastWord) >= 0 ||
-									(item.keywords && item.keywords.toLowerCase().latinize().indexOf(lastWord) >= 0 )) {
+								var includeThisItem = false;
+
+								if (lastWord == ""){
+									includeThisItem = true;
+								}else{
+
+									var arrItemWords = splitWords(item.itemName.toLowerCase().latinize());
+
+									arrItemWords.map(function(itemWord){
+
+										var wordExist = false;
+
+										for (var index = 0; index < arrWords.length; index++) {
+											if (arrWords[index].toLowerCase().latinize() == itemWord){
+												wordExist = true;
+												break;
+											}
+										}
+
+										if (!wordExist){
+											
+											if (itemWord.indexOf(lastWord) == 0){
+												includeThisItem = true;
+											}
+
+										}
+
+									});
+
+								}
+
+								if (includeThisItem){
 									arrResponse.push({itemId: item.itemId, itemName: item.itemName });
 								}
-								
+
 							});
 		
 						}
