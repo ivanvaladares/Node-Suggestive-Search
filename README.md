@@ -4,7 +4,7 @@ A node module to help type-ahead and dropdown search boxes and also correct miss
 
 This module requires:
 - NeDB 1.8.0, The JavaScript Database from Louis Chatriot https://github.com/louischatriot/nedb
-- MongoDB Node.JS Driver 2.2.11, Driver to connect with MongoDB 3.2 http://mongodb.github.io/node-mongodb-native/
+- MongoDB Node.JS Driver 2.2.19, Driver to connect with MongoDB 3.2 http://mongodb.github.io/node-mongodb-native/
 
 ## Installation, tests
 Module name on npm is "node-suggestive-search".
@@ -248,7 +248,7 @@ Insert a new item into the database.
 Examples of how to call the api and responses:
 ```javascript
 
-var newItem = {  
+let newItem = {  
 	"itemName":"VODKA ABSOLUT",
 	"itemId":"6"
 	};
@@ -271,7 +271,7 @@ Remove an item from the database.
 Examples of how to call the api and responses:
 ```javascript
 
-var itemId = "6";
+let itemId = "6";
 
 nss.removetItem(itemId).then(
 	data => {

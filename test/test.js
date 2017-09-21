@@ -1,10 +1,16 @@
-var assert = require("assert"),
-    nss = require('../index.js').init(
+var assert = require("assert");
+var nss = require('../index.js').init(
         {
             dataBase: "nedb",
             neDbDataPath: "",
             neDbInMemoryOnly: true
         });
+
+// var nss = require('../index.js').init(
+//         {
+//             dataBase: "mongodb", 
+//             mongoDatabase: "mongodb://127.0.0.1:27017/nodeSugestiveSearchTST"
+//         });
 
 describe('Test -', () => {
     it('load json string', () => {
