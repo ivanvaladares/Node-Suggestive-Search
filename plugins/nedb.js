@@ -1,6 +1,5 @@
 let Datastore = require('nedb');
 let path = require('path');
-let db = {};
 
 exports.name = 'nedb';
 
@@ -37,7 +36,7 @@ exports.remove = (collection, criteria1, criteria2, callback) => {
   collection.remove(criteria1, criteria2, callback);
 };
 
-exports.createIndex = (collection, fieldName, order) => {
+exports.createIndex = (collection, fieldName) => {
   collection.ensureIndex({ fieldName }, err => {
     if (err) console.log(err);
   });

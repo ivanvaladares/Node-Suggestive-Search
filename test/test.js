@@ -1,4 +1,8 @@
+var mocha = require('mocha')
+var describe = mocha.describe;
+var it = mocha.it;
 var assert = require("assert");
+
 var nss = require('../index.js').init(
         {
             dataBase: "nedb",
@@ -9,17 +13,17 @@ var nss = require('../index.js').init(
 // var nss = require('../index.js').init(
 //         {
 //             dataBase: "mongodb", 
-//             mongoDatabase: "mongodb://127.0.0.1:27017/nodeSugestiveSearchTST"
+//             mongoDatabase: "mongodb://127.0.0.1:27017/nodeSugestiveSearchTest"
 //         });
 
 describe('Test -', () => {
     it('load json string', () => {
-        return nss.loadJsonString(`[{"itemName":"WHISKY RED LABEL","itemId":"1","keywords": "fancy"},{  
-                                    "itemName":"WHISKY BLACK LABEL","itemId":"2"},{  
-                                    "itemName":"BLACK FOREST BEECHWOOD HAM L/S","itemId":"3"},{  
-                                    "itemName":"PESTO PARMESAN HAM","itemId":"4"},{  
-                                    "itemName":"DELI SWEET SLICE SMOKED HAM","itemId":"5"},{  
-                                    "itemName":"LABELY BUTTER","itemId":"7"}]`)
+        return nss.loadJsonString(`[{"nm":"WHISKY RED LABEL","id":"1","kw": "fancy"},{  
+                                    "nm":"WHISKY BLACK LABEL","id":"2"},{  
+                                    "nm":"BLACK FOREST BEECHWOOD HAM L/S","id":"3"},{  
+                                    "nm":"PESTO PARMESAN HAM","id":"4"},{  
+                                    "nm":"DELI SWEET SLICE SMOKED HAM","id":"5"},{  
+                                    "nm":"LABELY BUTTER","id":"7"}]`, "id", "nm", "kw")
             .then(data => {
                 assert(
                     data != null &&
