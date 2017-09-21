@@ -1,28 +1,24 @@
 
 /* 
-node-suggestive-search v1.7.1
+node-suggestive-search v1.7.2
 https://github.com/ivanvaladares/node-suggestive-search/
 by Ivan Valadares 
 http://ivanvaladares.com 
 */
 
-
-var fs = require('fs'),
-	path = require('path');
-
-var db;
-var _thisModule = this;
-var initialized = false;
+let fs = require('fs');
+let	path = require('path');
+let db, initialized = false;
 
 
-exports.init = options => {
+init = options => {
 
 	if (!options) {
 		throw new Error("Options are required!");
 	}
 
 	if (options.dataBase.toLowerCase() == "mongodb" || options.dataBase.toLowerCase() == "nedb") {
-		db = require("./plugins/" + options.dataBase.toLowerCase() + ".js");
+		db = require(`./plugins/${options.dataBase.toLowerCase()}.js`);
 	} else {
 		throw new Error("This module requires MongoDB or NeDB!");
 	}
@@ -117,7 +113,7 @@ soundex = (str) => {
 };
 
 cloneObjJson = (obj) => {
-	if (obj == null || typeof (obj) != 'object') {
+	if (obj === null || typeof(obj) != 'object') {
 		return obj;
 	}
 	let temp = new obj.constructor();
@@ -151,6 +147,19 @@ splitWords = (text) => {
 	}
 
 	return words;
+}
+
+
+createWordObject = (word, cleanWord) => {
+	
+	let objWord = { word: word, cleanWord, soundex: soundex(word), items: {} };
+	
+	for (let i = 2; i <= cleanWord.length && i <= 4; i++) {
+		objWord[`p${i}i`] = cleanWord.substr(0, i).toLowerCase();
+		objWord[`p${i}e`] = cleanWord.substr(cleanWord.length - i, cleanWord.length).toLowerCase();
+	}
+
+	return objWord;
 }
 
 /**
@@ -207,14 +216,12 @@ populateWordsJson = (itemsJson) => {
 							//keep the word without accent and lowercase
 							let cleanWord = strWord.latinize();
 
-							objWords[strWord] = { word: arrWords[w], cleanWord: cleanWord, soundex: soundex(arrWords[w]), items: {} };
+							let objWord = createWordObject(arrWords[w], cleanWord);
 
-							for (let i = 2; i <= cleanWord.length && i <= 4; i++) {
-								objWords[strWord]["p" + i + "i"] = cleanWord.substr(0, i).toLowerCase();
-								objWords[strWord]["p" + i + "e"] = cleanWord.substr(cleanWord.length - i, cleanWord.length).toLowerCase();
-							}
+							//add this new item into related items of this word
+							objWord.items[itemsJson[x].itemId] = 1;
 
-							objWords[strWord].items[itemsJson[x].itemId] = 1;
+							objWords[strWord] = objWord;
 
 							if (repeatedObjWords[cleanWord]) {
 								repeatedObjWords[cleanWord].push(strWord);
@@ -232,12 +239,14 @@ populateWordsJson = (itemsJson) => {
 				//lets make this module accent insensitive when searching for items
 				//all the similar words will have the same itemsId
 				for (let item in repeatedObjWords) {
-					if (repeatedObjWords[item].length > 1) {
+					let repeatedWordsArray = repeatedObjWords[item];
+
+					if (repeatedWordsArray.length > 1) {
 
 						let itemsId = {};
 
-						for (let index = 0; index < repeatedObjWords[item].length; index++) {
-							let objWord = objWords[repeatedObjWords[item][index]];
+						for (let index = 0; index < repeatedWordsArray.length; index++) {
+							let objWord = objWords[repeatedWordsArray[index]];
 
 							for (let idResultItem in objWord.items) {
 								if (!itemsId[idResultItem]) {
@@ -247,8 +256,8 @@ populateWordsJson = (itemsJson) => {
 
 						}
 
-						for (let index = 0; index < repeatedObjWords[item].length; index++) {
-							let objWord = objWords[repeatedObjWords[item][index]];
+						for (let index = 0; index < repeatedWordsArray.length; index++) {
+							let objWord = objWords[repeatedWordsArray[index]];
 
 							objWord.items = cloneObjJson(itemsId);
 						}
@@ -256,7 +265,7 @@ populateWordsJson = (itemsJson) => {
 				}
 
 
-				//create a nedb compatible JSON from the above dictionary
+				//create a database compatible JSON array from the above dictionary
 				let wordsJson = [];
 				for (let item in objWords) {
 					wordsJson.push(objWords[item]);
@@ -291,11 +300,11 @@ populateWordsJson = (itemsJson) => {
 
 						//try to create an index for [pXi]
 						for (let i = 2; i <= 4; i++) {
-							db.createIndex(db.dbWords, ('p' + i + 'i'), 1, (err) => {
+							db.createIndex(db.dbWords, (`p${i}i`), 1, (err) => {
 								//lets not propagate for now
 								if (err) console.log(err);
 							});
-							db.createIndex(db.dbWords, ('p' + i + 'e'), 1, (err) => {
+							db.createIndex(db.dbWords, (`p${i}e`), 1, (err) => {
 								//lets not propagate for now
 								if (err) console.log(err);
 							});
@@ -321,7 +330,7 @@ populateWordsJson = (itemsJson) => {
  * @param {String} word used in the search
  * returns {Promise(JSON)} 
  */
-getWordsBySoundexAndParts = (word) => {
+getWordsBySoundexAndParts = word => {
 
 	return new Promise((resolve, reject) => {
 
@@ -335,14 +344,13 @@ getWordsBySoundexAndParts = (word) => {
 
 			if (wordWithoutAccents.length >= i) {
 
-				let objCriteriaIni = JSON.parse('{ "p' + i + 'i" : "" }');
-				objCriteriaIni[Object.keys(objCriteriaIni)[0]] = wordWithoutAccents.substr(0, i).toLowerCase();
+				let objCriteriaIni = {};
+				objCriteriaIni[`p${i}i`] = wordWithoutAccents.substr(0, i).toLowerCase();
 				queryCriteria.push(objCriteriaIni);
 
-				let objCriteriaEnd = JSON.parse('{ "p' + i + 'e" : "" }');
-				objCriteriaEnd[Object.keys(objCriteriaEnd)[0]] = wordWithoutAccents.substr(wordWithoutAccents.length - i, wordWithoutAccents.length).toLowerCase();
+				let objCriteriaEnd = {};
+				objCriteriaEnd[`p${i}e`] = wordWithoutAccents.substr(wordWithoutAccents.length - i, wordWithoutAccents.length).toLowerCase();				
 				queryCriteria.push(objCriteriaEnd);
-
 			}
 
 			//we already have too many search criterias for this word, lets stop to not slow down this query
@@ -360,12 +368,13 @@ getWordsBySoundexAndParts = (word) => {
 
 				//before return the result, lets give a similarity rank for each result	
 				//and filter top 10 most similar result 
-				resolve(items.map((obj, i) => {
-							obj.similarity = similarity(obj.word, word);
-							return obj;
-						}).sort((x, y) => {
-							return ((x.similarity > y.similarity) ? -1 : 1)
-						}).slice(0, 10)
+				resolve(
+					items.map(obj => {
+						obj.similarity = similarity(obj.word, word);
+						return obj;
+					}).sort((x, y) => {
+						return ((x.similarity > y.similarity) ? -1 : 1)
+					}).slice(0, 10)
 				);
 
 			} else {
@@ -392,14 +401,14 @@ getWordsStartingWith = (word, limit) => {
 
 	return new Promise((resolve, reject) => {
 
-		let queryCriteria;
+		let queryCriteria = {};
 		let hasCriteria = false;
 
 		//create a search criteria from 4 to 2 letters to try to find words that starts like this one
 		for (let i = 4; i >= 2; i--) {
 			if (word.length >= i) {
-				queryCriteria = JSON.parse('{ "p' + i + 'i" : "" }');
-				queryCriteria[Object.keys(queryCriteria)[0]] = word.substr(0, i).toLowerCase();
+
+				queryCriteria[`p${i}i`] = word.substr(0, i).toLowerCase();
 
 				hasCriteria = true;
 				//lets search with only one criteria
@@ -418,17 +427,18 @@ getWordsStartingWith = (word, limit) => {
 			if (foundItems.length > 0) {
 
 				//return item that begins with same characters, from smallest to biggest and then alphabetically
-				resolve(foundItems.filter(objWord => {
-					return objWord.cleanWord.indexOf(word.toLowerCase()) == 0;
-				}).sort((a, b) => {
-					if (a.word.length > b.word.length) {
-						return 1;
-					} else if (a.word.length < b.word.length) {
-						return -1;
-					}
-					return a.word > b.word;
-				})
-					.slice(0, ((limit > 0) ? limit : foundItems.length)));
+				resolve(
+					foundItems.filter(objWord => {
+						return objWord.cleanWord.indexOf(word.toLowerCase()) == 0;
+					}).sort((x, y) => {
+						if (x.word.length > y.word.length) {
+							return 1;
+						} else if (x.word.length < y.word.length) {
+							return -1;
+						}
+						return x.word > y.word;
+					}).slice(0, ((limit > 0) ? limit : foundItems.length))
+				);
 
 			} else {
 
@@ -447,7 +457,7 @@ getWordsStartingWith = (word, limit) => {
  * @param {Json object} with item {itemId: 0 , itemName: "item name"}
  * returns {Promise(JSON)}
  */
-module.exports.insertItem = (itemJson) => {
+insertItem = (itemJson) => {
 
 	checkInitialized();
 
@@ -460,7 +470,7 @@ module.exports.insertItem = (itemJson) => {
 			return reject(new Error('Item must have itemId and itemName!'));
 		}
 
-		_thisModule.removeItem(itemJson.itemId).then(data => {
+		removeItem(itemJson.itemId).then(data => {
 
 			//insert item into items dictionary
 			db.insert(db.dbItems, itemJson, (err, itemJsonInserted) => {
@@ -468,7 +478,6 @@ module.exports.insertItem = (itemJson) => {
 
 				//get words from item
 				let arrWords = splitWords(itemJson.itemName);
-
 
 				//get each word from dictionary and associate with this new item
 				//also check if is a repeating word with different accents
@@ -510,7 +519,7 @@ module.exports.insertItem = (itemJson) => {
 					for (let index = 0; index < foundItems.length; index++) {
 						let foundItem = foundItems[index];
 
-						if (foundItem == null) {
+						if (foundItem === null) {
 
 							notFoundedWords.push(arrWords[index]);
 
@@ -567,15 +576,9 @@ module.exports.insertItem = (itemJson) => {
 
 					for (let index = 0; index < notFoundedWords.length; index++) {
 						let word = notFoundedWords[index];
-
 						let cleanWord = word.toLowerCase().latinize();
 
-						let objWord = { word: word, cleanWord: cleanWord, soundex: soundex(word), items: {} };
-
-						for (let i = 2; i <= cleanWord.length && i <= 4; i++) {
-							objWord["p" + i + "i"] = cleanWord.substr(0, i).toLowerCase();
-							objWord["p" + i + "e"] = cleanWord.substr(cleanWord.length - i, cleanWord.length).toLowerCase();
-						}
+						let objWord = createWordObject(word, cleanWord);
 
 						//add this new item into related items of this word
 						objWord.items[itemJson.itemId] = 1;
@@ -584,7 +587,7 @@ module.exports.insertItem = (itemJson) => {
 						objWords[word] = objWord;
 					}
 
-					//create a nedb compatible JSON from the above dictionary
+					//create a database compatible JSON array from the above dictionary
 					let wordsJson = [];
 					for (let item in objWords) {
 						wordsJson.push(objWords[item]);
@@ -669,7 +672,7 @@ module.exports.insertItem = (itemJson) => {
  * @param {string} itemId
  * returns {Promise(JSON)}
  */
-module.exports.removeItem = itemId => {
+removeItem = itemId => {
 
 	checkInitialized();
 
@@ -724,7 +727,7 @@ module.exports.removeItem = itemId => {
 					for (let index = 0; index < foundWords.length; index++) {
 						let foundWord = foundWords[index];
 
-						if (foundWord != null && foundWord.length > 0) {
+						if (foundWord !== null && foundWord.length > 0) {
 
 							for (let iWord = 0; iWord < foundWord.length; iWord++) {
 								let element = foundWord[iWord];
@@ -743,7 +746,7 @@ module.exports.removeItem = itemId => {
 					for (let index = 0; index < foundWords.length; index++) {
 						let foundWord = foundWords[index];
 
-						if (foundWord != null && foundWord.length > 0) {
+						if (foundWord !== null && foundWord.length > 0) {
 
 							for (let iWord = 0; iWord < foundWord.length; iWord++) {
 								let element = foundWord[iWord];
@@ -812,7 +815,7 @@ module.exports.removeItem = itemId => {
  * @param {String} charset, Charset used in file 
  * returns {Promise(JSON)}
  */
-module.exports.loadJson = (jSonFilePath, charset) => {
+loadJson = (jSonFilePath, charset = "utf8") => {
 
 	checkInitialized();
 
@@ -821,10 +824,6 @@ module.exports.loadJson = (jSonFilePath, charset) => {
 		let time = new Date();
 
 		let itemsJson = null;
-
-		if (!charset) {
-			charset = "utf8";
-		}
 
 		//get the file from the path
 		fs.readFile(jSonFilePath, charset, (err, data) => {
@@ -858,7 +857,7 @@ module.exports.loadJson = (jSonFilePath, charset) => {
  * @param {String} json string with items
  * returns {Promise(JSON)}
  */
-module.exports.loadJsonString = jSonString => {
+loadJsonString = jSonString => {
 
 	checkInitialized();
 
@@ -897,7 +896,7 @@ module.exports.loadJsonString = jSonString => {
  * returns {Promise(JSON)}
  * depends: latinize, getWordsBySoundexAndParts, cloneObjJson, 
  */
-module.exports.query = words => {
+query = words => {
 
 	checkInitialized();
 
@@ -908,10 +907,10 @@ module.exports.query = words => {
 		let arrWords = splitWords(words);
 
 		if (arrWords.length <= 0) {
-			return reject({ message: "No word was given to search!" });
+			return reject(new Error("No word was given to search!"));
 		}
 
-		//make a promise for each word from query and create an array of promises
+		//create a promise for each word from query and create an array of promises
 		let promises = arrWords.map(word => {
 
 			return new Promise((resolve, reject) => {
@@ -925,7 +924,7 @@ module.exports.query = words => {
 
 						//this function will try to get words in our dictionary that is similar to the word from the query
 						getWordsBySoundexAndParts(word).then(soudexFoundItems  => {
-							if (soudexFoundItems != null) {
+							if (soudexFoundItems !== null) {
 								resolve({ word: word, correct: false, results: soudexFoundItems });
 							} else {
 								resolve({ word: word, correct: false, results: [] })
@@ -976,24 +975,31 @@ module.exports.query = words => {
 			//if there is any incorrect word, lets choose the best match between the results 
 			//to acomplish this, lets iterate over all words and their items to check how many items are similar between the words
 
+
+			//todo: improve this nested loops...
 			if (items.length > 1) {
 
+				//iterate promise items 1
 				for (let i = 0; i < items.length; i++) {
 					let objWord = items[i];
 
+					//iterate promise items 2
 					for (let x = 0; x < items.length; x++) {
 						let objOtherWord = items[x];
 
+						//compare words from promises and only continue if they are different
 						if (objOtherWord.word.toLowerCase() != objWord.word.toLowerCase() && objOtherWord.results.length > 0 && objWord.results.length > 0) {
 
+							//iterate on the words found from word from the query 1
 							for (let result in objWord.results) {
 								let objResult = objWord.results[result];
 
-								for (let otherWordResult in objOtherWord.results) {
+							//iterate on the words found from word from the query 2
+							for (let otherWordResult in objOtherWord.results) {
 									let objOtherWordResult = objOtherWord.results[otherWordResult];
 
+									//try to match one array with another
 									for (let idResultItem in objResult.items) {
-
 										if (objOtherWordResult.items[idResultItem]) {
 											// lets give a boost in similarity because this word contains items from other words
 											objResult.similarity = (objResult.similarity || 0) + 1;
@@ -1083,7 +1089,7 @@ module.exports.query = words => {
  * @param {String} word(s) to search
  * returns {Promise(JSON)}
  */
-module.exports.getSuggestedWords = words => {
+getSuggestedWords = words => {
 
 	checkInitialized();
 
@@ -1098,7 +1104,7 @@ module.exports.getSuggestedWords = words => {
 		}
 
 		if (arrWords.length <= 0) {
-			return reject({ message: "No word was given to search!" });
+			return reject(new Error("No word was given to search!"));
 		}
 
 		//only one word came from query and no space at the end
@@ -1109,7 +1115,7 @@ module.exports.getSuggestedWords = words => {
 
 				let arrResponse = [];
 
-				if (queryResponse != null) {
+				if (queryResponse !== null) {
 
 					for (let index = 0; index < queryResponse.length; index++) {
 						arrResponse.push(queryResponse[index].word);
@@ -1144,9 +1150,9 @@ module.exports.getSuggestedWords = words => {
 				reject(err);
 			});
 
-		} else { //two or more words came from the query.
+		} else { //one word with space at the end or more words came from the query.
 
-			//make a promise for each word from query, but last one and create an array of promises
+			//make a promise for each word from query, but last one, and create an array of promises
 			let promises = arrWords.slice(0, arrWords.length - 1).map(word => {
 
 				return new Promise((resolve, reject) => {
@@ -1197,7 +1203,7 @@ module.exports.getSuggestedWords = words => {
 
 				//test if all words exists
 				for (let index in foundItems) {
-					if (foundItems[index] == null) {
+					if (foundItems[index] === null) {
 						//some word is not correct, break the response
 						return resolve({ suggestions: [], timeElapsed: (new Date() - time) });
 					}
@@ -1208,12 +1214,12 @@ module.exports.getSuggestedWords = words => {
 				previousWords = previousWords.trim();
 
 				//query for the previous words to check if there is items with this combination
-				_thisModule.query(previousWords).then(queryResponse => {
+				query(previousWords).then(queryResponse => {
 
 					//after this query, one or more words could be missing because its items did not match
 					//if that is true, break the response
 					for (let index = 0; index < queryResponse.words.length; index++) {
-						if (queryResponse.words[index] == null) {
+						if (queryResponse.words[index] === null) {
 							//some word is not correct, break the response
 							return resolve({ suggestions: [], timeElapsed: (new Date() - time) });
 						}
@@ -1324,7 +1330,7 @@ module.exports.getSuggestedWords = words => {
  * @param {String} word(s) to search
  * returns {Promise(JSON)}
  */
-module.exports.getSuggestedItems = words => {
+getSuggestedItems = words => {
 
 	checkInitialized();
 
@@ -1335,7 +1341,7 @@ module.exports.getSuggestedItems = words => {
 		let arrWords = splitWords(words);
 
 		if (arrWords.length <= 0) {
-			return reject({ message: "No word was given to search!" });
+			return reject(new Error("No word was given to search!"));
 		}
 
 		//only one word came from query
@@ -1346,7 +1352,7 @@ module.exports.getSuggestedItems = words => {
 
 				let objItems = {};
 
-				if (queryResponse != null) {
+				if (queryResponse !== null) {
 
 					queryResponse.map(item => {
 
@@ -1368,7 +1374,7 @@ module.exports.getSuggestedItems = words => {
 
 					let arrResponse = [];
 
-					if (foundItems != null) {
+					if (foundItems !== null) {
 
 						foundItems.map(item => {
 
@@ -1440,7 +1446,7 @@ module.exports.getSuggestedItems = words => {
 
 				//test if all words exists
 				for (let index in foundItems) {
-					if (foundItems[index] == null) {
+					if (foundItems[index] === null) {
 						//some word is not correct, break the response
 						return resolve({ suggestions: [], timeElapsed: (new Date() - time) });
 					}
@@ -1451,12 +1457,12 @@ module.exports.getSuggestedItems = words => {
 				previousWords = previousWords.trim();
 
 				//query for the previous words to check if there is items with this combination
-				_thisModule.query(previousWords).then(queryResponse => {
+				query(previousWords).then(queryResponse => {
 
 					//after this query, one or more words could be missing because its items did not match
 					//if that is true, break the response
 					for (let index = 0; index < queryResponse.words.length; index++) {
-						if (queryResponse.words[index] == null) {
+						if (queryResponse.words[index] === null) {
 							//some word is not correct, break the response
 							return resolve({ suggestions: [], timeElapsed: (new Date() - time) });
 						}
@@ -1467,7 +1473,7 @@ module.exports.getSuggestedItems = words => {
 						let arrResponse = [];
 						let lastWord = arrWords[arrWords.length - 1].toLowerCase().latinize();
 
-						if (foundItems != null) {
+						if (foundItems !== null) {
 
 							foundItems.map(item => {
 
@@ -1524,3 +1530,13 @@ module.exports.getSuggestedItems = words => {
 	});
 
 }
+
+
+exports.init = init;
+exports.insertItem = insertItem;
+exports.removeItem = removeItem;
+exports.loadJson = loadJson;
+exports.loadJsonString = loadJsonString;
+exports.query = query;
+exports.getSuggestedWords = getSuggestedWords;
+exports.getSuggestedItems = getSuggestedItems;
