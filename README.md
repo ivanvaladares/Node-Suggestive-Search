@@ -92,7 +92,7 @@ Here is an example of a JSON to be imported (Itens.json):
 ]
 ```
 
-Code to load the JSON from file
+Load the JSON from file
 ```javascript
 
 nss.loadJson("Itens.json", "utf8").then( //you can change the charset to match your file
@@ -106,8 +106,25 @@ nss.loadJson("Itens.json", "utf8").then( //you can change the charset to match y
 
 ```
 
-Code to load the JSON from string
+Load the JSON from file with your own poperties names
 ```javascript
+
+nss.loadJson("Itens.json", "utf8", "itemId", "itemName", "keywords").then(
+	data => {
+		// response: {"words":16,"items":6,"timeElapsed":15}
+	},
+	err => {
+		//...
+	}
+);
+
+```
+
+Load the JSON from string
+```javascript
+
+let jSonString = `[{"itemName":"WHISKY RED LABEL", "itemId":"1", "keywords": "fancy"},{  
+					"itemName":"WHISKY BLACK LABEL", "itemId":"2"}]`;
 
 nss.loadJsonString(jSonString).then(
 	data => {
@@ -120,6 +137,22 @@ nss.loadJsonString(jSonString).then(
 
 ```
 
+Load the JSON from string with your own poperties names
+```javascript
+
+let jSonString = `[{"nm":"WHISKY RED LABEL", "id":"1", "kw": "fancy"},{  
+					"nm":"WHISKY BLACK LABEL", "id":"2"}]`;
+
+nss.loadJsonString(jSonString, "id", "nm", "kw").then(
+	data => {
+		// response: {"words":16,"items":6,"timeElapsed":17}
+	},
+	err => {
+		//...
+	}
+);
+
+```
 
 ### Searching for items
 Getting itemsId from searched words.
@@ -202,7 +235,6 @@ Getting suggestions to fill dropdown boxes.
 Examples of how to call the api and responses:
 ```javascript
 
-
 nss.getSuggestedItems("parme").then(
 	data => {
 		//response: {"items":[{"itemId":"4","itemName":"PESTO PARMESAN HAM"}],"timeElapsed":2}
@@ -249,11 +281,12 @@ Examples of how to call the api and responses:
 ```javascript
 
 let newItem = {  
-	"itemName":"VODKA ABSOLUT",
-	"itemId":"6"
+	"iName":"VODKA ABSOLUT",
+	"iId":"6",
+	"iKw":"Keyword1, keyword2..."
 	};
 
-nss.insertItem(newItem).then(
+nss.insertItem(newItem, "iId", "iName", "iKw").then(
 	data => {
 		//response: {"timeElapsed":2}
 	},
@@ -286,7 +319,6 @@ nss.removetItem(itemId).then(
 
 
 ## Roadmap
-* validade input json in all methods
 * catalog (several dictionaries)
 * filter stopwords
 * Browser version.

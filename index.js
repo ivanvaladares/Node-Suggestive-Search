@@ -5,13 +5,17 @@ https://github.com/ivanvaladares/node-suggestive-search/
 by Ivan Valadares 
 http://ivanvaladares.com 
 */
+"use strict";
 
 let fs = require('fs');
-let	path = require('path');
 let db, initialized = false;
 
-
-init = options => {
+/**
+ * Insert a new item into the dictionary database from json object.
+ * @param {JSON} options - jSon object with options.
+ * returns {Object} - Return an instance to this module.
+ */
+const init = options => {
 
 	if (!options) {
 		throw new Error("Options are required!");
@@ -34,36 +38,21 @@ init = options => {
 	return this;
 };
 
-checkInitialized = () => {
+const checkInitialized = () => {
 	if (!initialized) {
 		throw new Error("Module not initialized!!");
 	}
 }
 
-
 //http://semplicewebsites.com/removing-accents-javascript
-latin_map = { "Á": "A", "Ă": "A", "Ắ": "A", "Ặ": "A", "Ằ": "A", "Ẳ": "A", "Ẵ": "A", "Ǎ": "A", "Â": "A", "Ấ": "A", "Ậ": "A", "Ầ": "A", "Ẩ": "A", "Ẫ": "A", "Ä": "A", "Ǟ": "A", "Ȧ": "A", "Ǡ": "A", "Ạ": "A", "Ȁ": "A", "À": "A", "Ả": "A", "Ȃ": "A", "Ā": "A", "Ą": "A", "Å": "A", "Ǻ": "A", "Ḁ": "A", "Ⱥ": "A", "Ã": "A", "Ꜳ": "AA", "Æ": "AE", "Ǽ": "AE", "Ǣ": "AE", "Ꜵ": "AO", "Ꜷ": "AU", "Ꜹ": "AV", "Ꜻ": "AV", "Ꜽ": "AY", "Ḃ": "B", "Ḅ": "B", "Ɓ": "B", "Ḇ": "B", "Ƀ": "B", "Ƃ": "B", "Ć": "C", "Č": "C", "Ç": "C", "Ḉ": "C", "Ĉ": "C", "Ċ": "C", "Ƈ": "C", "Ȼ": "C", "Ď": "D", "Ḑ": "D", "Ḓ": "D", "Ḋ": "D", "Ḍ": "D", "Ɗ": "D", "Ḏ": "D", "ǲ": "D", "ǅ": "D", "Đ": "D", "Ƌ": "D", "Ǳ": "DZ", "Ǆ": "DZ", "É": "E", "Ĕ": "E", "Ě": "E", "Ȩ": "E", "Ḝ": "E", "Ê": "E", "Ế": "E", "Ệ": "E", "Ề": "E", "Ể": "E", "Ễ": "E", "Ḙ": "E", "Ë": "E", "Ė": "E", "Ẹ": "E", "Ȅ": "E", "È": "E", "Ẻ": "E", "Ȇ": "E", "Ē": "E", "Ḗ": "E", "Ḕ": "E", "Ę": "E", "Ɇ": "E", "Ẽ": "E", "Ḛ": "E", "Ꝫ": "ET", "Ḟ": "F", "Ƒ": "F", "Ǵ": "G", "Ğ": "G", "Ǧ": "G", "Ģ": "G", "Ĝ": "G", "Ġ": "G", "Ɠ": "G", "Ḡ": "G", "Ǥ": "G", "Ḫ": "H", "Ȟ": "H", "Ḩ": "H", "Ĥ": "H", "Ⱨ": "H", "Ḧ": "H", "Ḣ": "H", "Ḥ": "H", "Ħ": "H", "Í": "I", "Ĭ": "I", "Ǐ": "I", "Î": "I", "Ï": "I", "Ḯ": "I", "İ": "I", "Ị": "I", "Ȉ": "I", "Ì": "I", "Ỉ": "I", "Ȋ": "I", "Ī": "I", "Į": "I", "Ɨ": "I", "Ĩ": "I", "Ḭ": "I", "Ꝺ": "D", "Ꝼ": "F", "Ᵹ": "G", "Ꞃ": "R", "Ꞅ": "S", "Ꞇ": "T", "Ꝭ": "IS", "Ĵ": "J", "Ɉ": "J", "Ḱ": "K", "Ǩ": "K", "Ķ": "K", "Ⱪ": "K", "Ꝃ": "K", "Ḳ": "K", "Ƙ": "K", "Ḵ": "K", "Ꝁ": "K", "Ꝅ": "K", "Ĺ": "L", "Ƚ": "L", "Ľ": "L", "Ļ": "L", "Ḽ": "L", "Ḷ": "L", "Ḹ": "L", "Ⱡ": "L", "Ꝉ": "L", "Ḻ": "L", "Ŀ": "L", "Ɫ": "L", "ǈ": "L", "Ł": "L", "Ǉ": "LJ", "Ḿ": "M", "Ṁ": "M", "Ṃ": "M", "Ɱ": "M", "Ń": "N", "Ň": "N", "Ņ": "N", "Ṋ": "N", "Ṅ": "N", "Ṇ": "N", "Ǹ": "N", "Ɲ": "N", "Ṉ": "N", "Ƞ": "N", "ǋ": "N", "Ñ": "N", "Ǌ": "NJ", "Ó": "O", "Ŏ": "O", "Ǒ": "O", "Ô": "O", "Ố": "O", "Ộ": "O", "Ồ": "O", "Ổ": "O", "Ỗ": "O", "Ö": "O", "Ȫ": "O", "Ȯ": "O", "Ȱ": "O", "Ọ": "O", "Ő": "O", "Ȍ": "O", "Ò": "O", "Ỏ": "O", "Ơ": "O", "Ớ": "O", "Ợ": "O", "Ờ": "O", "Ở": "O", "Ỡ": "O", "Ȏ": "O", "Ꝋ": "O", "Ꝍ": "O", "Ō": "O", "Ṓ": "O", "Ṑ": "O", "Ɵ": "O", "Ǫ": "O", "Ǭ": "O", "Ø": "O", "Ǿ": "O", "Õ": "O", "Ṍ": "O", "Ṏ": "O", "Ȭ": "O", "Ƣ": "OI", "Ꝏ": "OO", "Ɛ": "E", "Ɔ": "O", "Ȣ": "OU", "Ṕ": "P", "Ṗ": "P", "Ꝓ": "P", "Ƥ": "P", "Ꝕ": "P", "Ᵽ": "P", "Ꝑ": "P", "Ꝙ": "Q", "Ꝗ": "Q", "Ŕ": "R", "Ř": "R", "Ŗ": "R", "Ṙ": "R", "Ṛ": "R", "Ṝ": "R", "Ȑ": "R", "Ȓ": "R", "Ṟ": "R", "Ɍ": "R", "Ɽ": "R", "Ꜿ": "C", "Ǝ": "E", "Ś": "S", "Ṥ": "S", "Š": "S", "Ṧ": "S", "Ş": "S", "Ŝ": "S", "Ș": "S", "Ṡ": "S", "Ṣ": "S", "Ṩ": "S", "Ť": "T", "Ţ": "T", "Ṱ": "T", "Ț": "T", "Ⱦ": "T", "Ṫ": "T", "Ṭ": "T", "Ƭ": "T", "Ṯ": "T", "Ʈ": "T", "Ŧ": "T", "Ɐ": "A", "Ꞁ": "L", "Ɯ": "M", "Ʌ": "V", "Ꜩ": "TZ", "Ú": "U", "Ŭ": "U", "Ǔ": "U", "Û": "U", "Ṷ": "U", "Ü": "U", "Ǘ": "U", "Ǚ": "U", "Ǜ": "U", "Ǖ": "U", "Ṳ": "U", "Ụ": "U", "Ű": "U", "Ȕ": "U", "Ù": "U", "Ủ": "U", "Ư": "U", "Ứ": "U", "Ự": "U", "Ừ": "U", "Ử": "U", "Ữ": "U", "Ȗ": "U", "Ū": "U", "Ṻ": "U", "Ų": "U", "Ů": "U", "Ũ": "U", "Ṹ": "U", "Ṵ": "U", "Ꝟ": "V", "Ṿ": "V", "Ʋ": "V", "Ṽ": "V", "Ꝡ": "VY", "Ẃ": "W", "Ŵ": "W", "Ẅ": "W", "Ẇ": "W", "Ẉ": "W", "Ẁ": "W", "Ⱳ": "W", "Ẍ": "X", "Ẋ": "X", "Ý": "Y", "Ŷ": "Y", "Ÿ": "Y", "Ẏ": "Y", "Ỵ": "Y", "Ỳ": "Y", "Ƴ": "Y", "Ỷ": "Y", "Ỿ": "Y", "Ȳ": "Y", "Ɏ": "Y", "Ỹ": "Y", "Ź": "Z", "Ž": "Z", "Ẑ": "Z", "Ⱬ": "Z", "Ż": "Z", "Ẓ": "Z", "Ȥ": "Z", "Ẕ": "Z", "Ƶ": "Z", "Ĳ": "IJ", "Œ": "OE", "ᴀ": "A", "ᴁ": "AE", "ʙ": "B", "ᴃ": "B", "ᴄ": "C", "ᴅ": "D", "ᴇ": "E", "ꜰ": "F", "ɢ": "G", "ʛ": "G", "ʜ": "H", "ɪ": "I", "ʁ": "R", "ᴊ": "J", "ᴋ": "K", "ʟ": "L", "ᴌ": "L", "ᴍ": "M", "ɴ": "N", "ᴏ": "O", "ɶ": "OE", "ᴐ": "O", "ᴕ": "OU", "ᴘ": "P", "ʀ": "R", "ᴎ": "N", "ᴙ": "R", "ꜱ": "S", "ᴛ": "T", "ⱻ": "E", "ᴚ": "R", "ᴜ": "U", "ᴠ": "V", "ᴡ": "W", "ʏ": "Y", "ᴢ": "Z", "á": "a", "ă": "a", "ắ": "a", "ặ": "a", "ằ": "a", "ẳ": "a", "ẵ": "a", "ǎ": "a", "â": "a", "ấ": "a", "ậ": "a", "ầ": "a", "ẩ": "a", "ẫ": "a", "ä": "a", "ǟ": "a", "ȧ": "a", "ǡ": "a", "ạ": "a", "ȁ": "a", "à": "a", "ả": "a", "ȃ": "a", "ā": "a", "ą": "a", "ᶏ": "a", "ẚ": "a", "å": "a", "ǻ": "a", "ḁ": "a", "ⱥ": "a", "ã": "a", "ꜳ": "aa", "æ": "ae", "ǽ": "ae", "ǣ": "ae", "ꜵ": "ao", "ꜷ": "au", "ꜹ": "av", "ꜻ": "av", "ꜽ": "ay", "ḃ": "b", "ḅ": "b", "ɓ": "b", "ḇ": "b", "ᵬ": "b", "ᶀ": "b", "ƀ": "b", "ƃ": "b", "ɵ": "o", "ć": "c", "č": "c", "ç": "c", "ḉ": "c", "ĉ": "c", "ɕ": "c", "ċ": "c", "ƈ": "c", "ȼ": "c", "ď": "d", "ḑ": "d", "ḓ": "d", "ȡ": "d", "ḋ": "d", "ḍ": "d", "ɗ": "d", "ᶑ": "d", "ḏ": "d", "ᵭ": "d", "ᶁ": "d", "đ": "d", "ɖ": "d", "ƌ": "d", "ı": "i", "ȷ": "j", "ɟ": "j", "ʄ": "j", "ǳ": "dz", "ǆ": "dz", "é": "e", "ĕ": "e", "ě": "e", "ȩ": "e", "ḝ": "e", "ê": "e", "ế": "e", "ệ": "e", "ề": "e", "ể": "e", "ễ": "e", "ḙ": "e", "ë": "e", "ė": "e", "ẹ": "e", "ȅ": "e", "è": "e", "ẻ": "e", "ȇ": "e", "ē": "e", "ḗ": "e", "ḕ": "e", "ⱸ": "e", "ę": "e", "ᶒ": "e", "ɇ": "e", "ẽ": "e", "ḛ": "e", "ꝫ": "et", "ḟ": "f", "ƒ": "f", "ᵮ": "f", "ᶂ": "f", "ǵ": "g", "ğ": "g", "ǧ": "g", "ģ": "g", "ĝ": "g", "ġ": "g", "ɠ": "g", "ḡ": "g", "ᶃ": "g", "ǥ": "g", "ḫ": "h", "ȟ": "h", "ḩ": "h", "ĥ": "h", "ⱨ": "h", "ḧ": "h", "ḣ": "h", "ḥ": "h", "ɦ": "h", "ẖ": "h", "ħ": "h", "ƕ": "hv", "í": "i", "ĭ": "i", "ǐ": "i", "î": "i", "ï": "i", "ḯ": "i", "ị": "i", "ȉ": "i", "ì": "i", "ỉ": "i", "ȋ": "i", "ī": "i", "į": "i", "ᶖ": "i", "ɨ": "i", "ĩ": "i", "ḭ": "i", "ꝺ": "d", "ꝼ": "f", "ᵹ": "g", "ꞃ": "r", "ꞅ": "s", "ꞇ": "t", "ꝭ": "is", "ǰ": "j", "ĵ": "j", "ʝ": "j", "ɉ": "j", "ḱ": "k", "ǩ": "k", "ķ": "k", "ⱪ": "k", "ꝃ": "k", "ḳ": "k", "ƙ": "k", "ḵ": "k", "ᶄ": "k", "ꝁ": "k", "ꝅ": "k", "ĺ": "l", "ƚ": "l", "ɬ": "l", "ľ": "l", "ļ": "l", "ḽ": "l", "ȴ": "l", "ḷ": "l", "ḹ": "l", "ⱡ": "l", "ꝉ": "l", "ḻ": "l", "ŀ": "l", "ɫ": "l", "ᶅ": "l", "ɭ": "l", "ł": "l", "ǉ": "lj", "ſ": "s", "ẜ": "s", "ẛ": "s", "ẝ": "s", "ḿ": "m", "ṁ": "m", "ṃ": "m", "ɱ": "m", "ᵯ": "m", "ᶆ": "m", "ń": "n", "ň": "n", "ņ": "n", "ṋ": "n", "ȵ": "n", "ṅ": "n", "ṇ": "n", "ǹ": "n", "ɲ": "n", "ṉ": "n", "ƞ": "n", "ᵰ": "n", "ᶇ": "n", "ɳ": "n", "ñ": "n", "ǌ": "nj", "ó": "o", "ŏ": "o", "ǒ": "o", "ô": "o", "ố": "o", "ộ": "o", "ồ": "o", "ổ": "o", "ỗ": "o", "ö": "o", "ȫ": "o", "ȯ": "o", "ȱ": "o", "ọ": "o", "ő": "o", "ȍ": "o", "ò": "o", "ỏ": "o", "ơ": "o", "ớ": "o", "ợ": "o", "ờ": "o", "ở": "o", "ỡ": "o", "ȏ": "o", "ꝋ": "o", "ꝍ": "o", "ⱺ": "o", "ō": "o", "ṓ": "o", "ṑ": "o", "ǫ": "o", "ǭ": "o", "ø": "o", "ǿ": "o", "õ": "o", "ṍ": "o", "ṏ": "o", "ȭ": "o", "ƣ": "oi", "ꝏ": "oo", "ɛ": "e", "ᶓ": "e", "ɔ": "o", "ᶗ": "o", "ȣ": "ou", "ṕ": "p", "ṗ": "p", "ꝓ": "p", "ƥ": "p", "ᵱ": "p", "ᶈ": "p", "ꝕ": "p", "ᵽ": "p", "ꝑ": "p", "ꝙ": "q", "ʠ": "q", "ɋ": "q", "ꝗ": "q", "ŕ": "r", "ř": "r", "ŗ": "r", "ṙ": "r", "ṛ": "r", "ṝ": "r", "ȑ": "r", "ɾ": "r", "ᵳ": "r", "ȓ": "r", "ṟ": "r", "ɼ": "r", "ᵲ": "r", "ᶉ": "r", "ɍ": "r", "ɽ": "r", "ↄ": "c", "ꜿ": "c", "ɘ": "e", "ɿ": "r", "ś": "s", "ṥ": "s", "š": "s", "ṧ": "s", "ş": "s", "ŝ": "s", "ș": "s", "ṡ": "s", "ṣ": "s", "ṩ": "s", "ʂ": "s", "ᵴ": "s", "ᶊ": "s", "ȿ": "s", "ɡ": "g", "ᴑ": "o", "ᴓ": "o", "ᴝ": "u", "ť": "t", "ţ": "t", "ṱ": "t", "ț": "t", "ȶ": "t", "ẗ": "t", "ⱦ": "t", "ṫ": "t", "ṭ": "t", "ƭ": "t", "ṯ": "t", "ᵵ": "t", "ƫ": "t", "ʈ": "t", "ŧ": "t", "ᵺ": "th", "ɐ": "a", "ᴂ": "ae", "ǝ": "e", "ᵷ": "g", "ɥ": "h", "ʮ": "h", "ʯ": "h", "ᴉ": "i", "ʞ": "k", "ꞁ": "l", "ɯ": "m", "ɰ": "m", "ᴔ": "oe", "ɹ": "r", "ɻ": "r", "ɺ": "r", "ⱹ": "r", "ʇ": "t", "ʌ": "v", "ʍ": "w", "ʎ": "y", "ꜩ": "tz", "ú": "u", "ŭ": "u", "ǔ": "u", "û": "u", "ṷ": "u", "ü": "u", "ǘ": "u", "ǚ": "u", "ǜ": "u", "ǖ": "u", "ṳ": "u", "ụ": "u", "ű": "u", "ȕ": "u", "ù": "u", "ủ": "u", "ư": "u", "ứ": "u", "ự": "u", "ừ": "u", "ử": "u", "ữ": "u", "ȗ": "u", "ū": "u", "ṻ": "u", "ų": "u", "ᶙ": "u", "ů": "u", "ũ": "u", "ṹ": "u", "ṵ": "u", "ᵫ": "ue", "ꝸ": "um", "ⱴ": "v", "ꝟ": "v", "ṿ": "v", "ʋ": "v", "ᶌ": "v", "ⱱ": "v", "ṽ": "v", "ꝡ": "vy", "ẃ": "w", "ŵ": "w", "ẅ": "w", "ẇ": "w", "ẉ": "w", "ẁ": "w", "ⱳ": "w", "ẘ": "w", "ẍ": "x", "ẋ": "x", "ᶍ": "x", "ý": "y", "ŷ": "y", "ÿ": "y", "ẏ": "y", "ỵ": "y", "ỳ": "y", "ƴ": "y", "ỷ": "y", "ỿ": "y", "ȳ": "y", "ẙ": "y", "ɏ": "y", "ỹ": "y", "ź": "z", "ž": "z", "ẑ": "z", "ʑ": "z", "ⱬ": "z", "ż": "z", "ẓ": "z", "ȥ": "z", "ẕ": "z", "ᵶ": "z", "ᶎ": "z", "ʐ": "z", "ƶ": "z", "ɀ": "z", "ﬀ": "ff", "ﬃ": "ffi", "ﬄ": "ffl", "ﬁ": "fi", "ﬂ": "fl", "ĳ": "ij", "œ": "oe", "ﬆ": "st", "ₐ": "a", "ₑ": "e", "ᵢ": "i", "ⱼ": "j", "ₒ": "o", "ᵣ": "r", "ᵤ": "u", "ᵥ": "v", "ₓ": "x" };
+const latin_map = { "Á": "A", "Ă": "A", "Ắ": "A", "Ặ": "A", "Ằ": "A", "Ẳ": "A", "Ẵ": "A", "Ǎ": "A", "Â": "A", "Ấ": "A", "Ậ": "A", "Ầ": "A", "Ẩ": "A", "Ẫ": "A", "Ä": "A", "Ǟ": "A", "Ȧ": "A", "Ǡ": "A", "Ạ": "A", "Ȁ": "A", "À": "A", "Ả": "A", "Ȃ": "A", "Ā": "A", "Ą": "A", "Å": "A", "Ǻ": "A", "Ḁ": "A", "Ⱥ": "A", "Ã": "A", "Ꜳ": "AA", "Æ": "AE", "Ǽ": "AE", "Ǣ": "AE", "Ꜵ": "AO", "Ꜷ": "AU", "Ꜹ": "AV", "Ꜻ": "AV", "Ꜽ": "AY", "Ḃ": "B", "Ḅ": "B", "Ɓ": "B", "Ḇ": "B", "Ƀ": "B", "Ƃ": "B", "Ć": "C", "Č": "C", "Ç": "C", "Ḉ": "C", "Ĉ": "C", "Ċ": "C", "Ƈ": "C", "Ȼ": "C", "Ď": "D", "Ḑ": "D", "Ḓ": "D", "Ḋ": "D", "Ḍ": "D", "Ɗ": "D", "Ḏ": "D", "ǲ": "D", "ǅ": "D", "Đ": "D", "Ƌ": "D", "Ǳ": "DZ", "Ǆ": "DZ", "É": "E", "Ĕ": "E", "Ě": "E", "Ȩ": "E", "Ḝ": "E", "Ê": "E", "Ế": "E", "Ệ": "E", "Ề": "E", "Ể": "E", "Ễ": "E", "Ḙ": "E", "Ë": "E", "Ė": "E", "Ẹ": "E", "Ȅ": "E", "È": "E", "Ẻ": "E", "Ȇ": "E", "Ē": "E", "Ḗ": "E", "Ḕ": "E", "Ę": "E", "Ɇ": "E", "Ẽ": "E", "Ḛ": "E", "Ꝫ": "ET", "Ḟ": "F", "Ƒ": "F", "Ǵ": "G", "Ğ": "G", "Ǧ": "G", "Ģ": "G", "Ĝ": "G", "Ġ": "G", "Ɠ": "G", "Ḡ": "G", "Ǥ": "G", "Ḫ": "H", "Ȟ": "H", "Ḩ": "H", "Ĥ": "H", "Ⱨ": "H", "Ḧ": "H", "Ḣ": "H", "Ḥ": "H", "Ħ": "H", "Í": "I", "Ĭ": "I", "Ǐ": "I", "Î": "I", "Ï": "I", "Ḯ": "I", "İ": "I", "Ị": "I", "Ȉ": "I", "Ì": "I", "Ỉ": "I", "Ȋ": "I", "Ī": "I", "Į": "I", "Ɨ": "I", "Ĩ": "I", "Ḭ": "I", "Ꝺ": "D", "Ꝼ": "F", "Ᵹ": "G", "Ꞃ": "R", "Ꞅ": "S", "Ꞇ": "T", "Ꝭ": "IS", "Ĵ": "J", "Ɉ": "J", "Ḱ": "K", "Ǩ": "K", "Ķ": "K", "Ⱪ": "K", "Ꝃ": "K", "Ḳ": "K", "Ƙ": "K", "Ḵ": "K", "Ꝁ": "K", "Ꝅ": "K", "Ĺ": "L", "Ƚ": "L", "Ľ": "L", "Ļ": "L", "Ḽ": "L", "Ḷ": "L", "Ḹ": "L", "Ⱡ": "L", "Ꝉ": "L", "Ḻ": "L", "Ŀ": "L", "Ɫ": "L", "ǈ": "L", "Ł": "L", "Ǉ": "LJ", "Ḿ": "M", "Ṁ": "M", "Ṃ": "M", "Ɱ": "M", "Ń": "N", "Ň": "N", "Ņ": "N", "Ṋ": "N", "Ṅ": "N", "Ṇ": "N", "Ǹ": "N", "Ɲ": "N", "Ṉ": "N", "Ƞ": "N", "ǋ": "N", "Ñ": "N", "Ǌ": "NJ", "Ó": "O", "Ŏ": "O", "Ǒ": "O", "Ô": "O", "Ố": "O", "Ộ": "O", "Ồ": "O", "Ổ": "O", "Ỗ": "O", "Ö": "O", "Ȫ": "O", "Ȯ": "O", "Ȱ": "O", "Ọ": "O", "Ő": "O", "Ȍ": "O", "Ò": "O", "Ỏ": "O", "Ơ": "O", "Ớ": "O", "Ợ": "O", "Ờ": "O", "Ở": "O", "Ỡ": "O", "Ȏ": "O", "Ꝋ": "O", "Ꝍ": "O", "Ō": "O", "Ṓ": "O", "Ṑ": "O", "Ɵ": "O", "Ǫ": "O", "Ǭ": "O", "Ø": "O", "Ǿ": "O", "Õ": "O", "Ṍ": "O", "Ṏ": "O", "Ȭ": "O", "Ƣ": "OI", "Ꝏ": "OO", "Ɛ": "E", "Ɔ": "O", "Ȣ": "OU", "Ṕ": "P", "Ṗ": "P", "Ꝓ": "P", "Ƥ": "P", "Ꝕ": "P", "Ᵽ": "P", "Ꝑ": "P", "Ꝙ": "Q", "Ꝗ": "Q", "Ŕ": "R", "Ř": "R", "Ŗ": "R", "Ṙ": "R", "Ṛ": "R", "Ṝ": "R", "Ȑ": "R", "Ȓ": "R", "Ṟ": "R", "Ɍ": "R", "Ɽ": "R", "Ꜿ": "C", "Ǝ": "E", "Ś": "S", "Ṥ": "S", "Š": "S", "Ṧ": "S", "Ş": "S", "Ŝ": "S", "Ș": "S", "Ṡ": "S", "Ṣ": "S", "Ṩ": "S", "Ť": "T", "Ţ": "T", "Ṱ": "T", "Ț": "T", "Ⱦ": "T", "Ṫ": "T", "Ṭ": "T", "Ƭ": "T", "Ṯ": "T", "Ʈ": "T", "Ŧ": "T", "Ɐ": "A", "Ꞁ": "L", "Ɯ": "M", "Ʌ": "V", "Ꜩ": "TZ", "Ú": "U", "Ŭ": "U", "Ǔ": "U", "Û": "U", "Ṷ": "U", "Ü": "U", "Ǘ": "U", "Ǚ": "U", "Ǜ": "U", "Ǖ": "U", "Ṳ": "U", "Ụ": "U", "Ű": "U", "Ȕ": "U", "Ù": "U", "Ủ": "U", "Ư": "U", "Ứ": "U", "Ự": "U", "Ừ": "U", "Ử": "U", "Ữ": "U", "Ȗ": "U", "Ū": "U", "Ṻ": "U", "Ų": "U", "Ů": "U", "Ũ": "U", "Ṹ": "U", "Ṵ": "U", "Ꝟ": "V", "Ṿ": "V", "Ʋ": "V", "Ṽ": "V", "Ꝡ": "VY", "Ẃ": "W", "Ŵ": "W", "Ẅ": "W", "Ẇ": "W", "Ẉ": "W", "Ẁ": "W", "Ⱳ": "W", "Ẍ": "X", "Ẋ": "X", "Ý": "Y", "Ŷ": "Y", "Ÿ": "Y", "Ẏ": "Y", "Ỵ": "Y", "Ỳ": "Y", "Ƴ": "Y", "Ỷ": "Y", "Ỿ": "Y", "Ȳ": "Y", "Ɏ": "Y", "Ỹ": "Y", "Ź": "Z", "Ž": "Z", "Ẑ": "Z", "Ⱬ": "Z", "Ż": "Z", "Ẓ": "Z", "Ȥ": "Z", "Ẕ": "Z", "Ƶ": "Z", "Ĳ": "IJ", "Œ": "OE", "ᴀ": "A", "ᴁ": "AE", "ʙ": "B", "ᴃ": "B", "ᴄ": "C", "ᴅ": "D", "ᴇ": "E", "ꜰ": "F", "ɢ": "G", "ʛ": "G", "ʜ": "H", "ɪ": "I", "ʁ": "R", "ᴊ": "J", "ᴋ": "K", "ʟ": "L", "ᴌ": "L", "ᴍ": "M", "ɴ": "N", "ᴏ": "O", "ɶ": "OE", "ᴐ": "O", "ᴕ": "OU", "ᴘ": "P", "ʀ": "R", "ᴎ": "N", "ᴙ": "R", "ꜱ": "S", "ᴛ": "T", "ⱻ": "E", "ᴚ": "R", "ᴜ": "U", "ᴠ": "V", "ᴡ": "W", "ʏ": "Y", "ᴢ": "Z", "á": "a", "ă": "a", "ắ": "a", "ặ": "a", "ằ": "a", "ẳ": "a", "ẵ": "a", "ǎ": "a", "â": "a", "ấ": "a", "ậ": "a", "ầ": "a", "ẩ": "a", "ẫ": "a", "ä": "a", "ǟ": "a", "ȧ": "a", "ǡ": "a", "ạ": "a", "ȁ": "a", "à": "a", "ả": "a", "ȃ": "a", "ā": "a", "ą": "a", "ᶏ": "a", "ẚ": "a", "å": "a", "ǻ": "a", "ḁ": "a", "ⱥ": "a", "ã": "a", "ꜳ": "aa", "æ": "ae", "ǽ": "ae", "ǣ": "ae", "ꜵ": "ao", "ꜷ": "au", "ꜹ": "av", "ꜻ": "av", "ꜽ": "ay", "ḃ": "b", "ḅ": "b", "ɓ": "b", "ḇ": "b", "ᵬ": "b", "ᶀ": "b", "ƀ": "b", "ƃ": "b", "ɵ": "o", "ć": "c", "č": "c", "ç": "c", "ḉ": "c", "ĉ": "c", "ɕ": "c", "ċ": "c", "ƈ": "c", "ȼ": "c", "ď": "d", "ḑ": "d", "ḓ": "d", "ȡ": "d", "ḋ": "d", "ḍ": "d", "ɗ": "d", "ᶑ": "d", "ḏ": "d", "ᵭ": "d", "ᶁ": "d", "đ": "d", "ɖ": "d", "ƌ": "d", "ı": "i", "ȷ": "j", "ɟ": "j", "ʄ": "j", "ǳ": "dz", "ǆ": "dz", "é": "e", "ĕ": "e", "ě": "e", "ȩ": "e", "ḝ": "e", "ê": "e", "ế": "e", "ệ": "e", "ề": "e", "ể": "e", "ễ": "e", "ḙ": "e", "ë": "e", "ė": "e", "ẹ": "e", "ȅ": "e", "è": "e", "ẻ": "e", "ȇ": "e", "ē": "e", "ḗ": "e", "ḕ": "e", "ⱸ": "e", "ę": "e", "ᶒ": "e", "ɇ": "e", "ẽ": "e", "ḛ": "e", "ꝫ": "et", "ḟ": "f", "ƒ": "f", "ᵮ": "f", "ᶂ": "f", "ǵ": "g", "ğ": "g", "ǧ": "g", "ģ": "g", "ĝ": "g", "ġ": "g", "ɠ": "g", "ḡ": "g", "ᶃ": "g", "ǥ": "g", "ḫ": "h", "ȟ": "h", "ḩ": "h", "ĥ": "h", "ⱨ": "h", "ḧ": "h", "ḣ": "h", "ḥ": "h", "ɦ": "h", "ẖ": "h", "ħ": "h", "ƕ": "hv", "í": "i", "ĭ": "i", "ǐ": "i", "î": "i", "ï": "i", "ḯ": "i", "ị": "i", "ȉ": "i", "ì": "i", "ỉ": "i", "ȋ": "i", "ī": "i", "į": "i", "ᶖ": "i", "ɨ": "i", "ĩ": "i", "ḭ": "i", "ꝺ": "d", "ꝼ": "f", "ᵹ": "g", "ꞃ": "r", "ꞅ": "s", "ꞇ": "t", "ꝭ": "is", "ǰ": "j", "ĵ": "j", "ʝ": "j", "ɉ": "j", "ḱ": "k", "ǩ": "k", "ķ": "k", "ⱪ": "k", "ꝃ": "k", "ḳ": "k", "ƙ": "k", "ḵ": "k", "ᶄ": "k", "ꝁ": "k", "ꝅ": "k", "ĺ": "l", "ƚ": "l", "ɬ": "l", "ľ": "l", "ļ": "l", "ḽ": "l", "ȴ": "l", "ḷ": "l", "ḹ": "l", "ⱡ": "l", "ꝉ": "l", "ḻ": "l", "ŀ": "l", "ɫ": "l", "ᶅ": "l", "ɭ": "l", "ł": "l", "ǉ": "lj", "ſ": "s", "ẜ": "s", "ẛ": "s", "ẝ": "s", "ḿ": "m", "ṁ": "m", "ṃ": "m", "ɱ": "m", "ᵯ": "m", "ᶆ": "m", "ń": "n", "ň": "n", "ņ": "n", "ṋ": "n", "ȵ": "n", "ṅ": "n", "ṇ": "n", "ǹ": "n", "ɲ": "n", "ṉ": "n", "ƞ": "n", "ᵰ": "n", "ᶇ": "n", "ɳ": "n", "ñ": "n", "ǌ": "nj", "ó": "o", "ŏ": "o", "ǒ": "o", "ô": "o", "ố": "o", "ộ": "o", "ồ": "o", "ổ": "o", "ỗ": "o", "ö": "o", "ȫ": "o", "ȯ": "o", "ȱ": "o", "ọ": "o", "ő": "o", "ȍ": "o", "ò": "o", "ỏ": "o", "ơ": "o", "ớ": "o", "ợ": "o", "ờ": "o", "ở": "o", "ỡ": "o", "ȏ": "o", "ꝋ": "o", "ꝍ": "o", "ⱺ": "o", "ō": "o", "ṓ": "o", "ṑ": "o", "ǫ": "o", "ǭ": "o", "ø": "o", "ǿ": "o", "õ": "o", "ṍ": "o", "ṏ": "o", "ȭ": "o", "ƣ": "oi", "ꝏ": "oo", "ɛ": "e", "ᶓ": "e", "ɔ": "o", "ᶗ": "o", "ȣ": "ou", "ṕ": "p", "ṗ": "p", "ꝓ": "p", "ƥ": "p", "ᵱ": "p", "ᶈ": "p", "ꝕ": "p", "ᵽ": "p", "ꝑ": "p", "ꝙ": "q", "ʠ": "q", "ɋ": "q", "ꝗ": "q", "ŕ": "r", "ř": "r", "ŗ": "r", "ṙ": "r", "ṛ": "r", "ṝ": "r", "ȑ": "r", "ɾ": "r", "ᵳ": "r", "ȓ": "r", "ṟ": "r", "ɼ": "r", "ᵲ": "r", "ᶉ": "r", "ɍ": "r", "ɽ": "r", "ↄ": "c", "ꜿ": "c", "ɘ": "e", "ɿ": "r", "ś": "s", "ṥ": "s", "š": "s", "ṧ": "s", "ş": "s", "ŝ": "s", "ș": "s", "ṡ": "s", "ṣ": "s", "ṩ": "s", "ʂ": "s", "ᵴ": "s", "ᶊ": "s", "ȿ": "s", "ɡ": "g", "ᴑ": "o", "ᴓ": "o", "ᴝ": "u", "ť": "t", "ţ": "t", "ṱ": "t", "ț": "t", "ȶ": "t", "ẗ": "t", "ⱦ": "t", "ṫ": "t", "ṭ": "t", "ƭ": "t", "ṯ": "t", "ᵵ": "t", "ƫ": "t", "ʈ": "t", "ŧ": "t", "ᵺ": "th", "ɐ": "a", "ᴂ": "ae", "ǝ": "e", "ᵷ": "g", "ɥ": "h", "ʮ": "h", "ʯ": "h", "ᴉ": "i", "ʞ": "k", "ꞁ": "l", "ɯ": "m", "ɰ": "m", "ᴔ": "oe", "ɹ": "r", "ɻ": "r", "ɺ": "r", "ⱹ": "r", "ʇ": "t", "ʌ": "v", "ʍ": "w", "ʎ": "y", "ꜩ": "tz", "ú": "u", "ŭ": "u", "ǔ": "u", "û": "u", "ṷ": "u", "ü": "u", "ǘ": "u", "ǚ": "u", "ǜ": "u", "ǖ": "u", "ṳ": "u", "ụ": "u", "ű": "u", "ȕ": "u", "ù": "u", "ủ": "u", "ư": "u", "ứ": "u", "ự": "u", "ừ": "u", "ử": "u", "ữ": "u", "ȗ": "u", "ū": "u", "ṻ": "u", "ų": "u", "ᶙ": "u", "ů": "u", "ũ": "u", "ṹ": "u", "ṵ": "u", "ᵫ": "ue", "ꝸ": "um", "ⱴ": "v", "ꝟ": "v", "ṿ": "v", "ʋ": "v", "ᶌ": "v", "ⱱ": "v", "ṽ": "v", "ꝡ": "vy", "ẃ": "w", "ŵ": "w", "ẅ": "w", "ẇ": "w", "ẉ": "w", "ẁ": "w", "ⱳ": "w", "ẘ": "w", "ẍ": "x", "ẋ": "x", "ᶍ": "x", "ý": "y", "ŷ": "y", "ÿ": "y", "ẏ": "y", "ỵ": "y", "ỳ": "y", "ƴ": "y", "ỷ": "y", "ỿ": "y", "ȳ": "y", "ẙ": "y", "ɏ": "y", "ỹ": "y", "ź": "z", "ž": "z", "ẑ": "z", "ʑ": "z", "ⱬ": "z", "ż": "z", "ẓ": "z", "ȥ": "z", "ẕ": "z", "ᵶ": "z", "ᶎ": "z", "ʐ": "z", "ƶ": "z", "ɀ": "z", "ﬀ": "ff", "ﬃ": "ffi", "ﬄ": "ffl", "ﬁ": "fi", "ﬂ": "fl", "ĳ": "ij", "œ": "oe", "ﬆ": "st", "ₐ": "a", "ₑ": "e", "ᵢ": "i", "ⱼ": "j", "ₒ": "o", "ᵣ": "r", "ᵤ": "u", "ᵥ": "v", "ₓ": "x" };
 String.prototype.latinize = function () { 
-	return this.replace(/[^A-Za-z0-9\[\] ]/g, (a) => { return latin_map[a] || a }) 
+	return this.replace(/[^A-Za-z0-9[\] ]/g, (a) => { return latin_map[a] || a }) 
 };
 
 
 //https://en.wikipedia.org/wiki/Levenshtein_distance
-similarity = (s1, s2) => {
-	let longer = s1;
-	let shorter = s2;
-	if (s1.length < s2.length) {
-		longer = s2;
-		shorter = s1;
-	}
-	let longerLength = longer.length;
-	if (longerLength == 0) {
-		return 1.0;
-	}
-	return (longerLength - editDistance(longer, shorter)) / parseFloat(longerLength);
-}
-
-editDistance = (s1, s2) => {
+const editDistance = (s1, s2) => {
 	s1 = s1.toLowerCase();
 	s2 = s2.toLowerCase();
 
@@ -90,9 +79,22 @@ editDistance = (s1, s2) => {
 	}
 	return costs[s2.length];
 }
+const similarity = (s1, s2) => {
+	let longer = s1;
+	let shorter = s2;
+	if (s1.length < s2.length) {
+		longer = s2;
+		shorter = s1;
+	}
+	let longerLength = longer.length;
+	if (longerLength == 0) {
+		return 1.0;
+	}
+	return (longerLength - editDistance(longer, shorter)) / parseFloat(longerLength);
+}
 
 //https://en.wikipedia.org/wiki/Soundex
-soundex = (str) => {
+const soundex = (str) => {
 	let string = str.toUpperCase().replace(/[^A-Z]/g, "");
 	string = [
 		string.substr(0, 1),
@@ -112,7 +114,7 @@ soundex = (str) => {
 		(string.length == 4 ? "" : (new Array(5 - string.length)).join("0"));
 };
 
-cloneObjJson = (obj) => {
+const cloneObjJson = (obj) => {
 	if (obj === null || typeof(obj) != 'object') {
 		return obj;
 	}
@@ -123,15 +125,10 @@ cloneObjJson = (obj) => {
 	return temp;
 }
 
-/**
- * Split words from a string
- * @param {string} text to be broken into words
- * returns {Array}
- */
-splitWords = (text) => {
+const splitWords = (text) => {
 
 	//separate words using this regexp pattern
-	text = text.replace(/[.,\/#!$%\^&\*;:{}=+\-_`~()\?<>"”“]/gi, ' ');
+	text = text.replace(/[.,/#!$%^&*;:{}=+\-_`~()?<>"”“]/gi, ' ');
 
 	//split words from the text variable
 	let arr = text.split(" ");
@@ -149,8 +146,7 @@ splitWords = (text) => {
 	return words;
 }
 
-
-createWordObject = (word, cleanWord) => {
+const createWordObject = (word, cleanWord) => {
 	
 	let objWord = { word: word, cleanWord, soundex: soundex(word), items: {} };
 	
@@ -162,175 +158,7 @@ createWordObject = (word, cleanWord) => {
 	return objWord;
 }
 
-/**
- * function used by LoadJson to store create word dictionary 
- * @param {JSON} json with items to be broken into words to construct our dictionary
- * returns {Promise(JSON)}
- */
-populateWordsJson = (itemsJson) => {
-
-	return new Promise((resolve, reject) => {
-
-		//create a dictionary like object
-		let objWords = {};
-		let repeatedObjWords = {};
-
-		db.remove(db.dbItems, {}, { multi: true }, (err, numRemoved) => {
-			if (err) return reject(err);
-
-			//insert all items in the database
-			db.insert(db.dbItems, itemsJson, (err, itemsJsonInserted) => {
-				if (err) return reject(err);
-
-				db.createIndex(db.dbItems, "itemId", 1, (err) => {
-					//lets not propagate for now
-					if (err) console.log(err);
-				});
-
-
-				for (let x in itemsJson) {
-
-					//get words from each item
-					let arrWords = splitWords(itemsJson[x].itemName);
-
-					//get keywords
-					if (itemsJson[x].keywords){
-						arrWords = arrWords.concat(splitWords(itemsJson[x].keywords));
-					}
-
-					//associate each word with items. ex: {word, [item1, item2, item3...]}
-					for (let w = 0; w < arrWords.length; w++) {
-
-						let strWord = arrWords[w].toLowerCase();
-
-						if (strWord.length <= 1) {
-							continue;
-						}
-
-						//if there is already this word in our dictionary, associate it with this item
-						if (strWord in objWords) {
-
-							objWords[strWord].items[itemsJson[x].itemId] = 1;
-
-						} else {
-							//keep the word without accent and lowercase
-							let cleanWord = strWord.latinize();
-
-							let objWord = createWordObject(arrWords[w], cleanWord);
-
-							//add this new item into related items of this word
-							objWord.items[itemsJson[x].itemId] = 1;
-
-							objWords[strWord] = objWord;
-
-							if (repeatedObjWords[cleanWord]) {
-								repeatedObjWords[cleanWord].push(strWord);
-							} else {
-								repeatedObjWords[cleanWord] = [strWord];
-							}
-
-						}
-
-					}
-
-				}
-
-
-				//lets make this module accent insensitive when searching for items
-				//all the similar words will have the same itemsId
-				for (let item in repeatedObjWords) {
-					let repeatedWordsArray = repeatedObjWords[item];
-
-					if (repeatedWordsArray.length > 1) {
-
-						let itemsId = {};
-
-						for (let index = 0; index < repeatedWordsArray.length; index++) {
-							let objWord = objWords[repeatedWordsArray[index]];
-
-							for (let idResultItem in objWord.items) {
-								if (!itemsId[idResultItem]) {
-									itemsId[idResultItem] = objWord.items[idResultItem];
-								}
-							}
-
-						}
-
-						for (let index = 0; index < repeatedWordsArray.length; index++) {
-							let objWord = objWords[repeatedWordsArray[index]];
-
-							objWord.items = cloneObjJson(itemsId);
-						}
-					}
-				}
-
-
-				//create a database compatible JSON array from the above dictionary
-				let wordsJson = [];
-				for (let item in objWords) {
-					wordsJson.push(objWords[item]);
-				}
-
-
-				//clean the words database
-				db.remove(db.dbWords, {}, { multi: true }, (err, numRemoved) => {
-					if (err) return reject(err);
-
-					//insert all words at once in database
-					db.insert(db.dbWords, wordsJson, (err, wordsJsonInserted) => {
-						if (err) return reject(err);
-
-						//try to create an index for [word] 
-						db.createIndex(db.dbWords, "word", 1, (err) => {
-							//lets not propagate for now
-							if (err) console.log(err);
-						});
-
-						//try to create an index for [cleanWord] 
-						db.createIndex(db.dbWords, "cleanWord", 1, (err) => {
-							//lets not propagate for now
-							if (err) console.log(err);
-						});
-
-						//try to create an index for [soundex] 
-						db.createIndex(db.dbWords, "soundex", 1, (err) => {
-							//lets not propagate for now
-							if (err) console.log(err);
-						});
-
-						//try to create an index for [pXi]
-						for (let i = 2; i <= 4; i++) {
-							db.createIndex(db.dbWords, (`p${i}i`), 1, (err) => {
-								//lets not propagate for now
-								if (err) console.log(err);
-							});
-							db.createIndex(db.dbWords, (`p${i}e`), 1, (err) => {
-								//lets not propagate for now
-								if (err) console.log(err);
-							});
-						}
-
-						//return some information about this process
-						resolve({ words: wordsJson.length });
-
-					});
-
-				});
-
-			});
-
-		});						
-
-	});
-
-}
-
-/**
- * Find words using soundex function and nGram like method
- * @param {String} word used in the search
- * returns {Promise(JSON)} 
- */
-getWordsBySoundexAndParts = word => {
+const getWordsBySoundexAndParts = word => {
 
 	return new Promise((resolve, reject) => {
 
@@ -391,13 +219,7 @@ getWordsBySoundexAndParts = word => {
 
 }
 
-/**
- * Return json words object similar to the word parameter 
- * @param {String} word to search
- * @param {Int} limit the result
- * returns {Promise(JSON)}
- */
-getWordsStartingWith = (word, limit) => {
+const getWordsStartingWith = (word, limit) => {
 
 	return new Promise((resolve, reject) => {
 
@@ -452,227 +274,188 @@ getWordsStartingWith = (word, limit) => {
 
 }
 
-/**
- * Insert a new item into the dictionary database from json object
- * @param {Json object} with item {itemId: 0 , itemName: "item name"}
- * returns {Promise(JSON)}
- */
-insertItem = (itemJson) => {
-
-	checkInitialized();
+const populateWordsJson = (itemsJson, itemId, itemName, keywords) => {
 
 	return new Promise((resolve, reject) => {
 
-		let time = new Date();
+		//create a dictionary like object
+		let itemsObjectArray = [];
+		let objWords = {};
+		let repeatedObjWords = {};
 
-		//validate json object
-		if (itemJson.itemId === undefined || itemJson.itemName === undefined){
-			return reject(new Error('Item must have itemId and itemName!'));
-		}
+		db.remove(db.dbItems, {}, { multi: true }, (err) => {
+			if (err) return reject(err);
 
-		removeItem(itemJson.itemId).then(data => {
+			for (let x in itemsJson) {
 
-			//insert item into items dictionary
-			db.insert(db.dbItems, itemJson, (err, itemJsonInserted) => {
+				//validate json object
+				if (itemsJson[x][itemId] === undefined || itemsJson[x][itemName] === undefined){
+					//do not insert items that don't meet the minimum requirements
+					continue;
+				}
+
+				let itemObject = {};
+				itemObject["itemId"] = itemsJson[x][itemId];
+				itemObject["itemName"] = itemsJson[x][itemName];
+				if (itemsJson[x][keywords] !== undefined){
+					itemObject["keywords"] = itemsJson[x][keywords];
+				}
+				itemsObjectArray.push(itemObject);
+			}
+
+			//insert all items in the database
+			db.insert(db.dbItems, itemsObjectArray, (err) => {
 				if (err) return reject(err);
 
-				//get words from item
-				let arrWords = splitWords(itemJson.itemName);
-
-				//get each word from dictionary and associate with this new item
-				//also check if is a repeating word with different accents
-				//make a promise for each word and create an array of promises
-				let promises = arrWords.map(word => {
-
-					return new Promise((resolve, reject) => {
-
-						//try to find the exact word in our dictionary
-						db.find(db.dbWords, { cleanWord: word.toLowerCase().latinize() }, (err, foundItems) => {
-							if (err) return reject(err);
-
-							if (!foundItems || foundItems.length <= 0) {
-
-								//instead of returning an error, lets return null
-								resolve(null);
-
-							} else {
-
-								resolve(foundItems);
-
-							}
-
-						});
-
-					});
-
+				db.createIndex(db.dbItems, "itemId", 1, (err) => {
+					//lets not propagate for now
+					if (err) console.log(err);
 				});
 
-				//now, lets resolve all promises from the array of promises
-				Promise.all(promises).then(foundItems => {
 
-					let notFoundedWords = [];
-					let foundedWords = [];
-					let foundedWordsDifferentAccents = [];
+				for (let x in itemsObjectArray) {
 
-					//set an array with the not founded words
-					//set an array with the founded words
-					for (let index = 0; index < foundItems.length; index++) {
-						let foundItem = foundItems[index];
+					//get words from each item
+					let arrWords = splitWords(itemsObjectArray[x].itemName);
 
-						if (foundItem === null) {
+					//get keywords
+					if (itemsObjectArray[x].keywords){
+						arrWords = arrWords.concat(splitWords(itemsObjectArray[x].keywords));
+					}
 
-							notFoundedWords.push(arrWords[index]);
+					//associate each word with items. ex: {word, [item1, item2, item3...]}
+					for (let w = 0; w < arrWords.length; w++) {
+
+						let strWord = arrWords[w].toLowerCase();
+
+						if (strWord.length <= 1) {
+							continue;
+						}
+
+						//if there is already this word in our dictionary, associate it with this item
+						if (strWord in objWords) {
+
+							objWords[strWord].items[itemsObjectArray[x].itemId] = 1;
 
 						} else {
+							//keep the word without accent and lowercase
+							let cleanWord = strWord.latinize();
 
-							let wordFound = false;
+							let objWord = createWordObject(arrWords[w], cleanWord);
 
-							for (let iWord in foundItem) {
-								let objWord = foundItem[iWord];
+							//add this new item into related items of this word
+							objWord.items[itemsObjectArray[x].itemId] = 1;
 
-								if (objWord.word.toLowerCase() == arrWords[index].toLowerCase()) {
-									foundedWords.push(arrWords[index]);
-									wordFound = true;
-								}
-							}
+							objWords[strWord] = objWord;
 
-							if (!wordFound) {
-								foundedWordsDifferentAccents.push(arrWords[index]);
-								notFoundedWords.push(arrWords[index]);
+							if (repeatedObjWords[cleanWord]) {
+								repeatedObjWords[cleanWord].push(strWord);
+							} else {
+								repeatedObjWords[cleanWord] = [strWord];
 							}
 
 						}
 
 					}
 
-
-					//associate this words with this new item
-					for (let index = 0; index < foundedWords.length; index++) {
-						let word = foundedWords[index];
-
-						db.find(db.dbWords, { cleanWord: word.toLowerCase().latinize() }, (err, existingWords) => {
-							if (err) return reject(err);
-
-							for (let index = 0; index < existingWords.length; index++) {
-
-								//associate with this itemId
-								existingWords[index].items[itemJson.itemId] = 1;
-
-								//send it back to the database
-								db.update(db.dbWords, { cleanWord: existingWords[index].cleanWord },
-									{ $set: { "items": existingWords[index].items } },
-									{ multi: true },
-									(err, numReplaced) => { /*nothing for now*/ }
-								);
-							}
-
-						});
-
-					}
+				}
 
 
-					//create new words objects to insert into the dictionary
-					let objWords = {};
+				//lets make this module accent insensitive when searching for items
+				//all the similar words will have the same itemsId
+				for (let item in repeatedObjWords) {
+					let repeatedWordsArray = repeatedObjWords[item];
 
-					for (let index = 0; index < notFoundedWords.length; index++) {
-						let word = notFoundedWords[index];
-						let cleanWord = word.toLowerCase().latinize();
+					if (repeatedWordsArray.length > 1) {
 
-						let objWord = createWordObject(word, cleanWord);
+						let itemsId = {};
 
-						//add this new item into related items of this word
-						objWord.items[itemJson.itemId] = 1;
+						for (let index = 0; index < repeatedWordsArray.length; index++) {
+							let objWord = objWords[repeatedWordsArray[index]];
 
-						//mount the array to bulk insert later 
-						objWords[word] = objWord;
-					}
-
-					//create a database compatible JSON array from the above dictionary
-					let wordsJson = [];
-					for (let item in objWords) {
-						wordsJson.push(objWords[item]);
-					}
-
-					//insert all the new words in a bulk insert
-					if (wordsJson.length > 0) {
-						db.insert(db.dbWords, wordsJson, (err, wordJsonInserted) => {
-							if (err) return reject(err);
-
-							//lets treat all similar words with different accents
-							if (foundedWordsDifferentAccents.length > 0) {
-
-								//associate this words with this new item and its words
-								for (let index = 0; index < foundedWordsDifferentAccents.length; index++) {
-									let word = foundedWordsDifferentAccents[index];
-
-									db.find(db.dbWords, { cleanWord: word.toLowerCase().latinize() }, (err, existingWords) => {
-										if (err) return reject(err);
-
-										let itemsId = {};
-
-										for (let index = 0; index < existingWords.length; index++) {
-											for (let idItem in existingWords[index].items) {
-												if (!itemsId[idItem]) {
-													itemsId[idItem] = existingWords[index].items[idItem];
-												}
-											}
-										}
-
-										if (existingWords.length > 0) {
-											itemsId[itemJson.itemId] = 1;
-
-											//send it back to the database
-											db.update(db.dbWords, { cleanWord: word.toLowerCase().latinize() },
-												{ $set: { "items": itemsId } },
-												{ multi: true },
-												(err, numReplaced) => { /* nothing for now */ }
-											);
-										}
-
-									});
-
+							for (let idResultItem in objWord.items) {
+								if (!itemsId[idResultItem]) {
+									itemsId[idResultItem] = objWord.items[idResultItem];
 								}
-
-								//return some information about this process
-								resolve({ timeElapsed: (new Date() - time) });
-
-							} else {
-								//nothing to update
-
-								//return some information about this process
-								resolve({ timeElapsed: (new Date() - time) });
 							}
 
+						}
+
+						for (let index = 0; index < repeatedWordsArray.length; index++) {
+							let objWord = objWords[repeatedWordsArray[index]];
+
+							objWord.items = cloneObjJson(itemsId);
+						}
+					}
+				}
+
+
+				//create a database compatible JSON array from the above dictionary
+				let wordsJson = [];
+				for (let item in objWords) {
+					wordsJson.push(objWords[item]);
+				}
+
+
+				//clean the words database
+				db.remove(db.dbWords, {}, { multi: true }, (err) => {
+					if (err) return reject(err);
+
+					//insert all words at once in database
+					db.insert(db.dbWords, wordsJson, (err) => {
+						if (err) return reject(err);
+
+						//try to create an index for [word] 
+						db.createIndex(db.dbWords, "word", 1, (err) => {
+							//lets not propagate for now
+							if (err) console.log(err);
 						});
 
-					} else {
-						//nothing to insert
+						//try to create an index for [cleanWord] 
+						db.createIndex(db.dbWords, "cleanWord", 1, (err) => {
+							//lets not propagate for now
+							if (err) console.log(err);
+						});
+
+						//try to create an index for [soundex] 
+						db.createIndex(db.dbWords, "soundex", 1, (err) => {
+							//lets not propagate for now
+							if (err) console.log(err);
+						});
+
+						//try to create an index for [pXi]
+						for (let i = 2; i <= 4; i++) {
+							db.createIndex(db.dbWords, (`p${i}i`), 1, (err) => {
+								//lets not propagate for now
+								if (err) console.log(err);
+							});
+							db.createIndex(db.dbWords, (`p${i}e`), 1, (err) => {
+								//lets not propagate for now
+								if (err) console.log(err);
+							});
+						}
 
 						//return some information about this process
-						resolve({ timeElapsed: (new Date() - time) });
+						resolve({ words: wordsJson.length });
 
-					}
+					});
 
 				});
 
 			});
 
-		},
-		err => {
-			return reject({ message: "Could not insert this item!" });
-		});
+		});						
 
 	});
-
 
 }
 
 /**
- * Removes an item and its words from the dictionary database
- * @param {string} itemId
+ * Removes an item and its words from the dictionary database.
+ * @param {String} itemId - Id of the item to be removed.
  * returns {Promise(JSON)}
  */
-removeItem = itemId => {
+const removeItem = itemId => {
 
 	checkInitialized();
 
@@ -690,7 +473,7 @@ removeItem = itemId => {
 			let arrWords = splitWords(existingItem[0].itemName);
 
 			//remove item from items dictionary
-			db.remove(db.dbItems, { itemId: itemId }, { multi: false }, (err, numRemoved) => {
+			db.remove(db.dbItems, { itemId: itemId }, { multi: false }, (err) => {
 				if (err) return reject(err);
 
 				//get each word from dictionary and associate with this new item
@@ -769,7 +552,7 @@ removeItem = itemId => {
 								} else {
 									//update this one
 									//send it back to the database
-									let p = new Promise((resolve, reject)  => {
+									let p = new Promise((resolve)  => {
 
 										db.update(db.dbWords, { word: element.word },
 											{ $set: { "items": element.items } },
@@ -786,13 +569,13 @@ removeItem = itemId => {
 						}
 					}
 
-					Promise.all(innerPromises).then(operations => {
+					Promise.all(innerPromises).then(() => {
 
-						for (let index = 0; index < operations.length; index++) {
-							let element = operations[index];
+						//for (let index = 0; index < operations.length; index++) {
+							//let element = operations[index];
 
 							//todo: test if any operation had failed 
-						}
+						//}
 
 						//return some information about this process
 						resolve({ timeElapsed: (new Date() - time) });
@@ -808,14 +591,248 @@ removeItem = itemId => {
 	});
 
 }
-
+	
 /**
- * Load the dictionary database from json file
- * @param {String} filename. jSon file with items
- * @param {String} charset, Charset used in file 
+ * Insert a new item into the dictionary database from json object.
+ * @param {JSON} itemJson - jSon object {itemId: 0 , itemName: "item name", keywords: "keyword1, keyword2..."}.
+ * @param {String} [itemId="itemID"] - Name of the property that contains the ID.
+ * @param {String} [itemName="itemName"] - Name of the property that contains the Name.
+ * @param {String} [keywords="keywords"] - Name of the property that contains the Keywords.
  * returns {Promise(JSON)}
  */
-loadJson = (jSonFilePath, charset = "utf8") => {
+const insertItem = (itemJson, itemId = "itemId", itemName = "itemName", keywords = "keywords") => {
+
+	checkInitialized();
+
+	return new Promise((resolve, reject) => {
+
+		let time = new Date();
+
+		//validate json object
+		if (itemJson[itemId] === undefined || itemJson[itemName] === undefined){
+			return reject(new Error('Item must have itemId and itemName!'));
+		}
+
+
+		let itemObject = {};
+		itemObject["itemId"] = itemJson[itemId];
+		itemObject["itemName"] = itemJson[itemName];
+		if (itemJson[keywords] !== undefined){
+			itemObject["keywords"] = itemJson[keywords];
+		}
+
+		removeItem(itemObject.itemId).then(() => {
+
+			//insert item into items dictionary
+			db.insert(db.dbItems, itemObject, (err) => {
+				if (err) return reject(err);
+
+				//get words from item
+				let arrWords = splitWords(itemObject.itemName);
+
+				//get keywords
+				if (itemObject[keywords] !== undefined){
+					arrWords = arrWords.concat(splitWords(itemObject.keywords));
+				}
+
+				//get each word from dictionary and associate with this new item
+				//also check if is a repeating word with different accents
+				//make a promise for each word and create an array of promises
+				let promises = arrWords.map(word => {
+
+					return new Promise((resolve, reject) => {
+
+						//try to find the exact word in our dictionary
+						db.find(db.dbWords, { cleanWord: word.toLowerCase().latinize() }, (err, foundItems) => {
+							if (err) return reject(err);
+
+							if (!foundItems || foundItems.length <= 0) {
+
+								//instead of returning an error, lets return null
+								resolve(null);
+
+							} else {
+
+								resolve(foundItems);
+
+							}
+
+						});
+
+					});
+
+				});
+
+				//now, lets resolve all promises from the array of promises
+				Promise.all(promises).then(foundItems => {
+
+					let notFoundedWords = [];
+					let foundedWords = [];
+					let foundedWordsDifferentAccents = [];
+
+					//set an array with the not founded words
+					//set an array with the founded words
+					for (let index = 0; index < foundItems.length; index++) {
+						let foundItem = foundItems[index];
+
+						if (foundItem === null) {
+
+							notFoundedWords.push(arrWords[index]);
+
+						} else {
+
+							let wordFound = false;
+
+							for (let iWord in foundItem) {
+								let objWord = foundItem[iWord];
+
+								if (objWord.word.toLowerCase() == arrWords[index].toLowerCase()) {
+									foundedWords.push(arrWords[index]);
+									wordFound = true;
+								}
+							}
+
+							if (!wordFound) {
+								foundedWordsDifferentAccents.push(arrWords[index]);
+								notFoundedWords.push(arrWords[index]);
+							}
+
+						}
+
+					}
+
+
+					//associate this words with this new item
+					for (let index = 0; index < foundedWords.length; index++) {
+						let word = foundedWords[index];
+
+						db.find(db.dbWords, { cleanWord: word.toLowerCase().latinize() }, (err, existingWords) => {
+							if (err) return reject(err);
+
+							for (let index = 0; index < existingWords.length; index++) {
+
+								//associate with this itemId
+								existingWords[index].items[itemObject.itemId] = 1;
+
+								//send it back to the database
+								db.update(db.dbWords, { cleanWord: existingWords[index].cleanWord },
+									{ $set: { "items": existingWords[index].items } },
+									{ multi: true },
+									null
+								);
+							}
+
+						});
+
+					}
+
+
+					//create new words objects to insert into the dictionary
+					let objWords = {};
+
+					for (let index = 0; index < notFoundedWords.length; index++) {
+						let word = notFoundedWords[index];
+						let cleanWord = word.toLowerCase().latinize();
+
+						let objWord = createWordObject(word, cleanWord);
+
+						//add this new item into related items of this word
+						objWord.items[itemObject.itemId] = 1;
+
+						//mount the array to bulk insert later 
+						objWords[word] = objWord;
+					}
+
+					//create a database compatible JSON array from the above dictionary
+					let wordsJson = [];
+					for (let item in objWords) {
+						wordsJson.push(objWords[item]);
+					}
+
+					//insert all the new words in a bulk insert
+					if (wordsJson.length > 0) {
+						db.insert(db.dbWords, wordsJson, (err) => {
+							if (err) return reject(err);
+
+							//lets treat all similar words with different accents
+							if (foundedWordsDifferentAccents.length > 0) {
+
+								//associate this words with this new item and its words
+								for (let index = 0; index < foundedWordsDifferentAccents.length; index++) {
+									let word = foundedWordsDifferentAccents[index];
+
+									db.find(db.dbWords, { cleanWord: word.toLowerCase().latinize() }, (err, existingWords) => {
+										if (err) return reject(err);
+
+										let itemsId = {};
+
+										for (let index = 0; index < existingWords.length; index++) {
+											for (let idItem in existingWords[index].items) {
+												if (!itemsId[idItem]) {
+													itemsId[idItem] = existingWords[index].items[idItem];
+												}
+											}
+										}
+
+										if (existingWords.length > 0) {
+											itemsId[itemObject.itemId] = 1;
+
+											//send it back to the database
+											db.update(db.dbWords, { cleanWord: word.toLowerCase().latinize() },
+												{ $set: { "items": itemsId } },
+												{ multi: true },
+												null
+											);
+										}
+
+									});
+
+								}
+
+								//return some information about this process
+								resolve({ timeElapsed: (new Date() - time) });
+
+							} else {
+								//nothing to update
+
+								//return some information about this process
+								resolve({ timeElapsed: (new Date() - time) });
+							}
+
+						});
+
+					} else {
+						//nothing to insert
+
+						//return some information about this process
+						resolve({ timeElapsed: (new Date() - time) });
+
+					}
+
+				});
+
+			});
+
+		},
+		() => {
+			return reject(new Error("Could not insert this item!"));
+		});
+
+	});
+
+
+}
+
+/**
+ * Load the dictionary database from json file.
+ * @param {String} jSonFilePath - path to jSon file.
+ * @param {String} charset - Charset used in file.
+ * @param {String} [itemId="itemID"] - Name of the property that contains the ID.
+ * @param {String} [itemName="itemName"] - Name of the property that contains the Name.
+ * @param {String} [keywords="keywords"] - Name of the property that contains the Keywords.
+ * returns {Promise(JSON)}
+ */
+const loadJson = (jSonFilePath, charset = "utf8", itemId = "itemId", itemName = "itemName", keywords = "keywords") => {
 
 	checkInitialized();
 
@@ -836,7 +853,7 @@ loadJson = (jSonFilePath, charset = "utf8") => {
 			}
 
 			//from the items, lets extract our dictionary 
-			populateWordsJson(itemsJson).then(information => {
+			populateWordsJson(itemsJson, itemId, itemName, keywords).then(information => {
 
 				information.items = itemsJson.length;
 				information.timeElapsed = (new Date() - time);
@@ -853,11 +870,14 @@ loadJson = (jSonFilePath, charset = "utf8") => {
 }
 
 /**
- * Load the dictionary database from json string
- * @param {String} json string with items
+ * Load the dictionary database from json string.
+ * @param {String} jSonString - String with items.
+ * @param {String} [itemId="itemID"] - Name of the property that contains the ID.
+ * @param {String} [itemName="itemName"] - Name of the property that contains the Name.
+ * @param {String} [keywords="keywords"] - Name of the property that contains the Keywords.
  * returns {Promise(JSON)}
  */
-loadJsonString = jSonString => {
+const loadJsonString = (jSonString, itemId = "itemId", itemName = "itemName", keywords = "keywords") => {
 
 	checkInitialized();
 
@@ -876,7 +896,7 @@ loadJsonString = jSonString => {
 		}
 
 		//from the items, lets extract our dictionary 
-		populateWordsJson(itemsJson).then(information => {
+		populateWordsJson(itemsJson, itemId, itemName, keywords).then(information => {
 
 			information.items = itemsJson.length;
 			information.timeElapsed = (new Date() - time);
@@ -891,12 +911,11 @@ loadJsonString = jSonString => {
 }
 
 /**
- * Return itemsId array and words used in the query
- * @param {String} word(s) used in the search
+ * Return itemsId array and words used in the query.
+ * @param {String} words - word(s) used in the search.
  * returns {Promise(JSON)}
- * depends: latinize, getWordsBySoundexAndParts, cloneObjJson, 
  */
-query = words => {
+const query = words => {
 
 	checkInitialized();
 
@@ -930,7 +949,7 @@ query = words => {
 								resolve({ word: word, correct: false, results: [] })
 							}
 						},
-						err => {
+						() => {
 							//instead of returning an error, lets return an empty result
 							resolve({ word: word, correct: false, results: [] });
 						});
@@ -943,10 +962,8 @@ query = words => {
 
 						} else if (foundItem.length > 1) {
 
-							let tempFoundItem = foundItem.slice(0);
-
 							//returning the best match
-							foundItem = foundItem.map((obj, i) => {
+							foundItem = foundItem.map((obj) => {
 								obj.similarity = similarity(obj.word, word);
 								return obj;
 							}).sort((x, y) => {
@@ -1085,11 +1102,11 @@ query = words => {
 }
 
 /**
- * Return words suggestions 
- * @param {String} word(s) to search
+ * Return words suggestions.
+ * @param {String} words - word(s) to search.
  * returns {Promise(JSON)}
  */
-getSuggestedWords = words => {
+const getSuggestedWords = words => {
 
 	checkInitialized();
 
@@ -1175,7 +1192,7 @@ getSuggestedWords = words => {
 							} else if (foundItem.length > 1) {
 
 								//returning the best match
-								foundItem = foundItem.map((obj, i) => {
+								foundItem = foundItem.map((obj) => {
 									obj.similarity = similarity(obj.word, word);
 									return obj;
 								}).sort((x, y) => {
@@ -1326,11 +1343,11 @@ getSuggestedWords = words => {
 }
 
 /**
- * Return items suggestions 
- * @param {String} word(s) to search
+ * Return items suggestions.
+ * @param {String} words - word(s) to search.
  * returns {Promise(JSON)}
  */
-getSuggestedItems = words => {
+const getSuggestedItems = words => {
 
 	checkInitialized();
 
@@ -1418,7 +1435,7 @@ getSuggestedItems = words => {
 							} else if (foundItem.length > 1) {
 
 								//returning the best match
-								foundItem = foundItem.map((obj, i) => {
+								foundItem = foundItem.map((obj) => {
 									obj.similarity = similarity(obj.word, word);
 									return obj;
 								}).sort((x, y) => {
@@ -1530,7 +1547,6 @@ getSuggestedItems = words => {
 	});
 
 }
-
 
 exports.init = init;
 exports.insertItem = insertItem;
