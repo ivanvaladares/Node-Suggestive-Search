@@ -320,6 +320,7 @@ nss.removetItem(itemId).then(
 
 ## Roadmap
 * catalog (several dictionaries)
+* SQL Server and MySql support
 * filter stopwords
 * Browser version.
 
