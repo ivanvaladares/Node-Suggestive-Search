@@ -96,12 +96,11 @@ Code to load the JSON from file
 ```javascript
 
 nss.loadJson("Itens.json", "utf8").then( //you can change the charset to match your file
-	function(data){
-		res.send(data); 
+	data => {
 		// response: {"words":16,"items":6,"timeElapsed":15}
 	},
-	function(err){
-		res.send("Error: " + err.message);
+	err => {
+		//...
 	}
 );
 
@@ -111,12 +110,11 @@ Code to load the JSON from string
 ```javascript
 
 nss.loadJsonString(jSonString).then(
-	function(data){
-		res.send(data); 
+	data => {
 		// response: {"words":16,"items":6,"timeElapsed":17}
 	},
-	function(err){
-		res.send("Error: " + err.message);
+	err => {
+		//...
 	}
 );
 
@@ -130,34 +128,31 @@ Examples of how to call the api and responses:
 ```javascript
 
 nss.query("whisky").then(
-	function(data) {
-		res.send(data);
+	data => {
 		//response: {"query":"whisky","words":["WHISKY"],"itemsId":["1","2"],"timeElapsed":1}
 	},
-	function(err){
-		res.send("Error: " + err.message);
+	err => {
+		//...
 	}
 );
 
 //did you mean search result
 nss.query("wisk").then( //misspelled search criteria
-	function(data) {
-		res.send(data);
+	data => {
 		//response: {"query":"wisk","words":["WHISKY"],"itemsId":["1","2"],"timeElapsed":1}
 	},
-	function(err){
-		res.send("Error: " + err.message);
+	err => {
+		//...
 	}
 );
 
 //did you mean search result
 nss.query("wisk read lbel").then( //misspelled search criteria
-	function(data) {
-		res.send(data);
+	data => {
 		//response: {"query":"wisk read lbel","words":["WHISKY","RED","LABEL"],"itemsId":["1"],"timeElapsed":4}
 	},
-	function(err){
-		res.send("Error: " + err.message);
+	err => {
+		//...
 	}
 );
   
@@ -171,32 +166,29 @@ Examples of how to call the api and responses:
 ```javascript
 
 nss.getSuggestedWords("whi").then(
-	function (data){
-		res.send(data);
+	data => {
 		//response: {"suggestions":["WHISKY"],"timeElapsed":1}
 	},
-	function(err){
-		res.send("Error: " + err.message);
+	err => {
+		//...
 	}
 )
 
 nss.getSuggestedWords("whisky ").then(
-	function (data){
-		res.send(data);
+	data => {
 		//response: {"suggestions":["WHISKY","WHISKY LABEL","WHISKY BLACK","WHISKY RED"],"timeElapsed":1}
 	},
-	function(err){
-		res.send("Error: " + err.message);
+	err => {
+		//...
 	}
 )
 
 nss.getSuggestedWords("whisky re").then(
-	function (data){
-		res.send(data);
+	data => {
 		//response: {"suggestions":["WHISKY","WHISKY RED"],"timeElapsed":2}
 	},
-	function(err){
-		res.send("Error: " + err.message);
+	err => {
+		//...
 	}
 )
   
@@ -212,42 +204,38 @@ Examples of how to call the api and responses:
 
 
 nss.getSuggestedItems("parme").then(
-	function (data){
-		res.send(data);
+	data => {
 		//response: {"items":[{"itemId":"4","itemName":"PESTO PARMESAN HAM"}],"timeElapsed":2}
 	},
-	function(err){
-		res.send("Error: " + err.message);
+	err => {
+		//...
 	}
 )
 
 nss.getSuggestedItems("whisky fancy").then(
-	function (data){
-		res.send(data);
+	data => {
 		//response: {"items":[{"itemId":"1","itemName":"WHISKY RED LABEL"}],"timeElapsed":1}
 	},
-	function(err){
-		res.send("Error: " + err.message);
+	err => {
+		//...
 	}
 )
 
 nss.getSuggestedItems("whisky re").then(
-	function (data){
-		res.send(data);
+	data => {
 		//response: {"items":[{"itemId":"1","itemName":"WHISKY RED LABEL"}],"timeElapsed":1}
 	},
-	function(err){
-		res.send("Error: " + err.message);
+	err => {
+		//...
 	}
 )
 
 nss.getSuggestedItems("whisky label").then(
-	function (data){
-		res.send(data);
+	data => {
 		//response: {"items":[{"itemId":"1","itemName":"WHISKY RED LABEL"},{"itemId":"2","itemName":"WHISKY BLACK LABEL"}],"timeElapsed":2}
 	},
-	function(err){
-		res.send("Error: " + err.message);
+	err => {
+		//...
 	}
 )
   
@@ -266,12 +254,11 @@ var newItem = {
 	};
 
 nss.insertItem(newItem).then(
-	function(data) {
-		res.json(data);
+	data => {
 		//response: {"timeElapsed":2}
 	},
-	function(err){
-		res.send("Error: " + err.message);
+	err => {
+		//...
 	}
 );
 
@@ -286,13 +273,12 @@ Examples of how to call the api and responses:
 
 var itemId = "6";
 
-nss.removetItem(newItem).then(
-	function(data) {
-		res.json(data);
+nss.removetItem(itemId).then(
+	data => {
 		//response: {"timeElapsed":2}
 	},
-	function(err){
-		res.send("Error: " + err.message);
+	err => {
+		//...
 	}
 );
 
