@@ -1,0 +1,39 @@
+{
+  "name": "node-suggestive-search",
+  "version": "1.7.1",
+  "author": {
+    "name": "Ivan Valadares",
+    "email": "ivanvaladares@hotmail.com"
+  },
+  "description": "A node module to help type-ahead and dropdown search boxes and also correct misspelled searches (did you mean?).",
+  "homepage": "https://github.com/ivanvaladares/Node-Suggestive-Search#readme",
+  "keywords": [
+    "search",
+    "dictionary",
+    "suggestive",
+    "misspell"
+  ],
+  "license": "MIT",
+  "licenses": [
+    {
+      "type": "MIT",
+      "url": "https://github.com/ivanvaladares/Node-Suggestive-Search/blob/master/LICENSE"
+    }
+  ],
+  "main": "index.js",
+  "scripts": {
+    "test": "mocha -R list --timeout 1000"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/ivanvaladares/Node-Suggestive-Search.git"
+  },
+  "dependencies": {
+    "mongodb": "2.2.19",
+    "nedb": "1.8.0"
+  },
+  "devDependencies": {
+    "chai": "^4.1.2",
+    "mocha": "^3.5.3"
+  }
+}
