@@ -15,7 +15,7 @@ npm install node-suggestive-search --save   # Put latest version in your package
 
 
 ## Example of usage
-http://node-suggestive-search.azurewebsites.net/
+https://ivanvaladares.herokuapp.com
 
 
 ## API
