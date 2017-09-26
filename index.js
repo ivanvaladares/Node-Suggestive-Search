@@ -1,6 +1,6 @@
 
 /* 
-node-suggestive-search v1.7.3
+node-suggestive-search v1.7.4
 https://github.com/ivanvaladares/node-suggestive-search/
 by Ivan Valadares 
 http://ivanvaladares.com 
@@ -189,7 +189,6 @@ const getWordsBySoundexAndParts = word => {
 
 
 		db.find(db.dbWords, { $or: queryCriteria }, (err, items) => {
-
 			if (err) return reject(err);
 
 			if (items.length > 0) {
@@ -1088,9 +1087,41 @@ const query = words => {
 				arrItemsId.push(item);
 			}
 
-			let information = { query: words, words: finalWords, itemsId: arrItemsId, timeElapsed: (new Date() - time) };
 
-			resolve(information);
+			//pos search - match quoted expressions and hyphenated words
+			let quotedStrings = words.match(/"(.*?)"|'(.*?)'|((?:\w+-)+\w+)/g, "$1");
+			if (quotedStrings !== null && quotedStrings.length > 0){
+
+				quotedStrings = quotedStrings.map(item => {
+					return item.replace(/^"(.+(?="$))"$/, '$1'); //remove quotes
+				});
+
+				db.find(db.dbItems, { itemId: { $in: arrItemsId } }, (err, foundItems) => {
+					if (err) return reject(err);
+					
+					foundItems = foundItems.filter(item => {
+						for (let quotedString in quotedStrings){
+							if (item.itemName.search(new RegExp(quotedStrings[quotedString], "ig")) >= 0){
+								return item;
+							}
+						}
+					});
+
+					//tranform object items to array of ids
+					let arrItemsId = [];
+					for (let item in foundItems) {
+						arrItemsId.push(foundItems[item].itemId);
+					}
+
+					resolve({ query: words, words: finalWords, itemsId: arrItemsId, timeElapsed: (new Date() - time) });
+									
+				});
+
+			}else{
+
+				resolve({ query: words, words: finalWords, itemsId: arrItemsId, timeElapsed: (new Date() - time) });
+
+			}
 
 		},
 		err => {
@@ -1252,6 +1283,7 @@ const getSuggestedWords = words => {
 					});
 
 					db.find(db.dbItems, { itemId: { $in: queryResponse.itemsId.slice(0, 1000) } }, (err, othersItems) => {
+						if (err) return reject(err);
 
 						//get all item's names from items returned from query and create a relatedWords dictionary
 						let objRelatedWords = {};
@@ -1388,6 +1420,7 @@ const getSuggestedItems = words => {
 				}
 				
 				db.find(db.dbItems, { itemId: { $in: arrItems } }, (err, foundItems) => {
+					if (err) return reject(err);
 
 					let arrResponse = [];
 
@@ -1486,6 +1519,7 @@ const getSuggestedItems = words => {
 					}
 
 					db.find(db.dbItems, { itemId: { $in: queryResponse.itemsId } }, (err, foundItems) => {
+						if (err) return reject(err);
 
 						let arrResponse = [];
 						let lastWord = arrWords[arrWords.length - 1].toLowerCase().latinize();
