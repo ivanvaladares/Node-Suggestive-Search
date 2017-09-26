@@ -17,23 +17,6 @@ var nss = require('../index.js').init(
 //         });
 
 describe('Test -', () => {
-    it('load json string', () => {
-        return nss.loadJsonString(`[{"nm":"WHISKY RED LABEL","id":"1","kw": "fancy"},{  
-                                    "nm":"WHISKY BLACK LABEL","id":"2"},{  
-                                    "nm":"BLACK FOREST BEECHWOOD HAM L/S","id":"3"},{  
-                                    "nm":"PESTO PARMESAN HAM","id":"4"},{  
-                                    "nm":"DELI SWEET SLICE SMOKED HAM","id":"5"},{  
-                                    "nm":"LABELY BUTTER","id":"7"}]`, "id", "nm", "kw")
-            .then(data => {
-                assert(
-                    data != null &&
-                    data.words == 16 &&
-                    data.items == 6,
-                    "Could not load json string."
-                );
-            });
-    });
-
     it('load json file test.json', () => {
         return nss.loadJson("test/test.json")
             .then(data => {
@@ -42,6 +25,27 @@ describe('Test -', () => {
                     data.words == 16 &&
                     data.items == 6,
                     "Could not load json file."
+                );
+            });
+    });
+
+    it('load json string', () => {
+        return nss.loadJsonString(`[{"nm":"WHISKY RED LABEL","id":"1","kw": "fancy"},
+                                    {"nm":"WHISKY BLACK LABEL","id":"2"},
+                                    {"nm":"BLACK FOREST BEECHWOOD HAM L/S","id":"3"},
+                                    {"nm":"PESTO PARMESAN HAM","id":"4"},
+                                    {"nm":"DELI SWEET SLICE SMOKED HAM","id":"5"},
+                                    {"nm":"LABELY BUTTER","id":"7"},
+                                    {"nm":"WINE D'VINE","id":"8"},
+                                    {"nm":"WINE RED OLD LABEL","id":"9"},
+                                    {"nm":"BLOOD-RED WINE","id":"10"}]`, 
+                                    "id", "nm", "kw")
+            .then(data => {
+                assert(
+                    data != null &&
+                    data.words == 20 &&
+                    data.items == 9,
+                    "Could not load json string."
                 );
             });
     });
@@ -61,6 +65,92 @@ describe('Test -', () => {
                 );
             });
     });
+
+
+    it('query for: "whisky label"', () => {
+        return nss.query("\"whisky label\"")
+            .then(data => {
+                assert(
+                    data != null &&
+                    data.words.length == 2 &&
+                    data.itemsId.length == 0 &&
+                    "Error on query for: \"whisky label\""
+                );
+            });
+    });
+    
+
+    it('query for: "red label"', () => {
+        return nss.query("\"red label\"")
+            .then(data => {
+                assert(
+                    data != null &&
+                    data.words.length == 2 &&
+                    data.words[0] == "RED" &&
+                    data.words[1] == "LABEL" &&
+                    data.itemsId.length == 1 &&
+                    data.itemsId[0] == "1",
+                    "Error on query for: \"red label\""
+                );
+            });
+    });
+
+    it('query for: "label red"', () => {
+        return nss.query("\"label red\"")
+            .then(data => {
+                assert(
+                    data != null &&
+                    data.words.length == 2 &&
+                    data.words[0] == "LABEL" &&
+                    data.words[1] == "RED" &&
+                    data.itemsId.length == 0,
+                    "Error on query for: \"label red\""
+                );
+            });
+    });    
+
+    it('query for: D\'VINE', () => {
+        return nss.query("D'VINE")
+            .then(data => {
+                assert(
+                    data != null &&
+                    data.words.length == 1 &&
+                    data.words[0] == "D'VINE" &&
+                    data.itemsId.length == 1 &&
+                    data.itemsId[0] == "8",
+                    "Error on query for: D'VINE"
+                );
+            });
+    });        
+
+    it('query for: RED-BLOOD', () => {
+        return nss.query("RED-BLOOD")
+            .then(data => {
+                assert(
+                    data != null &&
+                    data.words.length == 2 &&
+                    data.words[0] == "RED" &&
+                    data.words[1] == "BLOOD" &&
+                    data.itemsId.length == 0,
+                    "Error on query for: RED-BLOOD"
+                );
+            });
+    });         
+
+    it('query for: BLOOD-RED', () => {
+        return nss.query("BLOOD-RED")
+            .then(data => {
+                assert(
+                    data != null &&
+                    data.words.length == 2 &&
+                    data.words[0] == "BLOOD" &&
+                    data.words[1] == "RED" &&
+                    data.itemsId.length == 1 &&
+                    data.itemsId[0] == "10",
+                    "Error on query for: BLOOD RED"
+                );
+            });
+    });   
 
 
     it('query for: wisk read labl', () => {
