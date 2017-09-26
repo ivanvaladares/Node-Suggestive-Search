@@ -38,13 +38,14 @@ describe('Test -', () => {
                                     {"nm":"LABELY BUTTER","id":"7"},
                                     {"nm":"WINE D'VINE","id":"8"},
                                     {"nm":"WINE RED OLD LABEL","id":"9"},
-                                    {"nm":"BLOOD-RED WINE","id":"10"}]`, 
+                                    {"nm":"BLOOD-RED WINE","id":"10"},
+                                    {"nm":"COFFE MEU CAFÉ BRASILEIRO","id":"11"}]`, 
                                     "id", "nm", "kw")
             .then(data => {
                 assert(
                     data != null &&
-                    data.words == 20 &&
-                    data.items == 9,
+                    data.words == 24 &&
+                    data.items == 10,
                     "Could not load json string."
                 );
             });
@@ -123,8 +124,8 @@ describe('Test -', () => {
             });
     });        
 
-    it('query for: RED-BLOOD', () => {
-        return nss.query("RED-BLOOD")
+    it('query for: Red-Blood', () => {
+        return nss.query("Red-Blood")
             .then(data => {
                 assert(
                     data != null &&
@@ -132,13 +133,13 @@ describe('Test -', () => {
                     data.words[0] == "RED" &&
                     data.words[1] == "BLOOD" &&
                     data.itemsId.length == 0,
-                    "Error on query for: RED-BLOOD"
+                    "Error on query for: Red-Blood"
                 );
             });
     });         
 
-    it('query for: BLOOD-RED', () => {
-        return nss.query("BLOOD-RED")
+    it('query for: Blood-Red', () => {
+        return nss.query("Blood-Red")
             .then(data => {
                 assert(
                     data != null &&
@@ -147,11 +148,41 @@ describe('Test -', () => {
                     data.words[1] == "RED" &&
                     data.itemsId.length == 1 &&
                     data.itemsId[0] == "10",
-                    "Error on query for: BLOOD RED"
+                    "Error on query for: Blood-Red"
                 );
             });
     });   
 
+
+    it('query for: Meu Cafe', () => {
+        return nss.query("Meu Cafe")
+            .then(data => {
+                assert(
+                    data != null &&
+                    data.words.length == 2 &&
+                    data.words[0] == "MEU" &&
+                    data.words[1] == "CAFÉ" &&
+                    data.itemsId.length == 1 &&
+                    data.itemsId[0] == "11",
+                    "Error on query for: Meu Cafe"
+                );
+            });
+    });   
+
+    it('query for: Mêú Cãfé', () => {
+        return nss.query("Mêú Cãfé")
+            .then(data => {
+                assert(
+                    data != null &&
+                    data.words.length == 2 &&
+                    data.words[0] == "MEU" &&
+                    data.words[1] == "CAFÉ" &&
+                    data.itemsId.length == 1 &&
+                    data.itemsId[0] == "11",
+                    "Error on query for: Mêú Cãfé"
+                );
+            });
+    });       
 
     it('query for: wisk read labl', () => {
         return nss.query("wisk read labl")
