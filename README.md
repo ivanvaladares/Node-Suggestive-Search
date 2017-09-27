@@ -62,9 +62,9 @@ var nss = require('node-suggestive-search').init(
 ```
 
 ### Loading a database
-It uses an in-memory database to build a dictionary composed by itens and words that need to be searched. 
+It uses an in-memory database to build a dictionary composed by items and words that need to be searched. 
 
-Here is an example of a JSON to be imported (Itens.json): 
+Here is an example of a JSON to be imported (Items.json): 
 ```javascript
 [  
    {  
@@ -95,7 +95,7 @@ Here is an example of a JSON to be imported (Itens.json):
 Load the JSON from file
 ```javascript
 
-nss.loadJson("Itens.json", "utf8").then( //you can change the charset to match your file
+nss.loadJson("Items.json", "utf8").then( //you can change the charset to match your file
 	data => {
 		// response: {"words":16,"items":6,"timeElapsed":15}
 	},
@@ -109,7 +109,7 @@ nss.loadJson("Itens.json", "utf8").then( //you can change the charset to match y
 Load the JSON from file with your own poperties names
 ```javascript
 
-nss.loadJson("Itens.json", "utf8", "itemId", "itemName", "keywords").then(
+nss.loadJson("Items.json", "utf8", "itemId", "itemName", "keywords").then(
 	data => {
 		// response: {"words":16,"items":6,"timeElapsed":15}
 	},

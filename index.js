@@ -148,7 +148,7 @@ const splitWords = (text) => {
 
 const createWordObject = (word, cleanWord) => {
 	
-	let objWord = { word: word, cleanWord, soundex: soundex(word), items: {} };
+	let objWord = { word, cleanWord, soundex: soundex(word), items: {} };
 	
 	for (let i = 2; i <= cleanWord.length && i <= 4; i++) {
 		objWord[`p${i}i`] = cleanWord.substr(0, i).toLowerCase();
@@ -328,7 +328,7 @@ const populateWordsJson = (itemsJson, itemId, itemName, keywords) => {
 						let strWord = arrWords[w].toLowerCase();
 
 						if (strWord.length <= 1) {
-							continue;
+							//continue;
 						}
 
 						//if there is already this word in our dictionary, associate it with this item
@@ -950,7 +950,7 @@ const query = words => {
 						},
 						() => {
 							//instead of returning an error, lets return an empty result
-							resolve({ word: word, correct: false, results: [] });
+							resolve({ word, correct: false, results: [] });
 						});
 
 					} else {
@@ -972,7 +972,7 @@ const query = words => {
 						}
 
 						//returning the exact match
-						resolve({ word: word, correct: true, results: [foundItem] });
+						resolve({ word, correct: true, results: [foundItem] });
 
 					}
 
@@ -1087,9 +1087,8 @@ const query = words => {
 				arrItemsId.push(item);
 			}
 
-
-			//pos search - match quoted expressions and hyphenated words
-			let quotedStrings = words.match(/"(.*?)"|'(.*?)'|((?:\w+-)+\w+)/g, "$1");
+			//pos search - match quoted expressions, hyphenated words and separated by slashes
+			let quotedStrings = words.match(/"(.*?)"|'(.*?)'|((?:\w+-)+\w+)|((?:\w+\/|\\)+\w+)/g, "$1");
 			if (quotedStrings !== null && quotedStrings.length > 0){
 
 				quotedStrings = quotedStrings.map(item => {
@@ -1294,7 +1293,7 @@ const getSuggestedWords = words => {
 								let wordLoweredLatinized = word.toLowerCase().latinize();
 
 								if (objResponse[wordLoweredLatinized] != 1) {
-									//only keep this word if is like to last word from query or there is no last words
+									//only keep this word if is like to the last word from query or there is no last words
 									if (lastWord == "" || wordLoweredLatinized.indexOf(lastWord) == 0) {
 										if (word in objRelatedWords) {
 											objRelatedWords[word]++;
@@ -1522,7 +1521,6 @@ const getSuggestedItems = words => {
 						if (err) return reject(err);
 
 						let arrResponse = [];
-						let lastWord = arrWords[arrWords.length - 1].toLowerCase().latinize();
 
 						if (foundItems !== null) {
 
@@ -1530,34 +1528,25 @@ const getSuggestedItems = words => {
 
 								let includeThisItem = false;
 
-								if (lastWord == ""){
-									includeThisItem = true;
-								}else{
-
-									let arrItemWords = splitWords(item.itemName.toLowerCase().latinize());
-
-									arrItemWords.map(itemWord => {
-
-										let wordExist = false;
-
-										for (let index = 0; index < arrWords.length; index++) {
-											if (arrWords[index].toLowerCase().latinize() == itemWord){
-												wordExist = true;
-												break;
-											}
-										}
-
-										if (!wordExist){
-											
-											if (itemWord.indexOf(lastWord) == 0){
-												includeThisItem = true;
-											}
-
-										}
-
-									});
-
+								let arrItemWords = "";
+								
+								if (item.keywords !== undefined){
+									arrItemWords = splitWords(item.itemName.toLowerCase().latinize() + " " + item.keywords.toLowerCase().latinize());
+								} else {
+									arrItemWords = splitWords(item.itemName.toLowerCase().latinize());
 								}
+
+								arrItemWords.map(itemWord => {
+
+									//check if the item name contains one of the words from the query
+									for (let index = 0; index < arrWords.length; index++) {
+										if (arrWords[index].toLowerCase().latinize() == itemWord){
+											includeThisItem = true;
+											break;
+										}
+									}
+
+								});
 
 								if (includeThisItem){
 									arrResponse.push({itemId: item.itemId, itemName: item.itemName });
