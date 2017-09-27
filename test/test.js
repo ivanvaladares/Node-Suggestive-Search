@@ -1,8 +1,9 @@
 var mocha = require('mocha')
+var assert = require("assert");
 var describe = mocha.describe;
 var it = mocha.it;
-var assert = require("assert");
 
+//tests using nedb
 var nss = require('../index.js').init(
         {
             dataBase: "nedb",
@@ -10,6 +11,7 @@ var nss = require('../index.js').init(
             neDbInMemoryOnly: true
         });
 
+//tests using mongogdb
 // var nss = require('../index.js').init(
 //         {
 //             dataBase: "mongodb", 
@@ -22,7 +24,7 @@ describe('Test -', () => {
             .then(data => {
                 assert(
                     data != null &&
-                    data.words == 16 &&
+                    data.words == 18 &&
                     data.items == 6,
                     "Could not load json file."
                 );
@@ -39,13 +41,14 @@ describe('Test -', () => {
                                     {"nm":"WINE D'VINE","id":"8"},
                                     {"nm":"WINE RED OLD LABEL","id":"9"},
                                     {"nm":"BLOOD-RED WINE","id":"10"},
-                                    {"nm":"COFFE MEU CAFÉ BRASILEIRO","id":"11"}]`, 
+                                    {"nm":"COFFE MEU CAFÉ BRASILEIRO","id":"11"},
+                                    {"nm":"X-14 ULTRA CLEANER","id":"12"}]`, 
                                     "id", "nm", "kw")
             .then(data => {
                 assert(
                     data != null &&
-                    data.words == 24 &&
-                    data.items == 10,
+                    data.words == 30 &&
+                    data.items == 11,
                     "Could not load json string."
                 );
             });
@@ -80,7 +83,6 @@ describe('Test -', () => {
             });
     });
     
-
     it('query for: "red label"', () => {
         return nss.query("\"red label\"")
             .then(data => {
@@ -200,6 +202,37 @@ describe('Test -', () => {
             });
     });
 
+    it('query for: X-14', () => {
+        return nss.query("X-14")
+            .then(data => {
+                assert(
+                    data != null &&
+                    data.words.length == 2 &&
+                    data.words[0] == "X" &&
+                    data.words[1] == "14" &&
+                    data.itemsId.length == 1 &&
+                    data.itemsId[0] == "12",
+                    "Error on query for: X-14"
+                );
+            });
+    });  
+
+    it('query for: HAM L/S', () => {
+        return nss.query("HAM L/S")
+            .then(data => {
+                assert(
+                    data != null &&
+                    data.words.length == 3 &&
+                    data.words[0] == "HAM" &&
+                    data.words[1] == "L" &&
+                    data.words[2] == "S" &&
+                    data.itemsId.length == 1 &&
+                    data.itemsId[0] == "3",
+                    "Error on query for: HAM L/S"
+                );
+            });
+    });  
+
     it('insert item: 9 - VODKA ABSOLUTE', () => {
         return nss.insertItem({ "itemName": "VODKA ABSOLUTE", "itemId": "9" })
             .then(data => {
@@ -224,7 +257,7 @@ describe('Test -', () => {
             });
     });
 
-    it('get suggestions for: lab', () => {
+    it('get words suggestions for: lab', () => {
         return nss.getSuggestedWords("lab")
             .then(data => {
                 assert(
@@ -232,7 +265,45 @@ describe('Test -', () => {
                     data.suggestions.length == 2 &&
                     data.suggestions[0] == "LABEL" &&
                     data.suggestions[1] == "LABELY",
-                    "Error on get suggestions for: lab"
+                    "Error on get words suggestions for: lab"
+                );
+            });
+    });
+    
+
+    it('get words suggestions for: fanc', () => {
+        return nss.getSuggestedWords("fanc")
+            .then(data => {
+                assert(
+                    data != null &&
+                    data.suggestions.length == 1 &&
+                    data.suggestions[0] == "fancy",
+                    "Error on get words suggestions for: fanc"
+                );
+            });
+    });
+
+    it('get items suggestions for: L/S', () => {
+        return nss.getSuggestedItems("L/S")
+            .then(data => {
+                assert(
+                    data != null &&
+                    data.items.length == 1 &&
+                    data.items[0].itemName == "BLACK FOREST BEECHWOOD HAM L/S",
+                    "Error on get items suggestions for: L/S"
+                );
+            });
+    });
+
+
+    it('get items suggestions for: FANC', () => {
+        return nss.getSuggestedItems("FANC")
+            .then(data => {
+                assert(
+                    data != null &&
+                    data.items.length == 1 &&
+                    data.items[0].itemName == "WHISKY RED LABEL",
+                    "Error on get items suggestions for: FANC"
                 );
             });
     });
