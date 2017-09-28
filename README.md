@@ -45,7 +45,7 @@ Here is an example of a configuration to use NeDB with a datafile:
 var nss = require('node-suggestive-search').init(
 			{
 			dataBase: "nedb", 
-			neDbDataPath: path.join(__dirname, "..", "data"),
+			neDbDataPath: "dataFolder",
 			neDbInMemoryOnly: false
 			});
 
@@ -97,7 +97,7 @@ Load the JSON from file
 
 nss.loadJson("Items.json", "utf8").then( //you can change the charset to match your file
 	data => {
-		// response: {"words":16,"items":6,"timeElapsed":15}
+		// response: {"words":17,"items":5,"timeElapsed":21}
 	},
 	err => {
 		//...
@@ -111,7 +111,7 @@ Load the JSON from file with your own poperties names
 
 nss.loadJson("Items.json", "utf8", "itemId", "itemName", "keywords").then(
 	data => {
-		// response: {"words":16,"items":6,"timeElapsed":15}
+		// response: {"words":17,"items":5,"timeElapsed":25}
 	},
 	err => {
 		//...
@@ -128,7 +128,7 @@ let jSonString = `[{"itemName":"WHISKY RED LABEL", "itemId":"1", "keywords": "fa
 
 nss.loadJsonString(jSonString).then(
 	data => {
-		// response: {"words":16,"items":6,"timeElapsed":17}
+		// response: {"words":5,"items":2,"timeElapsed":9}
 	},
 	err => {
 		//...
@@ -145,7 +145,7 @@ let jSonString = `[{"nm":"WHISKY RED LABEL", "id":"1", "kw": "fancy"},{
 
 nss.loadJsonString(jSonString, "id", "nm", "kw").then(
 	data => {
-		// response: {"words":16,"items":6,"timeElapsed":17}
+		// response: {"words":5,"items":2,"timeElapsed":8}
 	},
 	err => {
 		//...

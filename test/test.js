@@ -1,10 +1,11 @@
-var mocha = require('mocha')
-var assert = require("assert");
-var describe = mocha.describe;
-var it = mocha.it;
+let mocha = require('mocha')
+let assert = require("assert");
+let describe = mocha.describe;
+let before = mocha.before;
+let it = mocha.it;
 
 //tests using nedb
-var nss = require('../index.js').init(
+let nss = require('../index.js').init(
         {
             dataBase: "nedb",
             neDbDataPath: "",
@@ -12,13 +13,39 @@ var nss = require('../index.js').init(
         });
 
 //tests using mongogdb
-// var nss = require('../index.js').init(
+// let nss = require('../index.js').init(
 //         {
 //             dataBase: "mongodb", 
-//             mongoDatabase: "mongodb://127.0.0.1:27017/nodeSugestiveSearchTest"
+//             mongoDatabase: "mongodb://127.0.0.2:27017/nodeSugestiveSearchTest"
 //         });
 
+//tests using ms-sql
+// let nss = require('../index.js').init(
+//     {
+//         dataBase: "mssql",
+//         dbConnection: {
+//             host: '127.0.0.1',
+//             username: "sa",
+//             password: 'mssqlpass',
+//             database: "test",        
+//             dialect: 'mssql',
+//             dialectOptions: {
+//                 requestTimeout: 60000,
+//                 encrypt: true // Use this if you're on Windows Azure                
+//             }
+//         }   
+//     });
+
+
 describe('Test -', () => {
+
+    before(done => {
+        //wait for the initialization process
+        nss.on("initialized", () => {
+                done();
+        });
+    });
+
     it('load json file test.json', () => {
         return nss.loadJson("test/test.json")
             .then(data => {
@@ -314,8 +341,12 @@ describe('Test -', () => {
                 assert(
                     data != null &&
                     data.items.length == 2 &&
-                    data.items[0].itemName == "WHISKY RED LABEL" &&
-                    data.items[1].itemName == "WHISKY BLACK LABEL",
+                    (
+                        (data.items[0].itemName == "WHISKY RED LABEL" &&
+                        data.items[1].itemName == "WHISKY BLACK LABEL") || 
+                        (data.items[1].itemName == "WHISKY RED LABEL" &&
+                        data.items[0].itemName == "WHISKY BLACK LABEL")  
+                    ),
                     "Error on get items suggestions for: whisky"
                 );
             });
