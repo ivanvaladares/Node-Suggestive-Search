@@ -13,7 +13,8 @@ http://ivanvaladares.com
  "use strict";
 
 let fs = require('fs');
-var util = require("util");
+let util = require("util");
+let _ = require("underscore");
 let EventEmitter = require('events');
 
 
@@ -124,17 +125,6 @@ let NodeSuggestiveSearch = class {
 			(string.length == 4 ? "" : (new Array(5 - string.length)).join("0"));
 	}
 
-	_cloneObjJson (obj) {
-		if (obj === null || typeof(obj) != 'object') {
-			return obj;
-		}
-		let temp = new obj.constructor();
-		for (let key in obj) {
-			temp[key] = this._cloneObjJson(obj[key]);
-		}
-		return temp;
-	}
-
 	_splitWords (text) {
 		//separate words using this regexp pattern
 		let arr = text.replace(/[.,/#!$%^&*;:{}=+\-_`~()?<>"”“]/gi, ' ').split(" ");
@@ -145,29 +135,6 @@ let NodeSuggestiveSearch = class {
 				return item;
 			}	
 		});
-	}
-
-	_createWordObject (word, cleanWord) {
-		
-		let objWord = { word, cleanWord, soundex: this._soundex(word), items: {} };
-		
-		for (let i = 2; i <= cleanWord.length && i <= 4; i++) {
-			objWord[`p${i}i`] = cleanWord.substr(0, i).toLowerCase();
-			objWord[`p${i}e`] = cleanWord.substr(cleanWord.length - i, cleanWord.length).toLowerCase();
-		}
-
-		return objWord;
-	}
-
-	_createItemObject (itemId, itemName, keywords){
-
-		let objItem = { itemId, itemName };
-
-		if (keywords !== undefined){
-			objItem.keywords = keywords;
-		}
-
-		return objItem;
 	}
 
 	_getWordsBySoundexAndParts (word) {
@@ -292,58 +259,54 @@ let NodeSuggestiveSearch = class {
 		return new Promise((resolve, reject) => {
 
 			//create a dictionary like object
-			let itemsObjectArray = [];
+			let itemsArray = [];
 			let objWords = {};
 			let repeatedObjWords = {};
 
 			this._db.cleanDatabase().then(() => {
 
-				for (let x in itemsJson) {
+				itemsJson.map(item => {
 
 					//validate json object
-					if (itemsJson[x][itemId] === undefined || itemsJson[x][itemName] === undefined){
-						//do not insert items that don't meet the minimum requirements
-						continue;
+					if (item[itemId] !== undefined && item[itemName] !== undefined){
+						itemsArray.push(this._db.createItemObject(item[itemId], item[itemName], item[keywords]));
 					}
 
-					itemsObjectArray.push(this._createItemObject(itemsJson[x][itemId], itemsJson[x][itemName], itemsJson[x][keywords]));
-				}
+				});
 
 				//insert all items in the database
-				this._db.insertItem(itemsObjectArray).then(() => {
+				this._db.insertItem(itemsArray).then(() => {
 
-					for (let x in itemsObjectArray) {
+					itemsArray.map(itemObject => {
 
 						//get words from each item
-						let arrWords = this._splitWords(itemsObjectArray[x].itemName);
+						let arrWords = this._splitWords(itemObject.itemName);
 
 						//get keywords
-						if (itemsObjectArray[x].keywords){
-							arrWords = arrWords.concat(this._splitWords(itemsObjectArray[x].keywords));
+						if (itemObject.keywords){
+							arrWords = arrWords.concat(this._splitWords(itemObject.keywords));
 						}
 
+						arrWords = _.uniq(arrWords);
+
 						//associate each word with items. ex: {word, [item1, item2, item3...]}
-						for (let w = 0; w < arrWords.length; w++) {
+						arrWords.map(word => {
 
-							let strWord = arrWords[w].toLowerCase();
-
-							if (strWord.length <= 1) {
-								//continue;
-							}
+							let strWord = word.toLowerCase();
 
 							//if there is already this word in our dictionary, associate it with this item
 							if (strWord in objWords) {
 
-								objWords[strWord].items[itemsObjectArray[x].itemId] = 1;
+								objWords[strWord].items[itemObject.itemId] = 1;
 
 							} else {
 								//keep the word without accent and lowercase
 								let cleanWord = strWord.latinize();
 
-								let objWord = this._createWordObject(arrWords[w], cleanWord);
+								let objWord = this._db.createWordObject(word, cleanWord, this._soundex(word));
 
 								//add this new item into related items of this word
-								objWord.items[itemsObjectArray[x].itemId] = 1;
+								objWord.items[itemObject.itemId] = 1;
 
 								objWords[strWord] = objWord;
 
@@ -355,12 +318,12 @@ let NodeSuggestiveSearch = class {
 
 							}
 
-						}
+						});
 
-					}
+					});
 
 					
-					//lets make this module accent insensitive when searching for items
+					//lets make this module accent insensitive
 					//all the similar words will have the same itemsId
 					for (let item in repeatedObjWords) {
 						let repeatedWordsArray = repeatedObjWords[item];
@@ -369,21 +332,22 @@ let NodeSuggestiveSearch = class {
 
 							let itemsId = {};
 
+							//gather all itemsIds from repeated words
 							for (let index = 0; index < repeatedWordsArray.length; index++) {
 								let objWord = objWords[repeatedWordsArray[index]];
 
 								for (let idResultItem in objWord.items) {
-									if (!itemsId[idResultItem]) {
+									if (itemsId[idResultItem] !== null) {
 										itemsId[idResultItem] = objWord.items[idResultItem];
 									}
 								}
-
 							}
 
+							//associate all repeated words with those itemsIds
 							for (let index = 0; index < repeatedWordsArray.length; index++) {
 								let objWord = objWords[repeatedWordsArray[index]];
 
-								objWord.items = this._cloneObjJson(itemsId);
+								objWord.items = itemsId;
 							}
 						}
 					}
@@ -392,6 +356,9 @@ let NodeSuggestiveSearch = class {
 					//create a database compatible JSON array from the above dictionary
 					let wordsJson = [];
 					for (let item in objWords) {
+						//transform the key/value itemsId into an array of the keys
+						objWords[item].items = _.keys(objWords[item].items);
+
 						wordsJson.push(objWords[item]);
 					}
 
@@ -452,16 +419,15 @@ let NodeSuggestiveSearch = class {
 						return new Promise((resolve, reject) => {
 
 							//try to find the exact word in our dictionary
-							this._db.findWords({ cleanWord: word.toLowerCase().latinize() }).then(foundWord => {
+							this._db.findWords({ cleanWord: word.toLowerCase().latinize() }).then(foundWords => {
 
-								if (!foundWord || foundWord.length <= 0) {
+								if (foundWords === null || foundWords.length <= 0) {
 
-									//instead of returning an error, lets return null
 									resolve([]);
 
 								} else {
 
-									resolve(foundWord);
+									resolve(foundWords);
 
 								}
 
@@ -473,86 +439,70 @@ let NodeSuggestiveSearch = class {
 
 					});
 
-					Promise.all(promises).then(foundWords => {
+					Promise.all(promises).then(promiseFoundWords => {
 
-						//get all words and remove itemsId 
-						for (let index = 0; index < foundWords.length; index++) {
-							let foundWord = foundWords[index];
-
-							if (foundWord !== null && foundWord.length > 0) {
-
-								for (let iWord = 0; iWord < foundWord.length; iWord++) {
-									let element = foundWord[iWord];
-
-									//remove itemsId 
-									if (element.items[itemId] == 1) {
-										delete element.items[itemId];
-									}
-								}
-							}
-						}
+						//remove this itemId from all found words 
+						promiseFoundWords.map(foundWordArr => {
+							foundWordArr.map(word => {
+								word.items = _.without(word.items, itemId);
+							});
+						});
 
 						let innerPromises = [];
 
 						//delete words with empty itemId 
-						for (let index = 0; index < foundWords.length; index++) {
-							let foundWord = foundWords[index];
+						promiseFoundWords.map(foundWordArr => {
 
-							if (foundWord !== null && foundWord.length > 0) {
+							foundWordArr.map(word => {
 
-								for (let iWord = 0; iWord < foundWord.length; iWord++) {
-									let element = foundWord[iWord];
+								if (word.items === undefined || word.items.length <= 0) {
+									//remove this word from the database because it does not have any more items associated with it
 
-									if (Object.keys(element.items).length <= 0) {
-										//remove this one 
+									let innerPromise = new Promise((resolve, reject) => {
 
-										let p = new Promise((resolve, reject) => {
+										this._db.removeWords({ word: word.word }).then(numRemoved => {
+											resolve(numRemoved);
+										}).catch(err => {
+											reject(err);
+										});
 
-											this._db.removeWords({ word: element.word }).then(numRemoved => {
-												resolve(numRemoved);
+									});
+
+									innerPromises.push(innerPromise);
+
+								} else {
+
+									//update this word 
+									let innerPromise = new Promise((resolve)  => {
+
+										this._db.updateWord(
+											{ word: word.word },
+											{ $set: { "items": word.items } },
+											{ multi: false }).then(numReplaced => {
+												resolve(numReplaced);
 											}).catch(err => {
 												reject(err);
 											});
 
-										});
+									});
 
-										innerPromises.push(p);
-
-									} else {
-										//update this one
-										//send it back to the database
-										let p = new Promise((resolve)  => {
-
-											this._db.updateWord(
-												{ word: element.word },
-												{ $set: { "items": element.items } },
-												{ multi: false }).then(numReplaced => {
-													resolve(numReplaced);
-												}).catch(err => {
-													reject(err);
-												});
-
-										});
-
-										innerPromises.push(p);
-									}
+									innerPromises.push(innerPromise);
 								}
-							}
-						}
+							});
+
+						});
 
 						Promise.all(innerPromises).then(() => {
 
-							//for (let index = 0; index < operations.length; index++) {
-								//let element = operations[index];
-
-								//todo: test if any operation had failed 
-							//}
+							//todo: test if any operation had failed 
 
 							//return some information about this process
 							resolve({ timeElapsed: (new Date() - time) });
 
 						});
 
+					}).catch(err => {
+						reject(err);
 					});
 
 				}).catch(err => {
@@ -588,7 +538,7 @@ let NodeSuggestiveSearch = class {
 				return reject(new Error('Item must have itemId and itemName!'));
 			}
 
-			let itemObject = this._createItemObject(itemJson[itemId], itemJson[itemName], itemJson[keywords]);
+			let itemObject = this._db.createItemObject(itemJson[itemId], itemJson[itemName], itemJson[keywords]);
 
 			this.removeItem(itemObject.itemId).then(() => {
 
@@ -615,7 +565,6 @@ let NodeSuggestiveSearch = class {
 
 								if (!foundWord || foundWord.length <= 0) {
 
-									//instead of returning an error, lets return null
 									resolve(null);
 
 								} else {
@@ -633,7 +582,7 @@ let NodeSuggestiveSearch = class {
 					});
 
 					//now, lets resolve all promises from the array of promises
-					Promise.all(promises).then(foundItems => {
+					Promise.all(promises).then(promiseFoundWords => {
 
 						let notFoundedWords = [];
 						let foundedWords = [];
@@ -641,8 +590,8 @@ let NodeSuggestiveSearch = class {
 
 						//set an array with the not founded words
 						//set an array with the founded words
-						for (let index = 0; index < foundItems.length; index++) {
-							let foundItem = foundItems[index];
+						for (let index = 0; index < promiseFoundWords.length; index++) {
+							let foundItem = promiseFoundWords[index];
 
 							if (foundItem === null) {
 
@@ -672,51 +621,48 @@ let NodeSuggestiveSearch = class {
 
 
 						//associate this words with this new item
-						for (let index = 0; index < foundedWords.length; index++) {
-							let word = foundedWords[index];
-
+						foundedWords.map(word => {
 							
-							this._db.findWords({ cleanWord: word.toLowerCase().latinize() }).then(foundWord => {
+							this._db.findWords({ cleanWord: word.toLowerCase().latinize() }).then(foundWords => {
 
-								for (let index = 0; index < foundWord.length; index++) {
+								foundWords.map(word => {
 
 									//associate with this itemId
-									foundWord[index].items[itemObject.itemId] = 1;
+									word.items.push(itemObject.itemId);
 
 									//send it back to the database
 									this._db.updateWord(
-										{ cleanWord: foundWord[index].cleanWord },
-										{ $set: { "items": foundWord[index].items } },
+										{ cleanWord: word.cleanWord },
+										{ $set: { "items": word.items } },
 										{ multi: true }).then(() => {
 											//keep going
 										}).catch(err => {
 											reject(err);
 										});
 
-								}
+								});
 
 							}).catch(err => {
 								reject(err);
 							});
 
-						}
+						});
 
 
 						//create new words objects to insert into the dictionary
 						let objWords = {};
 
-						for (let index = 0; index < notFoundedWords.length; index++) {
-							let word = notFoundedWords[index];
+						notFoundedWords.map(word => {
 							let cleanWord = word.toLowerCase().latinize();
 
-							let objWord = this._createWordObject(word, cleanWord);
+							let objWord = this._db.createWordObject(word, cleanWord, this._soundex(word));
 
 							//add this new item into related items of this word
-							objWord.items[itemObject.itemId] = 1;
+							objWord.items = [itemObject.itemId];
 
 							//mount the array to bulk insert later 
 							objWords[word] = objWord;
-						}
+						});
 
 						//create a database compatible JSON array from the above dictionary
 						let wordsJson = [];
@@ -726,29 +672,31 @@ let NodeSuggestiveSearch = class {
 
 						//insert all the new words in a bulk insert
 						if (wordsJson.length > 0) {
+
 							this._db.insertWord(wordsJson).then(() => {
 
 								//lets treat all similar words with different accents
 								if (foundedWordsDifferentAccents.length > 0) {
 
 									//associate this words with this new item and its words
-									for (let index = 0; index < foundedWordsDifferentAccents.length; index++) {
-										let word = foundedWordsDifferentAccents[index];
+									foundedWordsDifferentAccents.map(word => {
 
 										this._db.findWords({ cleanWord: word.toLowerCase().latinize() }).then(existingWords => {
 											
-											let itemsId = {};
+											let itemsId = [];
 
 											for (let index = 0; index < existingWords.length; index++) {
-												for (let idItem in existingWords[index].items) {
-													if (!itemsId[idItem]) {
-														itemsId[idItem] = existingWords[index].items[idItem];
+
+												existingWords[index].items.map(idItem => {
+													if (itemsId.indexOf(idItem) < 0) {
+														itemsId.push(idItem);
 													}
-												}
+												});
 											}
 
 											if (existingWords.length > 0) {
-												itemsId[itemObject.itemId] = 1;
+
+												itemsId.push(itemObject.itemId);
 
 												//send it back to the database
 												this._db.updateWord(
@@ -759,15 +707,13 @@ let NodeSuggestiveSearch = class {
 													}).catch(err => {
 														reject(err);
 													});
-			
-
 											}
 
 										}).catch(err => {
 											reject(err);
 										});
 
-									}
+									});
 
 									//return some information about this process
 									resolve({ timeElapsed: (new Date() - time) });
@@ -791,19 +737,19 @@ let NodeSuggestiveSearch = class {
 
 						}
 
+					}).catch(err => {
+						reject(err);
 					});
 
 				}).catch(err => {
 					reject(err);
 				});
 
-			},
-			() => {
+			}).catch(() => {
 				return reject(new Error("Could not insert this item!"));
 			});
 
 		});
-
 
 	}
 
@@ -931,8 +877,7 @@ let NodeSuggestiveSearch = class {
 								} else {
 									resolve({ word: word, correct: false, results: [] })
 								}
-							},
-							() => {
+							}).catch(() => {
 								//instead of returning an error, lets return an empty result
 								resolve({ word, correct: false, results: [] });
 							});
@@ -997,12 +942,12 @@ let NodeSuggestiveSearch = class {
 										let objOtherWordResult = objOtherWord.results[otherWordResult];
 
 										//try to match one array with another
-										for (let idResultItem in objResult.items) {
-											if (objOtherWordResult.items[idResultItem]) {
-												// lets give a boost in similarity because this word contains items from other words
+										objResult.items.map(idItem => {
+											if (objOtherWordResult.items.indexOf(idItem) >= 0) {
 												objResult.similarity = (objResult.similarity || 0) + 1;
 											}
-										}
+										});
+
 									}
 								}
 							}
@@ -1022,10 +967,9 @@ let NodeSuggestiveSearch = class {
 					}
 				}
 
-
 				//join all itemsId from all word's results and get the words
 				let finalWords = [];
-				let objsItemsId;
+				let arrItemsIds = [];
 
 				for (let word in items) {
 					let objWord = items[word];
@@ -1033,8 +977,8 @@ let NodeSuggestiveSearch = class {
 					finalWords.push(objWord.results.word);
 
 					//get from the first word its itemsId and continue to another word 
-					if (!objsItemsId) {
-						objsItemsId = objWord.results.items;
+					if (arrItemsIds.length == 0) {
+						arrItemsIds.push(objWord.results.items);
 						continue;
 					}
 
@@ -1043,12 +987,14 @@ let NodeSuggestiveSearch = class {
 						finalWords[word] = null;
 					} else {
 
-						let newarrItemsId = {};
 						let itemExist = false;
-						for (let itemId in objsItemsId) {
-							if (objWord.results.items[itemId]) {
-								itemExist = true;
-								newarrItemsId[itemId] = null;
+
+						for (let iy = 0; iy < objWord.results.items.length; iy++){
+							for (let ix = 0; ix < arrItemsIds.length; ix++){
+								if (arrItemsIds[ix].indexOf(objWord.results.items[iy]) >= 0){
+									itemExist = true;
+									break;
+								}
 							}
 						}
 
@@ -1056,18 +1002,16 @@ let NodeSuggestiveSearch = class {
 						if (!itemExist) {
 							finalWords[word] = null;
 						} else {
-							//acumulate itemsId to another round
-							objsItemsId = this._cloneObjJson(newarrItemsId);
+							//acumulate itemsId for another round
+							arrItemsIds.push(objWord.results.items);
 						}
+
 					}
 
 				}
 
-				//tranform objsItemsId to array
-				let arrItemsId = [];
-				for (let item in objsItemsId) {
-					arrItemsId.push(item);
-				}
+				//get the intersection on the itemsId
+				arrItemsIds = _.intersection.apply(_, arrItemsIds);
 
 				//pos search - match quoted expressions, hyphenated words and separated by slashes
 				let quotedStrings = words.match(/"(.*?)"|'(.*?)'|((?:\w+-)+\w+)|((?:\w+\/|\\)+\w+)/g, "$1");
@@ -1077,7 +1021,7 @@ let NodeSuggestiveSearch = class {
 						return item.replace(/^"(.+(?="$))"$/, '$1'); //remove quotes
 					});
 
-					this._db.findItems({ itemId: { $in: arrItemsId } }).then(foundItems => {
+					this._db.findItems({ itemId: { $in: arrItemsIds } }).then(foundItems => {
 						
 						foundItems = foundItems.filter(item => {
 							for (let quotedString in quotedStrings){
@@ -1088,12 +1032,12 @@ let NodeSuggestiveSearch = class {
 						});
 
 						//tranform object items to array of ids
-						let arrItemsId = [];
+						arrItemsIds = [];
 						for (let item in foundItems) {
-							arrItemsId.push(foundItems[item].itemId);
+							arrItemsIds.push(foundItems[item].itemId);
 						}
 
-						resolve({ query: words, words: finalWords, itemsId: arrItemsId, timeElapsed: (new Date() - time) });
+						resolve({ query: words, words: finalWords, itemsId: arrItemsIds, timeElapsed: (new Date() - time) });
 										
 					}).catch(err => {
 						reject(err);
@@ -1101,12 +1045,11 @@ let NodeSuggestiveSearch = class {
 
 				}else{
 
-					resolve({ query: words, words: finalWords, itemsId: arrItemsId, timeElapsed: (new Date() - time) });
+					resolve({ query: words, words: finalWords, itemsId: arrItemsIds, timeElapsed: (new Date() - time) });
 
 				}
 
-			},
-			err => {
+			}).catch(err => {
 				reject(err);
 			});
 
@@ -1379,27 +1322,18 @@ let NodeSuggestiveSearch = class {
 				//try to get more words like this one. Limit 5
 				this._getWordsStartingWith(arrWords[0].latinize(), 5).then(queryResponse => {
 
-					let objItems = {};
+					let arrItemsIds = [];
 
 					if (queryResponse !== null) {
-
 						queryResponse.map(item => {
-
-							for (let itemId in item.items) {
-								objItems[itemId] = (objItems[itemId] || 0) + 1;
-							}
-
+							arrItemsIds = arrItemsIds.concat(item.items);
 						});
-
 					}
 
-					// First create the array of keys/values with relatedWords so that we can sort it
-					let arrItems = [];
-					for (let key in objItems) {
-						arrItems.push(key);
-					}
-					
-					this._db.findItems({ itemId: { $in: arrItems } }).then(foundItems => {
+					//remove duplications
+					arrItemsIds = _.uniq(arrItemsIds);					
+
+					this._db.findItems({ itemId: { $in: arrItemsIds } }).then(foundItems => {
 
 						let arrResponse = [];
 

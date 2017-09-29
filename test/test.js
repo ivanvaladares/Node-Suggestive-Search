@@ -12,6 +12,7 @@ let nss = require('../index.js').init(
             neDbInMemoryOnly: true
         });
 
+
 //tests using mongogdb
 // let nss = require('../index.js').init(
 //         {
@@ -29,6 +30,7 @@ let nss = require('../index.js').init(
 //             password: 'mssqlpass',
 //             database: "test",        
 //             dialect: 'mssql',
+//             logging: false,            
 //             dialectOptions: {
 //                 requestTimeout: 60000,
 //                 encrypt: true // Use this if you're on Windows Azure                
@@ -66,7 +68,7 @@ describe('Test -', () => {
                                     {"nm":"DELI SWEET SLICE SMOKED HAM","id":"5"},
                                     {"nm":"LABELY BUTTER","id":"7"},
                                     {"nm":"WINE D'VINE","id":"8"},
-                                    {"nm":"WINE RED OLD LABEL","id":"9"},
+                                    {"nm":"WINE RÉD OLD LABEL","id":"9"},
                                     {"nm":"BLOOD-RED WINE","id":"10"},
                                     {"nm":"COFFE MEU CAFÉ BRASILEIRO","id":"11"},
                                     {"nm":"X-14 ULTRA CLEANER","id":"12"}]`, 
@@ -74,7 +76,7 @@ describe('Test -', () => {
             .then(data => {
                 assert(
                     data != null &&
-                    data.words == 30 &&
+                    data.words == 31 &&
                     data.items == 11,
                     "Could not load json string."
                 );
@@ -260,13 +262,13 @@ describe('Test -', () => {
             });
     });  
 
-    it('insert item: 9 - VODKA ABSOLUTE', () => {
-        return nss.insertItem({ "itemName": "VODKA ABSOLUTE", "itemId": "9" })
-            .then(data => {
+    it('insert item: 13 - VODKA ABSOLUTE', () => {
+        return nss.insertItem({ "itemName": "VODKA ABSOLUTE", "itemId": "13" })
+            .then(data => {              
                 assert(
                     data != null &&
                     data.timeElapsed >= 0,
-                    "Error on inserting item: 9 - VODKA ABSOLUTE"
+                    "Error on inserting item: 13 - VODKA ABSOLUTE"
                 );
             });
     });
@@ -278,15 +280,40 @@ describe('Test -', () => {
                     data != null &&
                     data.words.length == 1 &&
                     data.itemsId.length == 1 &&
-                    data.itemsId[0] == "9",
+                    data.itemsId[0] == "13",
                     "Error on query for: absolut"
                 );
             });
     });
 
+    it('remove item 13', () => {
+        return nss.removeItem("13")
+            .then(data => {
+                assert(
+                    data != null &&
+                    data.timeElapsed >= 0,
+                    "Error on removing item 13"
+                );
+            });
+    });
+
+    it('query for: absolut', () => {
+        return nss.query("absolut")
+            .then(data => {                
+                assert(
+                    data != null &&
+                    data.words.length == 1 &&
+                    data.words[0] == null &&
+                    data.itemsId.length == 0,
+                    "Error on query for: absolut"
+                );
+            });
+    });
+
+
     it('get words suggestions for: lab', () => {
         return nss.getSuggestedWords("lab")
-            .then(data => {
+            .then(data => {                            
                 assert(
                     data != null &&
                     data.suggestions.length == 2 &&
@@ -309,6 +336,19 @@ describe('Test -', () => {
                 );
             });
     });
+
+    it('get items suggestions for: L/S', () => {
+        return nss.getSuggestedItems("L/S")
+            .then(data => {
+                assert(
+                    data != null &&
+                    data.items.length == 1 &&
+                    data.items[0].itemName == "BLACK FOREST BEECHWOOD HAM L/S",
+                    "Error on get items suggestions for: L/S"
+                );
+            });
+    });
+
 
     it('get items suggestions for: L/S', () => {
         return nss.getSuggestedItems("L/S")
@@ -352,27 +392,4 @@ describe('Test -', () => {
             });
     });
 
-    it('remove item 9', () => {
-        return nss.removeItem("9")
-            .then(data => {
-                assert(
-                    data != null &&
-                    data.timeElapsed >= 0,
-                    "Error on removing item 9"
-                );
-            });
-    });
-
-    it('query for: absolut', () => {
-        return nss.query("absolut")
-            .then(data => {
-                assert(
-                    data != null &&
-                    data.words.length == 1 &&
-                    data.words[0] == null &&
-                    data.itemsId.length == 0,
-                    "Error on query for: absolut"
-                );
-            });
-    });
 });
