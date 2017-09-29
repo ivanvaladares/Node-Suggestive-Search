@@ -17,7 +17,7 @@ npm install node-suggestive-search --save   # Put latest version in your package
 ## Example of usage
 https://ivanvaladares.herokuapp.com
 
-##Playground on Runkit
+## Playground on Runkit
 https://runkit.com/ivanvaladares/runkit-npm-node-suggestive-search 
 
 
