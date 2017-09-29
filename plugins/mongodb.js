@@ -25,6 +25,29 @@ const init = (options) => {
     });
 };
 
+const createWordObject = (word, cleanWord, soundexWord) => {
+    
+    let objWord = { word, cleanWord, soundex: soundexWord, items: {} };
+    
+    for (let i = 2; i <= cleanWord.length && i <= 4; i++) {
+        objWord[`p${i}i`] = cleanWord.substr(0, i).toLowerCase();
+        objWord[`p${i}e`] = cleanWord.substr(cleanWord.length - i, cleanWord.length).toLowerCase();
+    }
+
+    return objWord;
+};
+
+const createItemObject = (itemId, itemName, keywords) => {
+
+    let objItem = { itemId, itemName };
+
+    if (keywords !== undefined){
+        objItem.keywords = keywords;
+    }
+
+    return objItem;
+};
+
 const insert = (collection, entry) => {
     return new Promise((resolve, reject) => {
         collection.insert(entry, { w: 0 }, (err, newDoc) => {
@@ -33,8 +56,7 @@ const insert = (collection, entry) => {
             resolve(newDoc);
         });
     });
-}
-
+};
 
 const find = (collection, criteria) => {
     return new Promise((resolve, reject) => {
@@ -44,7 +66,7 @@ const find = (collection, criteria) => {
             resolve(items);
         });
     });    
-}
+};
 
 const remove = (collection, criteria1, criteria2) => {
     return new Promise((resolve, reject) => {
@@ -54,7 +76,7 @@ const remove = (collection, criteria1, criteria2) => {
             resolve(numRemoved);
         });
     });    
-}
+};
 
 const update = (collection, criteria, data, multi) => {
     return new Promise((resolve, reject) => {
@@ -64,7 +86,7 @@ const update = (collection, criteria, data, multi) => {
             resolve(numUpdated);
         });
     });    
-}
+};
 
 const cleanDatabase = () => {
     return new Promise((resolve, reject) => {
@@ -77,15 +99,15 @@ const cleanDatabase = () => {
             reject(err);
         });
     });
-}
+};
 
 const createIndexes = () => {   
     return new Promise((resolve) => {
 
         dbItems.createIndex({ 'itemId': 2 }, { unique: true });
         dbWords.createIndex({ 'word': 1 }, {  unique: true });
-        dbWords.createIndex({ 'cleanWord': 2 }, {  unique: true });
-        dbWords.createIndex({ 'soundex': 1 });
+        dbWords.createIndex({ 'cleanWord': 2 }, { unique: false });
+        dbWords.createIndex({ 'soundex': 1 }, { unique: false });
 
         for (let i = 2; i <= 4; i++) {
             let ixi = {};
@@ -98,9 +120,17 @@ const createIndexes = () => {
 
         resolve();
     });
-}
+};
 
 exports.init = init;
+
+exports.createWordObject = (word, cleanWord, soundexWord) => {
+    return createWordObject(word, cleanWord, soundexWord);
+}
+
+exports.createItemObject = (itemId, itemName, keywords) => {
+    return createItemObject(itemId, itemName, keywords);
+}
 
 exports.insertItem = (entry) => {
     return insert(dbItems, entry);
