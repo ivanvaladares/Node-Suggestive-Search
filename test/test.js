@@ -34,7 +34,7 @@ describe('Test test.json -', () => {
         //         });
 
         //tests using ms-sql
-        // let nss = require('../index.js').init(
+        // nss = require('../index.js').init(
         //     {
         //         dataBase: "mssql",
         //         dbConnection: {
@@ -55,11 +55,6 @@ describe('Test test.json -', () => {
         nss.on("initialized", () => {
             done();
         });
-    });
-
-    after(done => {
-        //wait for the initialization process
-        done();
     });
 
     it('load json file test.json', () => {
@@ -196,7 +191,7 @@ describe('Test test.json -', () => {
     });
 
     it('query for: "label red"', () => {
-        return nss.query("\'label red'")
+        return nss.query("'label red'")
             .then(data => {
                 assert(
                     data != null &&

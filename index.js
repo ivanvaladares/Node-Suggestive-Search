@@ -959,7 +959,7 @@ const NodeSuggestiveSearch = class {
 					let found = false;
 					
 					if (objWord.results.items !== undefined) {
-						for (var i = 0; i < objWord.results.items.length; i++) {
+						for (let i = 0; i < objWord.results.items.length; i++) {
 							if (arrItemsIds.indexOf(objWord.results.items[i]) > -1) {
 								found = true;
 								break;
@@ -987,7 +987,8 @@ const NodeSuggestiveSearch = class {
 						
 						foundItems = foundItems.filter(item => {
 							for (let quotedString in quotedStrings){
-								if (item.itemName.search(new RegExp(quotedStrings[quotedString], "ig")) >= 0){
+								if (item.itemName.search(new RegExp(quotedStrings[quotedString], "ig")) >= 0 ||
+									(item.keywords !== undefined && item.keywords.search(new RegExp(quotedStrings[quotedString], "ig")) >= 0)) {
 									return item;
 								}
 							}
