@@ -26,7 +26,7 @@ describe('Test names.json -', () => {
         // });
 
         //tests using ms-sql
-        // let nss = require('../index.js').init(
+        // nss = require('../index.js').init(
         //     {
         //         dataBase: "mssql",
         //         dbConnection: {
