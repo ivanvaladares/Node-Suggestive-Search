@@ -1,171 +1,161 @@
 const Datastore = require('nedb');
 const path = require('path');
+const util = require("util");
+const EventEmitter = require('events');
 
-let dbItems, dbWords;
-
-const init = (options) => {
-
-    return new Promise((resolve, reject) => {
+let DbDriver = class {
+        
+    constructor (options) {
 
         let itemsCollectionName = (options.itemsCollectionName !== undefined) ? options.itemsCollectionName : 'node-suggestive-search-items.db'; 
         let wordsCollectionName = (options.wordsCollectionName !== undefined) ? options.wordsCollectionName : 'node-suggestive-search-words.db';         
 
-        dbItems = new Datastore({
+        this.dbItems = new Datastore({
             inMemoryOnly: options.neDbInMemoryOnly,
             filename: path.join(options.neDbDataPath, itemsCollectionName),
             autoload: true
         });
 
-        dbWords = new Datastore({
+        this.dbWords = new Datastore({
             inMemoryOnly: options.neDbInMemoryOnly,
             filename: path.join(options.neDbDataPath, wordsCollectionName),
             autoload: true
         });
 
-        dbWords.loadDatabase(err => {
-            if (err) { return reject(err); }
+        this.dbWords.loadDatabase(err => {
+            if (err) { throw err; }
 
-            setTimeout(resolve, 100);
+            this.emit('initialized');
         });
-    });
-};
-
-const createWordObject = (word, cleanWord, soundexWord) => {
+        
+        return this;
+    };
     
-    let objWord = { word, cleanWord, soundex: soundexWord, items: {} };
-    
-    for (let i = 2; i <= cleanWord.length && i <= 4; i++) {
-        objWord[`p${i}i`] = cleanWord.substr(0, i).toLowerCase();
-        objWord[`p${i}e`] = cleanWord.substr(cleanWord.length - i, cleanWord.length).toLowerCase();
-    }
-
-    return objWord;
-};
-
-const createItemObject = (itemId, itemName, keywords) => {
-
-    let objItem = { itemId, itemName };
-
-    if (keywords !== undefined){
-        objItem.keywords = keywords;
-    }
-
-    return objItem;
-};
-
-const insert = (collection, entry) => {
-    return new Promise((resolve, reject) => {
-        collection.insert(entry, (err, newDoc) => {
-            if (err) { return reject(err); }
-
-            resolve(newDoc);
-        });
-    });
-};
-
-const find = (collection, criteria) => {
-    return new Promise((resolve, reject) => {
-        collection.find(criteria, (err, items) => {
-            if (err) { return reject(err); }
-
-            resolve(items);
-        });
-    });    
-};
-
-const remove = (collection, criteria1, criteria2) => {
-    return new Promise((resolve, reject) => {
-        collection.remove(criteria1, criteria2, (err, numRemoved) => {
-            if (err) { return reject(err); }
-
-            resolve(numRemoved);
-        });
-    });    
-};
-
-const update = (collection, criteria, data, multi) => {
-    return new Promise((resolve, reject) => {
-        collection.update(criteria, data, multi, (err, numUpdated) => {
-            if (err) { return reject(err); }
-
-            resolve(numUpdated);
-        });
-    });    
-};
-
-const cleanDatabase = () => {
-    return new Promise((resolve, reject) => {
-        let p1 = remove(dbItems, {}, { multi: true });
-        let p2 = remove(dbWords, {}, { multi: true });
-
-        Promise.all([p1, p2]).then(() => {
-            resolve();
-        }).catch(err => {
-            reject(err);
-        });
-    });
-};
-
-const createIndexes = () => {   
-    return new Promise((resolve) => {
-
-        dbItems.ensureIndex({ fieldName: 'itemId', unique: true });
-        dbWords.ensureIndex({ fieldName: 'word', unique: true });
-        dbWords.ensureIndex({ fieldName: 'cleanWord', unique: false });
-        dbWords.ensureIndex({ fieldName: 'soundex', unique: false });
-
-        for (let i = 2; i <= 4; i++) {
-            dbWords.ensureIndex({ fieldName: (`p${i}i`), sparse: true });
-            dbWords.ensureIndex({ fieldName: (`p${i}e`), sparse: true });
+    createWordObject (word, cleanWord, soundexWord) {
+        
+        let objWord = { word, cleanWord, soundex: soundexWord, items: {} };
+        
+        for (let i = 2; i <= cleanWord.length && i <= 4; i++) {
+            objWord[`p${i}i`] = cleanWord.substr(0, i).toLowerCase();
+            objWord[`p${i}e`] = cleanWord.substr(cleanWord.length - i, cleanWord.length).toLowerCase();
         }
 
-        resolve();
-    });
-};
+        return objWord;
+    };
 
+    createItemObject (itemId, itemName, keywords) {
 
-exports.init = init;
+        let objItem = { itemId, itemName };
 
-exports.createWordObject = (word, cleanWord, soundexWord) => {
-    return createWordObject(word, cleanWord, soundexWord);
+        if (keywords !== undefined){
+            objItem.keywords = keywords;
+        }
+
+        return objItem;
+    };
+
+    insert (collection, entry) {
+        return new Promise((resolve, reject) => {
+            collection.insert(entry, (err, newDoc) => {
+                if (err) { return reject(err); }
+
+                resolve(newDoc);
+            });
+        });
+    };
+
+    find (collection, criteria) {
+        return new Promise((resolve, reject) => {
+            collection.find(criteria, (err, items) => {
+                if (err) { return reject(err); }
+
+                resolve(items);
+            });
+        });    
+    };
+
+    remove (collection, criteria1, criteria2) {
+        return new Promise((resolve, reject) => {
+            collection.remove(criteria1, criteria2, (err, numRemoved) => {
+                if (err) { return reject(err); }
+
+                resolve(numRemoved);
+            });
+        });    
+    };
+
+    update (collection, criteria, data, multi) {
+        return new Promise((resolve, reject) => {
+            collection.update(criteria, data, multi, (err, numUpdated) => {
+                if (err) { return reject(err); }
+
+                resolve(numUpdated);
+            });
+        });    
+    };
+
+    cleanDatabase () {                
+        return new Promise((resolve, reject) => {
+            let p1 = this.remove(this.dbItems, {}, { multi: true });
+            let p2 = this.remove(this.dbWords, {}, { multi: true });
+
+            Promise.all([p1, p2]).then(() => {
+                resolve();
+            }).catch(err => {
+                reject(err);
+            });
+        });
+    };
+
+    createIndexes () {   
+        return new Promise((resolve) => {
+
+            this.dbItems.ensureIndex({ fieldName: 'itemId', unique: true });
+            this.dbWords.ensureIndex({ fieldName: 'word', unique: true });
+            this.dbWords.ensureIndex({ fieldName: 'cleanWord', unique: false });
+            this.dbWords.ensureIndex({ fieldName: 'soundex', unique: false });
+
+            for (let i = 2; i <= 4; i++) {
+                this.dbWords.ensureIndex({ fieldName: (`p${i}i`), sparse: true });
+                this.dbWords.ensureIndex({ fieldName: (`p${i}e`), sparse: true });
+            }
+
+            resolve();
+        });
+    };
+
+    insertItem (entry) {
+        return this.insert(this.dbItems, entry);
+    };
+    
+    insertWord (entry) {
+        return this.insert(this.dbWords, entry);
+    };
+    
+    findItems (criteria) {
+        return this.find(this.dbItems, criteria);
+    };
+    
+    findWords (criteria) {
+        return this.find(this.dbWords, criteria);
+    };
+    
+    updateWord (criteria1, data, multi) {
+        return this.update(this.dbWords, criteria1, data, multi);
+    }
+    
+    removeItem (criteria1) {
+        return this.remove(this.dbItems, criteria1, { multi: false });
+    };
+    
+    removeWords (criteria1) {
+        return this.remove(this.dbWords, criteria1, { multi: false });
+    };
+
 }
 
-exports.createItemObject = (itemId, itemName, keywords) => {
-    return createItemObject(itemId, itemName, keywords);
-}
+util.inherits(DbDriver, EventEmitter);
 
-exports.insertItem = (entry) => {
-    return insert(dbItems, entry);
+exports.init = (options) => {
+    return new DbDriver(options);
 };
-
-exports.insertWord = (entry) => {
-    return insert(dbWords, entry);
-};
-
-exports.findItems = (criteria) => {
-    return find(dbItems, criteria);
-};
-
-exports.findWords = (criteria) => {
-    return find(dbWords, criteria);
-};
-
-exports.updateWord = (criteria1, data, multi) => {
-    return update(dbWords, criteria1, data, multi);
-}
-
-exports.removeItem = (criteria1) => {
-    return remove(dbItems, criteria1, { multi: false });
-};
-
-exports.removeWords = (criteria1) => {
-    return remove(dbWords, criteria1, { multi: false });
-};
-
-exports.cleanDatabase = () => {
-    return cleanDatabase();
-};
-
-exports.createIndexes = () => {
-    return createIndexes();
-}

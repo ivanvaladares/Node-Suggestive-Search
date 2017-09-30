@@ -1,55 +1,81 @@
-let mocha = require('mocha')
-let assert = require("assert");
-let describe = mocha.describe;
-let before = mocha.before;
-let it = mocha.it;
+const mocha = require('mocha')
+const assert = require("assert");
+const describe = mocha.describe;
+const before = mocha.before;
+const it = mocha.it;
 
-//tests using nedb
-let nss = require('../index.js').init(
-        {
-            dataBase: "nedb",
-            neDbDataPath: "",
-            neDbInMemoryOnly: true
-        });
+let nss, nss2;
 
-
-//tests using mongogdb
-// let nss = require('../index.js').init(
-//         {
-//             dataBase: "mongodb", 
-//             mongoDatabase: "mongodb://127.0.0.2:27017/nodeSugestiveSearchTest"
-//         });
-
-//tests using ms-sql
-// let nss = require('../index.js').init(
-//     {
-//         dataBase: "mssql",
-//         dbConnection: {
-//             host: '127.0.0.1',
-//             username: "sa",
-//             password: 'mssqlpass',
-//             database: "test",        
-//             dialect: 'mssql',
-//             logging: false,            
-//             dialectOptions: {
-//                 requestTimeout: 60000,
-//                 encrypt: true // Use this if you're on Windows Azure                
-//             }
-//         }   
-//     });
-
-
-describe('Test -', () => {
+describe('Test test.json -', () => {
 
     before(done => {
+
+        //tests using nedb
+        nss2 = require('../index.js').init(
+            {
+                dataBase: "nedb",
+                neDbDataPath: "",
+                neDbInMemoryOnly: true
+            });
+
+        //tests using nedb
+        nss = require('../index.js').init(
+            {
+                dataBase: "nedb",
+                neDbDataPath: "",
+                neDbInMemoryOnly: true
+            });
+
+        //tests using mongogdb
+        // let nss = require('../index.js').init(
+        //         {
+        //             dataBase: "mongodb", 
+        //             mongoDatabase: "mongodb://127.0.0.2:27017/nodeSugestiveSearchTest"
+        //         });
+
+        //tests using ms-sql
+        // let nss = require('../index.js').init(
+        //     {
+        //         dataBase: "mssql",
+        //         dbConnection: {
+        //             host: '127.0.0.1',
+        //             username: "sa",
+        //             password: 'mssqlpass',
+        //             database: "test",        
+        //             dialect: 'mssql',
+        //             logging: false,            
+        //             dialectOptions: {
+        //                 requestTimeout: 60000,
+        //                 encrypt: true // Use this if you're on Windows Azure                
+        //             }
+        //         }   
+        //     });
+
         //wait for the initialization process
         nss.on("initialized", () => {
-                done();
+            done();
         });
+    });
+
+    after(done => {
+        //wait for the initialization process
+        done();
     });
 
     it('load json file test.json', () => {
         return nss.loadJson("test/test.json")
+            .then(data => {
+                assert(
+                    data != null &&
+                    data.words == 18 &&
+                    data.items == 6,
+                    "Could not load json file."
+                );
+            });
+    });
+
+    it('load json file test.json to second instance', () => {
+        return nss2.loadJson("test/test.json")
             .then(data => {
                 assert(
                     data != null &&
@@ -99,6 +125,48 @@ describe('Test -', () => {
             });
     });
 
+    it('query for: coffee on nss2', () => {
+        return nss2.query("coffee")
+            .then(data => {
+                assert(
+                    data != null &&
+                    data.words.length == 1 &&
+                    data.words[0] == null &&
+                    data.itemsId.length == 0,
+                    "Error on query for: whisky red label"
+                );
+            });
+    });
+
+    it('query for: coffee on nss', () => {
+        return nss.query("coffee")
+            .then(data => {
+                assert(
+                    data != null &&
+                    data.words.length == 1 &&
+                    data.words[0] == "COFFE" &&
+                    data.itemsId.length == 1 &&
+                    data.itemsId[0] == "11",
+                    "Error on query for: coffee"
+                );
+            });
+    });
+
+    it('query for: \'whisky red label\'', () => {
+        return nss.query("'whisky red label'")
+            .then(data => {
+                assert(
+                    data != null &&
+                    data.words.length == 3 &&
+                    data.words[0] == "WHISKY" &&
+                    data.words[1] == "RED" &&
+                    data.words[2] == "LABEL" &&
+                    data.itemsId.length == 1 &&
+                    data.itemsId[0] == "1",
+                    "Error on query for: 'whisky red label'"
+                );
+            });
+    });
 
     it('query for: "whisky label"', () => {
         return nss.query("\"whisky label\"")
@@ -128,7 +196,7 @@ describe('Test -', () => {
     });
 
     it('query for: "label red"', () => {
-        return nss.query("\"label red\"")
+        return nss.query("\'label red'")
             .then(data => {
                 assert(
                     data != null &&
@@ -258,6 +326,23 @@ describe('Test -', () => {
                     data.itemsId.length == 1 &&
                     data.itemsId[0] == "3",
                     "Error on query for: HAM L/S"
+                );
+            });
+    });  
+
+
+    it('query for: "HAM L/S"', () => {
+        return nss.query("\"HAM L/S\"")
+            .then(data => {
+                assert(
+                    data != null &&
+                    data.words.length == 3 &&
+                    data.words[0] == "HAM" &&
+                    data.words[1] == "L" &&
+                    data.words[2] == "S" &&
+                    data.itemsId.length == 1 &&
+                    data.itemsId[0] == "3",
+                    "Error on query for: \"HAM L/S\""
                 );
             });
     });  
