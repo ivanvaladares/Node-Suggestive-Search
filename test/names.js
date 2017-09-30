@@ -49,7 +49,7 @@ describe('Test names.json -', () => {
         });
     });
 
-    it('load json file test.json', () => {
+    it('load json file names.json', () => {
         return nss.loadJson("test/names.json")
             .then(data => {
                 assert(
