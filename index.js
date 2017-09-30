@@ -1071,7 +1071,7 @@ const NodeSuggestiveSearch = class {
 							if (x > y) {
 								return -1;
 							}
-							else if (x > y) {
+							else if (x < y) {
 								return 1;
 							}
 							return 0;
@@ -1228,7 +1228,7 @@ const NodeSuggestiveSearch = class {
 										if (x.word > y.word) {
 											return -1;
 										}
-										else if (x.word > y.word) {
+										else if (x.word < y.word) {
 											return 1;
 										}
 										return 0;

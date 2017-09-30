@@ -29,19 +29,20 @@ describe('Test names.json -', () => {
         // nss = require('../index.js').init(
         //     {
         //         dataBase: "mssql",
+        //         force: false,
         //         dbConnection: {
         //             host: '127.0.0.1',
         //             username: "sa",
         //             password: 'mssqlpass',
         //             database: "test",        
-        //             dialect: 'mssql',
-        //             logging: false,            
+        //             dialect: 'mssql',     
+        //             logging: false,       
         //             dialectOptions: {
         //                 requestTimeout: 60000,
         //                 encrypt: true // Use this if you're on Windows Azure                
         //             }
         //         }   
-        //     });        
+        //     });
         
         //wait for the initialization process
         nss.on("initialized", () => {
@@ -174,8 +175,12 @@ describe('Test names.json -', () => {
                 assert(
                     data != null &&
                     data.suggestions.length == 2 &&
-                    data.suggestions[0] == "Ivan Valadares" &&
-                    data.suggestions[1] == "Ivan Valentino",
+                    (
+                        (data.suggestions[0] == "Ivan Valadares" &&
+                        data.suggestions[1] == "Ivan Valentino") ||
+                        (data.suggestions[1] == "Ivan Valadares" &&
+                        data.suggestions[0] == "Ivan Valentino")
+                    ),
                     "Error on get words suggestions for: ivan v"
                 );
             });

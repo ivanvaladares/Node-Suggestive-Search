@@ -30,20 +30,21 @@ describe('Test test.json -', () => {
         // let nss = require('../index.js').init(
         //         {
         //             dataBase: "mongodb", 
-        //             mongoDatabase: "mongodb://127.0.0.2:27017/nodeSugestiveSearchTest"
+        //             mongoDatabase: "mongodb://localhost:27017/nodeSugestiveSearchTest"
         //         });
 
         //tests using ms-sql
         // nss = require('../index.js').init(
         //     {
         //         dataBase: "mssql",
+        //         force: false,
         //         dbConnection: {
         //             host: '127.0.0.1',
         //             username: "sa",
         //             password: 'mssqlpass',
         //             database: "test",        
-        //             dialect: 'mssql',
-        //             logging: false,            
+        //             dialect: 'mssql',     
+        //             logging: false,       
         //             dialectOptions: {
         //                 requestTimeout: 60000,
         //                 encrypt: true // Use this if you're on Windows Azure                

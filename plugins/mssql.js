@@ -1,10 +1,10 @@
 const Sequelize = require("Sequelize");
+const util = require("util");
+const EventEmitter = require('events');
 
-let dbItems, dbWords;
+let DbDriver = class {
 
-const init = (options) => {
-
-    return new Promise((resolve, reject) => {
+    constructor (options) {
 
         let model = new Sequelize(options.dbConnection);
 
@@ -21,7 +21,8 @@ const init = (options) => {
             },
             itemId: {
                 type: Sequelize.STRING,
-                allowNull: false
+                allowNull: false,
+                unique: true
             },
             itemName: {
                 type: Sequelize.STRING,
@@ -45,7 +46,8 @@ const init = (options) => {
             },
             word: {
                 type: Sequelize.STRING,
-                allowNull: false
+                allowNull: false,
+                unique: true
             },
             cleanWord: {
                 type: Sequelize.STRING,
@@ -118,169 +120,160 @@ const init = (options) => {
             constraints: false
         });
 
-
         model.authenticate().then(() => {
-            model.sync().then(() => { //{force: true}
+            model.sync({force: options.force}).then(() => {
 
-                dbItems = model.Items;
-                dbWords = model.Words;
+                this.dbItems = model.Items;
+                this.dbWords = model.Words;
 
-                resolve();
+                this.emit('initialized');
             });        
         })
         .catch(err => {
-
-            reject(err);
-            
+            throw err; 
         });
+
+        return this;
+    }
+
+    _insert (collection, entry) {
+        return new Promise((resolve, reject) => {
+
+            collection.bulkCreate(entry).then(() => {
+                resolve(entry);
+            }).catch(err => {
+                reject(err);
+            });
+
+        });
+    }
+
+    _findItems (collection, criteria) {
+        return new Promise((resolve, reject) => {
+            collection.findAll({where: criteria, raw: true}).then(items => {
+                resolve(items);
+            }).catch(err => {
+                reject(err); 
+            });
+        });    
+    }
+
+    _findWords (collection, criteria) {
+        return new Promise((resolve, reject) => {
+            collection.findAll({where: criteria, include: [{ model: this.dbItems, as: 'items', attributes: ['itemId']}] }).then(items => {
+
+                let res = JSON.parse(JSON.stringify(items));
+
+                res.map(e => {
+                    let x = e.items.map(ie => {
+                        return e.items[ie.itemId];
+                    });
+
+                    e.items = x;
+                })
+
+                resolve(res);
+            }).catch(err => {
+                reject(err); 
+            });
+        });    
+    }
+    
+    _remove (collection, criteria1) {
+        return new Promise((resolve, reject) => {
+
+            collection.destroy({where: criteria1}).then(numRemoved => {
+                resolve(numRemoved);
+            }).catch(err => {
+                reject(err); 
+            });
+        });    
+    }
+
+    _update (collection, criteria, data) {
+        return new Promise((resolve, reject) => {
+            collection.update(data, {where: criteria}).then(numUpdated => {
+                resolve(numUpdated);
+            }).catch(err => {
+                reject(err); 
+            });
+        });    
+    }
+
+    createWordObject (word, cleanWord, soundexWord) {
         
-    });
-};
+        let objWord = { word, cleanWord, soundex: soundexWord, items: {} };
+        
+        for (let i = 2; i <= cleanWord.length && i <= 4; i++) {
+            objWord[`p${i}i`] = cleanWord.substr(0, i).toLowerCase();
+            objWord[`p${i}e`] = cleanWord.substr(cleanWord.length - i, cleanWord.length).toLowerCase();
+        }
 
-const createWordObject = (word, cleanWord, soundexWord) => {
-    
-    let objWord = { word, cleanWord, soundex: soundexWord, items: {} };
-    
-    for (let i = 2; i <= cleanWord.length && i <= 4; i++) {
-        objWord[`p${i}i`] = cleanWord.substr(0, i).toLowerCase();
-        objWord[`p${i}e`] = cleanWord.substr(cleanWord.length - i, cleanWord.length).toLowerCase();
+        return objWord;
     }
 
-    return objWord;
-};
+    createItemObject (itemId, itemName, keywords) {
 
-const createItemObject = (itemId, itemName, keywords) => {
+        let objItem = { itemId, itemName };
 
-    let objItem = { itemId, itemName };
+        if (keywords !== undefined){
+            objItem.keywords = keywords;
+        }
 
-    if (keywords !== undefined){
-        objItem.keywords = keywords;
-    }
+        return objItem;
+    }   
 
-    return objItem;
-};
+    cleanDatabase () {
+        return new Promise((resolve, reject) => {
+            let p1 = this.dbItems.destroy({ where: {}, truncate: true});
+            let p2 = this.dbWords.destroy({ where: {}, truncate: true});
 
-const insert = (collection, entry) => {
-    return new Promise((resolve, reject) => {
-
-        collection.bulkCreate(entry).then(() => {
-            resolve(entry);
-        }).catch(err => {
-            reject(err);
+            Promise.all([p1, p2]).then(() => {
+                resolve();
+            }).catch(err => {
+                reject(err);
+            });
         });
+    }
 
-    });
-};
-
-const cleanDatabase = () => {
-    return new Promise((resolve, reject) => {
-        return resolve();
-
-        let p1 = dbItems.destroy({ where: {}, truncate: true});
-        let p2 = dbWords.destroy({ where: {}, truncate: true});
-
-        Promise.all([p1, p2]).then(() => {
+    createIndexes () {   
+        return new Promise((resolve) => {
             resolve();
-        }).catch(err => {
-            reject(err);
         });
-    });
-};
+    }    
+    
+    insertItem (entry) {
+        return this._insert(this.dbItems, entry);
+    }
+    
+    insertWord (entry) {
+        return this._insert(this.dbWords, entry);
+    }
+    
+    findItems (criteria) {
+        return this._findItems(this.dbItems, criteria);
+    }
+    
+    findWords (criteria) {
+        return this._findWords(this.dbWords, criteria);
+    }
+    
+    updateWord (criteria1, data, multi) {
+        return this._update(this.dbWords, criteria1, data, multi);
+    }
+    
+    removeItem (criteria1) {
+        return this._remove(this.dbItems, criteria1, { multi: false });
+    }
+    
+    removeWords (criteria1) {
+        return this._remove(this.dbWords, criteria1, { multi: false });
+    }
 
-const findItems = (collection, criteria) => {
-    return new Promise((resolve, reject) => {
-        collection.findAll({where: criteria, raw: true}).then(items => {
-            resolve(items);
-        }).catch(err => {
-            reject(err); 
-        });
-    });    
-};
-
-const findWords = (collection, criteria) => {
-    return new Promise((resolve, reject) => {
-        collection.findAll({where: criteria, include: [{ model: dbItems, as: 'items', attributes: ['itemId']}] }).then(items => {
-
-            let res = JSON.parse(JSON.stringify(items));
-
-            res.map(e => {
-                let x = e.items.map(ie => {
-                    return e.items[ie.itemId] = e.items[ie.itemId];
-                });
-
-                e.items = x;
-            })
-
-            resolve(res);
-        }).catch(err => {
-            reject(err); 
-        });
-    });    
-};
-
-const remove = (collection, criteria1) => {
-    return new Promise((resolve, reject) => {
-
-        collection.destroy({where: criteria1}).then(numRemoved => {
-            resolve(numRemoved);
-        }).catch(err => {
-            reject(err); 
-        });
-    });    
-};
-
-const update = (collection, criteria, data) => {
-    return new Promise((resolve, reject) => {
-        collection.update(data, {where: criteria}).then(numUpdated => {
-            resolve(numUpdated);
-        }).catch(err => {
-            reject(err); 
-        });
-    });    
-};
-
-exports.init = init;
-
-exports.createWordObject = (word, cleanWord, soundexWord) => {
-    return createWordObject(word, cleanWord, soundexWord);
 }
 
-exports.createItemObject = (itemId, itemName, keywords) => {
-    return createItemObject(itemId, itemName, keywords);
-}
+util.inherits(DbDriver, EventEmitter);
 
-exports.insertItem = (entry) => {
-    return insert(dbItems, entry);
-};
-
-exports.insertWord = (entry) => {
-    return insert(dbWords, entry);
-};
-
-exports.findItems = (criteria) => {
-    return findItems(dbItems, criteria);
-};
-
-exports.findWords = (criteria) => {
-    return findWords(dbWords, criteria);
-};
-
-exports.updateWord = (criteria1, data, multi) => {
-    return update(dbWords, criteria1, data, multi);
-}
-
-exports.removeItem = (criteria1) => {
-    return remove(dbItems, criteria1, { multi: false });
-};
-
-exports.removeWords = (criteria1) => {
-    return remove(dbWords, criteria1, { multi: false });
-};
-
-exports.cleanDatabase = () => {
-    return cleanDatabase();
-};
-
-exports.createIndexes = () => {
-    return null;//createIndexes();
+exports.init = (options) => {
+    return new DbDriver(options);
 }
