@@ -168,7 +168,7 @@ const NodeSuggestiveSearch = class {
 				if (foundWords.length > 0) {
 
 					//before return the result, lets give a similarity rank for each result	
-					//and filter top 10 most similar result 
+					//and filter top 20 most similar result 
 					resolve(
 						foundWords.map(obj => {
 							obj.similarity = this._similarity(obj.word, word);
@@ -904,10 +904,8 @@ const NodeSuggestiveSearch = class {
 
 			});
 
-
 			//now, lets resolve all promises from the array of promises
 			Promise.all(promises).then(items => {
-
 
 				//items variable contains an array of words objects and results for each word from the query
 				// {correct:bool, results: db.words[], word: string from query } 
@@ -930,17 +928,15 @@ const NodeSuggestiveSearch = class {
 
 					let allItemsFiltered = _.intersection.apply(_, allItems);	
 
-
 					items.map(objWord => {
 						objWord.results.map(results => {
 							let arr = _.intersection(results.items, allItemsFiltered);
 							results.similarity = (arr.length > 0) ? ((results.similarity || 0) + 1) : 0;
 						});
 					});
-
 				}
 
-				//get the best match over similarity and transform results in only one result json object for each word from the query
+				//get the best match over similarity and transform word.results[] in only one result{} json object for each word from the query
 				items.map(objWord => {
 					if (objWord.results.length > 0) {
 						objWord.results = objWord.results.reduce((x, y) => {
@@ -948,7 +944,6 @@ const NodeSuggestiveSearch = class {
 						});
 					}
 				});
-
 
 				let arrItemsIds = [];
 				items.map(word => {
