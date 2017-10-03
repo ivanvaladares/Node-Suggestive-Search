@@ -36,10 +36,10 @@ const NodeSuggestiveSearch = class {
 			throw new Error("Options are required!");
 		}
 
-		if (options.dataBase.toLowerCase() == "mongodb" || options.dataBase.toLowerCase() == "nedb" || options.dataBase.toLowerCase() == "mssql") {
+		if (options.dataBase.toLowerCase() == "mongodb" || options.dataBase.toLowerCase() == "nedb") {
 			this._db = require(`./plugins/${options.dataBase.toLowerCase()}.js`).init(options);
 		} else {
-			throw new Error("This module requires MongoDB or NeDB or MS-SQL!");
+			throw new Error("This module requires MongoDB or NeDB!");
 		}
 
 		this._db.on("initialized", () => {
@@ -133,35 +133,50 @@ const NodeSuggestiveSearch = class {
 		});
 	}
 
-	_getItemsIdFromMatrix (wordItems, itemsIds, col) {
+	_getItemsIdFromMatrix (wordItems, itemsIds) {
 	
-		if (col === undefined){
-			col = 0;
-		}
-	
+		let maxSimilarity = -1;
+		let wordItem = null;
+
 		if (itemsIds === undefined){
-			//todo: do not get the first colum but the best column on similarity
-			return this._getItemsIdFromMatrix(wordItems, wordItems[0].results[0].items, col + 1);
+			wordItems.map(word => {
+				if (word.results[0].similarity > maxSimilarity){
+					maxSimilarity = word.results[0].similarity;
+					wordItem = word;
+				}
+			});
+
+			wordItem.processed = true;
+
+			return this._getItemsIdFromMatrix(wordItems, wordItem.results[0].items);
+		}else{
+			wordItems.map(word => {
+				if (word.processed === undefined){
+					if (word.results[0].similarity > maxSimilarity){
+						maxSimilarity = word.results[0].similarity;
+						wordItem = word;
+					}
+				}
+			});
+
+			//there is no more words to process
+			if (wordItem === null){
+				return itemsIds;
+			}
+
+			wordItem.processed = true;
 		}
 	
-		for (let i = 0; i < wordItems[col].results.length; i++){
-			let word = wordItems[col].results[i];
-			let arr = _.intersection(word.items, itemsIds);
+		for (let i = 0; i < wordItem.results.length; i++){
+			let arr = _.intersection(wordItem.results[i].items, itemsIds);
 	
 			if (arr.length > 0){
-				if (wordItems[col + 1] !== undefined){
-					return this._getItemsIdFromMatrix(wordItems, arr, col + 1);
-				}else{
-					return arr;
-				}
+				return this._getItemsIdFromMatrix(wordItems, arr);
 			}
 		}
 
-		if (wordItems[col + 1] !== undefined){
-			return this._getItemsIdFromMatrix(wordItems, itemsIds, col + 1);
-		}else{
-			return itemsIds;
-		}
+		//did not find itemsId for this words, go to the next
+		return this._getItemsIdFromMatrix(wordItems, itemsIds);
 	}
 
 	_getWordsBySoundexAndParts (word) {
@@ -198,14 +213,14 @@ const NodeSuggestiveSearch = class {
 				if (foundWords.length > 0) {
 
 					//before return the result, lets give a similarity rank for each result	
-					//and filter top 30 most similar result 
+					//and filter top 50 most similar result 
 					resolve(
 						foundWords.map(obj => {
 							obj.similarity = this._similarity(obj.word, _word);
 							return obj;
 						}).sort((x, y) => {
 							return ((x.similarity > y.similarity) ? -1 : 1);
-						}).slice(0, 30)
+						}).slice(0, 50)
 					);
 
 				} else {
@@ -889,10 +904,10 @@ const NodeSuggestiveSearch = class {
 
 				return new Promise((resolve, reject) => {
 
-					// //first, lets try to find the exact word in our dictionary
+					//first, lets try to find the exact word in our dictionary
 					this._db.findWords({ cleanWord: word.toLowerCase().latinize() }).then(foundWords => {
 
-					// 	//no results :(, lets try with soundex and parts
+						//no results :(, lets try with soundex and parts
 						if (!foundWords || foundWords.length <= 0) {
 
 							//this function will try to get words in our dictionary that is similar to the word from the query
@@ -909,17 +924,13 @@ const NodeSuggestiveSearch = class {
 
 						} else {
 
-							if (foundWords.length > 1) {
-
-								//sort to return top 10 most similar result 
-								foundWords = foundWords.map(obj => {
-									obj.similarity = this._similarity(obj.word, word);
-									return obj;
-								}).sort((x, y) => {
-									return ((x.similarity > y.similarity) ? -1 : 1);
-								}).slice(0, 10);
-
-							}
+							//sort to return top 10 most similar result 
+							foundWords = foundWords.map(obj => {
+								obj.similarity = this._similarity(obj.word, word);
+								return obj;
+							}).sort((x, y) => {
+								return ((x.similarity > y.similarity) ? -1 : 1);
+							}).slice(0, 10);
 
 							resolve({ word, correct: true, results: foundWords });
 
@@ -942,7 +953,7 @@ const NodeSuggestiveSearch = class {
 				//to acomplish this, lets iterate over all words and their items to check how many items are similar between the words
 				let arrItemsIds = [];
 				let finalWords = [];
-				
+								
 				if (items.length > 1){
 
 					let allItems = [];
@@ -959,11 +970,13 @@ const NodeSuggestiveSearch = class {
 					
 					let allItemsFiltered = _.intersection.apply(_, allItems);	
 					
-					//promote items that have itemsId within the intersection ordering them up
+					//promote items that have itemsId within the intersection by ordering them up
 					items.map(objWord => {
 						objWord.results = objWord.results.map(results => {
 							let arr = _.intersection(results.items, allItemsFiltered);
-							results.similarity = (arr.length > 0) ? ((results.similarity || 0) + 1) : 0;
+							if (arr.length > 0) {
+								results.similarity = ((results.similarity || 0) + 1);
+							}
 							return results;
 						}).sort((x, y) => {
 							return ((x.similarity > y.similarity) ? -1 : 1);
@@ -1037,6 +1050,7 @@ const NodeSuggestiveSearch = class {
 							finalWords.push(null);
 						}
 					});
+
 
 				}else{
 					//get the best match over similarity and transform word.results[] in only one result{} json object for each word from the query
@@ -1494,19 +1508,25 @@ const NodeSuggestiveSearch = class {
 										arrItemWords = this._splitWords(item.itemName.toLowerCase().latinize());
 									}
 
-									arrItemWords.map(itemWord => {
-
-										//check if the item name contains one of the words from the query
-										for (let index = 0; index < arrWords.length; index++) {
-											if (arrWords[index].toLowerCase().latinize() == itemWord){
+									//check if the item name contains the words from the query
+									for (let index = 0; index < arrWords.length - 1; index++) {
+										for (let y = 0; y < arrItemWords.length; y++){
+											if (arrWords[index].toLowerCase().latinize() === arrItemWords[y]){
 												includeThisItem = true;
 												break;
 											}
 										}
+									}
 
-									});
+									let foundLast = false;
+									for (let y = 0; y < arrItemWords.length; y++){
+										if (arrItemWords[y].indexOf(arrWords[arrWords.length - 1].toLowerCase().latinize()) == 0){
+											foundLast = true;
+											break;
+										}
+									}
 
-									if (includeThisItem){
+									if (includeThisItem && foundLast){
 										arrResponse.push({itemId: item.itemId, itemName: item.itemName });
 									}
 

@@ -19,7 +19,7 @@ describe('Test produtos.json -', () => {
             });
 
         //tests using mongogdb
-        // let nss = require('../index.js').init(
+        // nss = require('../index.js').init(
         //         {
         //             dataBase: "mongodb", 
         //             mongoDatabase: "mongodb://localhost:27017/nodeSugestiveSearchTest"
@@ -50,26 +50,26 @@ describe('Test produtos.json -', () => {
         });
     });
 
-    it('load json file produtos.json with 6279 items and 4178 words', () => {
+    it('load json file produtos.json with 6240 items and 4175 words', () => {
         return nss.loadJson("test/produtos.json")
             .then(data => {
                 assert(
                     data != null &&
-                    data.words == 4178 &&
-                    data.items == 6279,
+                    data.words == 4175 &&
+                    data.items == 6240,
                     "Could not load json file."
                 );
             });
     });
 
-    it('query', () => {
+    it('query: x-14', () => {
         return nss.query("x-14")
             .then(data => {
                 assert(
                     data != null &&
                     data.words.length == 2 &&
                     data.itemsId.length == 5,
-                    "Error"
+                    "Error on query: x-14"
                 );
             });
     });
@@ -80,6 +80,13 @@ describe('Test produtos.json -', () => {
                 assert(
                     data != null &&
                     data.words.length == 7 &&
+                    data.words[0] == "REFRIGERANTE" &&
+                    data.words[1] == "COCA" &&
+                    data.words[2] == "COLA" &&
+                    data.words[3] == "EMBALAGEM" &&
+                    data.words[4] == "COM" &&
+                    data.words[5] == "6" &&
+                    data.words[6] == "UNIDADES" &&
                     data.itemsId.length == 2 &&
                     ["25", "26"].indexOf(data.itemsId[0]) >= 0 &&
                     ["25", "26"].indexOf(data.itemsId[1]) >= 0,
@@ -139,6 +146,20 @@ describe('Test produtos.json -', () => {
                 );
             });
     });      
+
+    it('query: abjabajbajba coca cola refri', () => {
+        return nss.query("abjabajbajba coca cola refri")
+            .then(data => {
+                assert(
+                    data != null &&
+                    data.words.length == 4 &&
+                    data.words[0] == null &&
+                    data.itemsId.length == 27,
+                    "Error on: abjabajbajba coca cola refri"
+                );
+            });
+    });      
+    
 
     it('query for: coffee on nss', () => {
         return nss.query("coffee")
@@ -293,4 +314,78 @@ describe('Test produtos.json -', () => {
             });
     });
 
+    it('get words suggestions for: vinh', () => {
+        return nss.getSuggestedWords("vinh")
+            .then(data => {
+                assert(
+                    data != null &&
+                    data.suggestions.length == 3 &&
+                    data.suggestions[0] == "VINHO" &&
+                    data.suggestions[1] == "VINHAS" &&
+                    data.suggestions[2] == "VINHADALHO",
+                    "Error on get words suggestions for: vinh"
+                );
+            });
+    });
+
+    it('get words suggestions for: vinho ', () => {
+        return nss.getSuggestedWords("vinho ")
+            .then(data => {
+                assert(
+                    data != null &&
+                    data.suggestions.length == 5 &&
+                    data.suggestions[0] == "VINHO 750ML" &&
+                    data.suggestions[1] == "VINHO CHILENO" &&
+                    data.suggestions[2] == "VINHO TINTO" &&
+                    data.suggestions[3] == "VINHO PORTUGUÊS" &&
+                    data.suggestions[4] == "VINHO SAUVIGNON",
+                    "Error on get words suggestions for: vinho "
+                );
+            });
+    });
+
+
+    it('get items suggestions for: frascat', () => {
+        return nss.getSuggestedItems("frascat")
+            .then(data => {
+                assert(
+                    data != null &&
+                    data.items.length == 3,
+                    "Error on get items suggestions for: frascat"
+                );
+            });
+    });
+
+    it('get items suggestions for: frascati b', () => {
+        return nss.getSuggestedItems("frascati br")
+            .then(data => {
+                assert(
+                    data != null &&
+                    data.items.length == 2,
+                    "Error on get items suggestions for: frascati b"
+                );
+            });
+    });
+
+    it('get items suggestions for: whisky', () => {
+        return nss.getSuggestedItems("whisky")
+            .then(data => {
+                assert(
+                    data != null &&
+                    data.items.length == 19,
+                    "Error on get items suggestions for: whisky"
+                );
+            });
+    });
+    
+    it('get items suggestions for: whisky re', () => {
+        return nss.getSuggestedItems("whisky re")
+            .then(data => {
+                assert(
+                    data != null &&
+                    data.items.length == 3,
+                    "Error on get items suggestions for: whisky re"
+                );
+            });
+    });
 });
