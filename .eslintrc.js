@@ -89,10 +89,7 @@ module.exports = {
         "key-spacing": "error",
         "keyword-spacing": "off",
         "line-comment-position": "off",
-        "linebreak-style": [
-            "error",
-            "windows"
-        ],
+        "linebreak-style": ["off"],
         "lines-around-comment": "error",
         "lines-around-directive": "off",
         "max-depth": "off",
@@ -234,7 +231,7 @@ module.exports = {
         "require-await": "error",
         "require-jsdoc": "error",
         "rest-spread-spacing": "error",
-        "semi": "off",
+        "semi": "error",
         "semi-spacing": [
             "error",
             {

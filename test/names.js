@@ -1,4 +1,4 @@
-const mocha = require('mocha')
+const mocha = require('mocha');
 const assert = require("assert");
 const describe = mocha.describe;
 const before = mocha.before;
@@ -50,7 +50,7 @@ describe('Test names.json -', () => {
         });
     });
 
-    it('load json file names.json', () => {
+    it('load json file names.json with 50003 items and 3452 words', () => {
         return nss.loadJson("test/names.json")
             .then(data => {
                 assert(
@@ -77,66 +77,76 @@ describe('Test names.json -', () => {
             });
     });
 
-    it('insert item: 13 - VODKA ABSOLUTE', () => {
-        return nss.insertItem({ "itemName": "VODKA ABSOLUTE", "itemId": "13" })
-            .then(data => {              
+    it('query for: VICHI', () => {
+        return nss.query("VICHI")
+            .then(data => {
                 assert(
                     data != null &&
-                    data.timeElapsed >= 0,
-                    "Error on inserting item: 13 - VODKA ABSOLUTE"
+                    data.words[0] == "Vickie" &&
+                    data.words.length == 1 &&
+                    data.itemsId.length == 20,
+                    "Error on query for: VICHI"
                 );
             });
     });
 
-    it('query for: absolut', () => {
-        return nss.query("absolut")
+    it('insert item: 50004 - EDUARDO VICHI', () => {
+        return nss.insertItem({ "itemName": "EDUARDO VICHI", "itemId": "50004" })
+            .then(data => {
+                assert(
+                    data != null &&
+                    data.timeElapsed >= 0,
+                    "Error on inserting item: 50004 - EDUARDO VICHI"
+                );
+            });
+    });
+
+    it('query for: VICHI', () => {
+        return nss.query("VICHI")
             .then(data => {
                 assert(
                     data != null &&
                     data.words.length == 1 &&
                     data.itemsId.length == 1 &&
-                    data.itemsId[0] == "13",
-                    "Error on query for: absolut"
+                    data.itemsId[0] == "50004",
+                    "Error on query for: VICHI"
                 );
             });
     });
 
-    it('query for: "VODKA ABSOLUTE"', () => {
-        return nss.query("\"VODKA ABSOLUTE\"")
+    it('query for: "EDUARDO VICHI"', () => {
+        return nss.query("\"EDUARDO VICHI\"")
             .then(data => {
                 assert(
                     data != null &&
                     data.words.length == 2 &&
-                    data.words[0] == "VODKA" &&
-                    data.words[1] == "ABSOLUTE" &&
                     data.itemsId.length == 1 &&
-                    data.itemsId[0] == "13",
-                    "Error on query for: \"VODKA ABSOLUTE\""
+                    data.itemsId[0] == "50004",
+                    "Error on query for: \"EDUARDO VICHI\""
                 );
             });
     });    
 
-    it('remove item 13', () => {
-        return nss.removeItem("13")
+    it('remove item 50004', () => {
+        return nss.removeItem("50004")
             .then(data => {
                 assert(
                     data != null &&
                     data.timeElapsed >= 0,
-                    "Error on removing item 13"
+                    "Error on removing item 50004"
                 );
             });
     });
 
-    it('query for: "VODKA ABSOLUTE"', () => {
-        return nss.query("\"VODKA ABSOLUTE\"")
-            .then(data => {               
+    it('query for: VICHI', () => {
+        return nss.query("VICHI")
+            .then(data => {
                 assert(
                     data != null &&
-                    data.words.length == 2 &&
-                    data.words[0] == null &&
-                    data.words[1] == null &&
-                    data.itemsId.length == 0,
-                    "Error on query for: \"VODKA ABSOLUTE\""
+                    data.words[0] == "Vickie" &&
+                    data.words.length == 1 &&
+                    data.itemsId.length == 20,
+                    "Error on query for: VICHI"
                 );
             });
     });
@@ -147,8 +157,7 @@ describe('Test names.json -', () => {
                 assert(
                     data != null &&
                     data.words.length == 1 &&
-                    data.words[0] == "Abshire" &&
-                    data.itemsId[0] == "611",
+                    data.words[0] == "Abbott",
                     "Error on query for: absolut"
                 );
             });
@@ -157,6 +166,7 @@ describe('Test names.json -', () => {
     it('query for: ivam vala', () => {
         return nss.query("ivam vala")
             .then(data => {
+                //console.log(data);
                 assert(
                     data != null &&
                     data.words.length == 2 &&
@@ -165,6 +175,22 @@ describe('Test names.json -', () => {
                     data.itemsId.length == 1 &&
                     data.itemsId[0] == "49999",
                     "Error on query for: ivam vala"
+                );
+            });
+    });
+
+    it('query for: ivan consentino valadares', () => {
+        return nss.query("ivan consentino valadares")
+            .then(data => {
+                console.log(data); //todo line 143
+                assert(
+                    data != null &&
+                    data.words.length == 2 &&
+                    data.words[0] == "Ivan" &&
+                    data.words[1] == "Valadares" &&
+                    data.itemsId.length == 1 &&
+                    data.itemsId[0] == "49999",
+                    "Error on query for: ivan consentino valadares"
                 );
             });
     });

@@ -1,4 +1,4 @@
-/* 
+/*
 node-suggestive-search v1.7.4
 https://github.com/ivanvaladares/node-suggestive-search/
 by Ivan Valadares 
@@ -18,7 +18,7 @@ const EventEmitter = require('events');
 // http://semplicewebsites.com/removing-accents-javascript
 const latinMap = { "Á": "A", "Ă": "A", "Ắ": "A", "Ặ": "A", "Ằ": "A", "Ẳ": "A", "Ẵ": "A", "Ǎ": "A", "Â": "A", "Ấ": "A", "Ậ": "A", "Ầ": "A", "Ẩ": "A", "Ẫ": "A", "Ä": "A", "Ǟ": "A", "Ȧ": "A", "Ǡ": "A", "Ạ": "A", "Ȁ": "A", "À": "A", "Ả": "A", "Ȃ": "A", "Ā": "A", "Ą": "A", "Å": "A", "Ǻ": "A", "Ḁ": "A", "Ⱥ": "A", "Ã": "A", "Ꜳ": "AA", "Æ": "AE", "Ǽ": "AE", "Ǣ": "AE", "Ꜵ": "AO", "Ꜷ": "AU", "Ꜹ": "AV", "Ꜻ": "AV", "Ꜽ": "AY", "Ḃ": "B", "Ḅ": "B", "Ɓ": "B", "Ḇ": "B", "Ƀ": "B", "Ƃ": "B", "Ć": "C", "Č": "C", "Ç": "C", "Ḉ": "C", "Ĉ": "C", "Ċ": "C", "Ƈ": "C", "Ȼ": "C", "Ď": "D", "Ḑ": "D", "Ḓ": "D", "Ḋ": "D", "Ḍ": "D", "Ɗ": "D", "Ḏ": "D", "ǲ": "D", "ǅ": "D", "Đ": "D", "Ƌ": "D", "Ǳ": "DZ", "Ǆ": "DZ", "É": "E", "Ĕ": "E", "Ě": "E", "Ȩ": "E", "Ḝ": "E", "Ê": "E", "Ế": "E", "Ệ": "E", "Ề": "E", "Ể": "E", "Ễ": "E", "Ḙ": "E", "Ë": "E", "Ė": "E", "Ẹ": "E", "Ȅ": "E", "È": "E", "Ẻ": "E", "Ȇ": "E", "Ē": "E", "Ḗ": "E", "Ḕ": "E", "Ę": "E", "Ɇ": "E", "Ẽ": "E", "Ḛ": "E", "Ꝫ": "ET", "Ḟ": "F", "Ƒ": "F", "Ǵ": "G", "Ğ": "G", "Ǧ": "G", "Ģ": "G", "Ĝ": "G", "Ġ": "G", "Ɠ": "G", "Ḡ": "G", "Ǥ": "G", "Ḫ": "H", "Ȟ": "H", "Ḩ": "H", "Ĥ": "H", "Ⱨ": "H", "Ḧ": "H", "Ḣ": "H", "Ḥ": "H", "Ħ": "H", "Í": "I", "Ĭ": "I", "Ǐ": "I", "Î": "I", "Ï": "I", "Ḯ": "I", "İ": "I", "Ị": "I", "Ȉ": "I", "Ì": "I", "Ỉ": "I", "Ȋ": "I", "Ī": "I", "Į": "I", "Ɨ": "I", "Ĩ": "I", "Ḭ": "I", "Ꝺ": "D", "Ꝼ": "F", "Ᵹ": "G", "Ꞃ": "R", "Ꞅ": "S", "Ꞇ": "T", "Ꝭ": "IS", "Ĵ": "J", "Ɉ": "J", "Ḱ": "K", "Ǩ": "K", "Ķ": "K", "Ⱪ": "K", "Ꝃ": "K", "Ḳ": "K", "Ƙ": "K", "Ḵ": "K", "Ꝁ": "K", "Ꝅ": "K", "Ĺ": "L", "Ƚ": "L", "Ľ": "L", "Ļ": "L", "Ḽ": "L", "Ḷ": "L", "Ḹ": "L", "Ⱡ": "L", "Ꝉ": "L", "Ḻ": "L", "Ŀ": "L", "Ɫ": "L", "ǈ": "L", "Ł": "L", "Ǉ": "LJ", "Ḿ": "M", "Ṁ": "M", "Ṃ": "M", "Ɱ": "M", "Ń": "N", "Ň": "N", "Ņ": "N", "Ṋ": "N", "Ṅ": "N", "Ṇ": "N", "Ǹ": "N", "Ɲ": "N", "Ṉ": "N", "Ƞ": "N", "ǋ": "N", "Ñ": "N", "Ǌ": "NJ", "Ó": "O", "Ŏ": "O", "Ǒ": "O", "Ô": "O", "Ố": "O", "Ộ": "O", "Ồ": "O", "Ổ": "O", "Ỗ": "O", "Ö": "O", "Ȫ": "O", "Ȯ": "O", "Ȱ": "O", "Ọ": "O", "Ő": "O", "Ȍ": "O", "Ò": "O", "Ỏ": "O", "Ơ": "O", "Ớ": "O", "Ợ": "O", "Ờ": "O", "Ở": "O", "Ỡ": "O", "Ȏ": "O", "Ꝋ": "O", "Ꝍ": "O", "Ō": "O", "Ṓ": "O", "Ṑ": "O", "Ɵ": "O", "Ǫ": "O", "Ǭ": "O", "Ø": "O", "Ǿ": "O", "Õ": "O", "Ṍ": "O", "Ṏ": "O", "Ȭ": "O", "Ƣ": "OI", "Ꝏ": "OO", "Ɛ": "E", "Ɔ": "O", "Ȣ": "OU", "Ṕ": "P", "Ṗ": "P", "Ꝓ": "P", "Ƥ": "P", "Ꝕ": "P", "Ᵽ": "P", "Ꝑ": "P", "Ꝙ": "Q", "Ꝗ": "Q", "Ŕ": "R", "Ř": "R", "Ŗ": "R", "Ṙ": "R", "Ṛ": "R", "Ṝ": "R", "Ȑ": "R", "Ȓ": "R", "Ṟ": "R", "Ɍ": "R", "Ɽ": "R", "Ꜿ": "C", "Ǝ": "E", "Ś": "S", "Ṥ": "S", "Š": "S", "Ṧ": "S", "Ş": "S", "Ŝ": "S", "Ș": "S", "Ṡ": "S", "Ṣ": "S", "Ṩ": "S", "Ť": "T", "Ţ": "T", "Ṱ": "T", "Ț": "T", "Ⱦ": "T", "Ṫ": "T", "Ṭ": "T", "Ƭ": "T", "Ṯ": "T", "Ʈ": "T", "Ŧ": "T", "Ɐ": "A", "Ꞁ": "L", "Ɯ": "M", "Ʌ": "V", "Ꜩ": "TZ", "Ú": "U", "Ŭ": "U", "Ǔ": "U", "Û": "U", "Ṷ": "U", "Ü": "U", "Ǘ": "U", "Ǚ": "U", "Ǜ": "U", "Ǖ": "U", "Ṳ": "U", "Ụ": "U", "Ű": "U", "Ȕ": "U", "Ù": "U", "Ủ": "U", "Ư": "U", "Ứ": "U", "Ự": "U", "Ừ": "U", "Ử": "U", "Ữ": "U", "Ȗ": "U", "Ū": "U", "Ṻ": "U", "Ų": "U", "Ů": "U", "Ũ": "U", "Ṹ": "U", "Ṵ": "U", "Ꝟ": "V", "Ṿ": "V", "Ʋ": "V", "Ṽ": "V", "Ꝡ": "VY", "Ẃ": "W", "Ŵ": "W", "Ẅ": "W", "Ẇ": "W", "Ẉ": "W", "Ẁ": "W", "Ⱳ": "W", "Ẍ": "X", "Ẋ": "X", "Ý": "Y", "Ŷ": "Y", "Ÿ": "Y", "Ẏ": "Y", "Ỵ": "Y", "Ỳ": "Y", "Ƴ": "Y", "Ỷ": "Y", "Ỿ": "Y", "Ȳ": "Y", "Ɏ": "Y", "Ỹ": "Y", "Ź": "Z", "Ž": "Z", "Ẑ": "Z", "Ⱬ": "Z", "Ż": "Z", "Ẓ": "Z", "Ȥ": "Z", "Ẕ": "Z", "Ƶ": "Z", "Ĳ": "IJ", "Œ": "OE", "ᴀ": "A", "ᴁ": "AE", "ʙ": "B", "ᴃ": "B", "ᴄ": "C", "ᴅ": "D", "ᴇ": "E", "ꜰ": "F", "ɢ": "G", "ʛ": "G", "ʜ": "H", "ɪ": "I", "ʁ": "R", "ᴊ": "J", "ᴋ": "K", "ʟ": "L", "ᴌ": "L", "ᴍ": "M", "ɴ": "N", "ᴏ": "O", "ɶ": "OE", "ᴐ": "O", "ᴕ": "OU", "ᴘ": "P", "ʀ": "R", "ᴎ": "N", "ᴙ": "R", "ꜱ": "S", "ᴛ": "T", "ⱻ": "E", "ᴚ": "R", "ᴜ": "U", "ᴠ": "V", "ᴡ": "W", "ʏ": "Y", "ᴢ": "Z", "á": "a", "ă": "a", "ắ": "a", "ặ": "a", "ằ": "a", "ẳ": "a", "ẵ": "a", "ǎ": "a", "â": "a", "ấ": "a", "ậ": "a", "ầ": "a", "ẩ": "a", "ẫ": "a", "ä": "a", "ǟ": "a", "ȧ": "a", "ǡ": "a", "ạ": "a", "ȁ": "a", "à": "a", "ả": "a", "ȃ": "a", "ā": "a", "ą": "a", "ᶏ": "a", "ẚ": "a", "å": "a", "ǻ": "a", "ḁ": "a", "ⱥ": "a", "ã": "a", "ꜳ": "aa", "æ": "ae", "ǽ": "ae", "ǣ": "ae", "ꜵ": "ao", "ꜷ": "au", "ꜹ": "av", "ꜻ": "av", "ꜽ": "ay", "ḃ": "b", "ḅ": "b", "ɓ": "b", "ḇ": "b", "ᵬ": "b", "ᶀ": "b", "ƀ": "b", "ƃ": "b", "ɵ": "o", "ć": "c", "č": "c", "ç": "c", "ḉ": "c", "ĉ": "c", "ɕ": "c", "ċ": "c", "ƈ": "c", "ȼ": "c", "ď": "d", "ḑ": "d", "ḓ": "d", "ȡ": "d", "ḋ": "d", "ḍ": "d", "ɗ": "d", "ᶑ": "d", "ḏ": "d", "ᵭ": "d", "ᶁ": "d", "đ": "d", "ɖ": "d", "ƌ": "d", "ı": "i", "ȷ": "j", "ɟ": "j", "ʄ": "j", "ǳ": "dz", "ǆ": "dz", "é": "e", "ĕ": "e", "ě": "e", "ȩ": "e", "ḝ": "e", "ê": "e", "ế": "e", "ệ": "e", "ề": "e", "ể": "e", "ễ": "e", "ḙ": "e", "ë": "e", "ė": "e", "ẹ": "e", "ȅ": "e", "è": "e", "ẻ": "e", "ȇ": "e", "ē": "e", "ḗ": "e", "ḕ": "e", "ⱸ": "e", "ę": "e", "ᶒ": "e", "ɇ": "e", "ẽ": "e", "ḛ": "e", "ꝫ": "et", "ḟ": "f", "ƒ": "f", "ᵮ": "f", "ᶂ": "f", "ǵ": "g", "ğ": "g", "ǧ": "g", "ģ": "g", "ĝ": "g", "ġ": "g", "ɠ": "g", "ḡ": "g", "ᶃ": "g", "ǥ": "g", "ḫ": "h", "ȟ": "h", "ḩ": "h", "ĥ": "h", "ⱨ": "h", "ḧ": "h", "ḣ": "h", "ḥ": "h", "ɦ": "h", "ẖ": "h", "ħ": "h", "ƕ": "hv", "í": "i", "ĭ": "i", "ǐ": "i", "î": "i", "ï": "i", "ḯ": "i", "ị": "i", "ȉ": "i", "ì": "i", "ỉ": "i", "ȋ": "i", "ī": "i", "į": "i", "ᶖ": "i", "ɨ": "i", "ĩ": "i", "ḭ": "i", "ꝺ": "d", "ꝼ": "f", "ᵹ": "g", "ꞃ": "r", "ꞅ": "s", "ꞇ": "t", "ꝭ": "is", "ǰ": "j", "ĵ": "j", "ʝ": "j", "ɉ": "j", "ḱ": "k", "ǩ": "k", "ķ": "k", "ⱪ": "k", "ꝃ": "k", "ḳ": "k", "ƙ": "k", "ḵ": "k", "ᶄ": "k", "ꝁ": "k", "ꝅ": "k", "ĺ": "l", "ƚ": "l", "ɬ": "l", "ľ": "l", "ļ": "l", "ḽ": "l", "ȴ": "l", "ḷ": "l", "ḹ": "l", "ⱡ": "l", "ꝉ": "l", "ḻ": "l", "ŀ": "l", "ɫ": "l", "ᶅ": "l", "ɭ": "l", "ł": "l", "ǉ": "lj", "ſ": "s", "ẜ": "s", "ẛ": "s", "ẝ": "s", "ḿ": "m", "ṁ": "m", "ṃ": "m", "ɱ": "m", "ᵯ": "m", "ᶆ": "m", "ń": "n", "ň": "n", "ņ": "n", "ṋ": "n", "ȵ": "n", "ṅ": "n", "ṇ": "n", "ǹ": "n", "ɲ": "n", "ṉ": "n", "ƞ": "n", "ᵰ": "n", "ᶇ": "n", "ɳ": "n", "ñ": "n", "ǌ": "nj", "ó": "o", "ŏ": "o", "ǒ": "o", "ô": "o", "ố": "o", "ộ": "o", "ồ": "o", "ổ": "o", "ỗ": "o", "ö": "o", "ȫ": "o", "ȯ": "o", "ȱ": "o", "ọ": "o", "ő": "o", "ȍ": "o", "ò": "o", "ỏ": "o", "ơ": "o", "ớ": "o", "ợ": "o", "ờ": "o", "ở": "o", "ỡ": "o", "ȏ": "o", "ꝋ": "o", "ꝍ": "o", "ⱺ": "o", "ō": "o", "ṓ": "o", "ṑ": "o", "ǫ": "o", "ǭ": "o", "ø": "o", "ǿ": "o", "õ": "o", "ṍ": "o", "ṏ": "o", "ȭ": "o", "ƣ": "oi", "ꝏ": "oo", "ɛ": "e", "ᶓ": "e", "ɔ": "o", "ᶗ": "o", "ȣ": "ou", "ṕ": "p", "ṗ": "p", "ꝓ": "p", "ƥ": "p", "ᵱ": "p", "ᶈ": "p", "ꝕ": "p", "ᵽ": "p", "ꝑ": "p", "ꝙ": "q", "ʠ": "q", "ɋ": "q", "ꝗ": "q", "ŕ": "r", "ř": "r", "ŗ": "r", "ṙ": "r", "ṛ": "r", "ṝ": "r", "ȑ": "r", "ɾ": "r", "ᵳ": "r", "ȓ": "r", "ṟ": "r", "ɼ": "r", "ᵲ": "r", "ᶉ": "r", "ɍ": "r", "ɽ": "r", "ↄ": "c", "ꜿ": "c", "ɘ": "e", "ɿ": "r", "ś": "s", "ṥ": "s", "š": "s", "ṧ": "s", "ş": "s", "ŝ": "s", "ș": "s", "ṡ": "s", "ṣ": "s", "ṩ": "s", "ʂ": "s", "ᵴ": "s", "ᶊ": "s", "ȿ": "s", "ɡ": "g", "ᴑ": "o", "ᴓ": "o", "ᴝ": "u", "ť": "t", "ţ": "t", "ṱ": "t", "ț": "t", "ȶ": "t", "ẗ": "t", "ⱦ": "t", "ṫ": "t", "ṭ": "t", "ƭ": "t", "ṯ": "t", "ᵵ": "t", "ƫ": "t", "ʈ": "t", "ŧ": "t", "ᵺ": "th", "ɐ": "a", "ᴂ": "ae", "ǝ": "e", "ᵷ": "g", "ɥ": "h", "ʮ": "h", "ʯ": "h", "ᴉ": "i", "ʞ": "k", "ꞁ": "l", "ɯ": "m", "ɰ": "m", "ᴔ": "oe", "ɹ": "r", "ɻ": "r", "ɺ": "r", "ⱹ": "r", "ʇ": "t", "ʌ": "v", "ʍ": "w", "ʎ": "y", "ꜩ": "tz", "ú": "u", "ŭ": "u", "ǔ": "u", "û": "u", "ṷ": "u", "ü": "u", "ǘ": "u", "ǚ": "u", "ǜ": "u", "ǖ": "u", "ṳ": "u", "ụ": "u", "ű": "u", "ȕ": "u", "ù": "u", "ủ": "u", "ư": "u", "ứ": "u", "ự": "u", "ừ": "u", "ử": "u", "ữ": "u", "ȗ": "u", "ū": "u", "ṻ": "u", "ų": "u", "ᶙ": "u", "ů": "u", "ũ": "u", "ṹ": "u", "ṵ": "u", "ᵫ": "ue", "ꝸ": "um", "ⱴ": "v", "ꝟ": "v", "ṿ": "v", "ʋ": "v", "ᶌ": "v", "ⱱ": "v", "ṽ": "v", "ꝡ": "vy", "ẃ": "w", "ŵ": "w", "ẅ": "w", "ẇ": "w", "ẉ": "w", "ẁ": "w", "ⱳ": "w", "ẘ": "w", "ẍ": "x", "ẋ": "x", "ᶍ": "x", "ý": "y", "ŷ": "y", "ÿ": "y", "ẏ": "y", "ỵ": "y", "ỳ": "y", "ƴ": "y", "ỷ": "y", "ỿ": "y", "ȳ": "y", "ẙ": "y", "ɏ": "y", "ỹ": "y", "ź": "z", "ž": "z", "ẑ": "z", "ʑ": "z", "ⱬ": "z", "ż": "z", "ẓ": "z", "ȥ": "z", "ẕ": "z", "ᵶ": "z", "ᶎ": "z", "ʐ": "z", "ƶ": "z", "ɀ": "z", "ﬀ": "ff", "ﬃ": "ffi", "ﬄ": "ffl", "ﬁ": "fi", "ﬂ": "fl", "ĳ": "ij", "œ": "oe", "ﬆ": "st", "ₐ": "a", "ₑ": "e", "ᵢ": "i", "ⱼ": "j", "ₒ": "o", "ᵣ": "r", "ᵤ": "u", "ᵥ": "v", "ₓ": "x" };
 String.prototype.latinize = function () { 
-	return this.replace(/[^A-Za-z0-9[\] ]/g, (a) => { return latinMap[a] || a }) 
+	return this.replace(/[^A-Za-z0-9[\] ]/g, (a) => { return latinMap[a] || a; });
 };
 
 /**
@@ -133,15 +133,50 @@ const NodeSuggestiveSearch = class {
 		});
 	}
 
+	_getItemsIdFromMatrix (wordItems, itemsIds, col) {
+	
+		if (col === undefined){
+			col = 0;
+		}
+	
+		if (itemsIds === undefined){
+			//todo: do not get the first colum but the best column on similarity
+			return this._getItemsIdFromMatrix(wordItems, wordItems[0].results[0].items, col + 1);
+		}
+	
+		for (let i = 0; i < wordItems[col].results.length; i++){
+			let word = wordItems[col].results[i];
+			let arr = _.intersection(word.items, itemsIds);
+	
+			if (arr.length > 0){
+				if (wordItems[col + 1] !== undefined){
+					return this._getItemsIdFromMatrix(wordItems, arr, col + 1);
+				}else{
+					return arr;
+				}
+			}
+		}
+
+		if (wordItems[col + 1] !== undefined){
+			return this._getItemsIdFromMatrix(wordItems, itemsIds, col + 1);
+		}else{
+			return itemsIds;
+		}
+	}
+
 	_getWordsBySoundexAndParts (word) {
 
 		return new Promise((resolve, reject) => {
 
 			//try to find an word is our dictionary using soundex and parts of the word
-			//todo: research a better way to improve the performance of this query
-			let queryCriteria = [{ soundex: this._soundex(word) }];
 
-			let wordWithoutAccents = word.latinize();
+			//todo: research a better way to improve the performance of this query
+
+			let _word = word.replace(/^"(.+(?="$))"$/, '$1').replace(/^'(.+(?='$))'$/, '$1').replace(/^'(.+(?=$))$/, '$1').replace(/^(.+(?='$))'$/, '$1'); //remove quotes
+
+			let queryCriteria = [{ soundex: this._soundex(_word) }];
+
+			let wordWithoutAccents = _word.latinize();
 
 			for (let i = 4; i >= 2; i--) {
 
@@ -156,26 +191,21 @@ const NodeSuggestiveSearch = class {
 					queryCriteria.push(objCriteriaEnd);
 				}
 
-				//we already have too many search criterias for this word, lets stop to not slow down this query
-				if (queryCriteria.length >= 5) {
-					break;
-				}
 			}
-
 
 			this._db.findWords({ $or: queryCriteria }).then(foundWords => {
 
 				if (foundWords.length > 0) {
 
 					//before return the result, lets give a similarity rank for each result	
-					//and filter top 20 most similar result 
+					//and filter top 30 most similar result 
 					resolve(
 						foundWords.map(obj => {
-							obj.similarity = this._similarity(obj.word, word);
+							obj.similarity = this._similarity(obj.word, _word);
 							return obj;
 						}).sort((x, y) => {
-							return ((x.similarity > y.similarity) ? -1 : 1)
-						}).slice(0, 20)
+							return ((x.similarity > y.similarity) ? -1 : 1);
+						}).slice(0, 30)
 					);
 
 				} else {
@@ -859,40 +889,39 @@ const NodeSuggestiveSearch = class {
 
 				return new Promise((resolve, reject) => {
 
-					//first, lets try to find the exact word in our dictionary
+					// //first, lets try to find the exact word in our dictionary
 					this._db.findWords({ cleanWord: word.toLowerCase().latinize() }).then(foundWords => {
 
-						//no results :(, lets try with soundex and parts
+					// 	//no results :(, lets try with soundex and parts
 						if (!foundWords || foundWords.length <= 0) {
 
 							//this function will try to get words in our dictionary that is similar to the word from the query
 							this._getWordsBySoundexAndParts(word).then(soudexFoundItems  => {
 								if (soudexFoundItems !== null) {
-									resolve({ word: word, correct: false, results: soudexFoundItems });
+									resolve({ word: word, results: soudexFoundItems });
 								} else {
-									resolve({ word: word, correct: false, results: [] })
+									resolve({ word: word, results: [] });
 								}
 							}).catch(() => {
 								//instead of returning an error, lets return an empty result
-								resolve({ word, correct: false, results: [] });
+								resolve({ word, results: [] });
 							});
 
 						} else {
 
 							if (foundWords.length > 1) {
 
-								//sort to return the best match
-								foundWords = foundWords.map((obj) => {
+								//sort to return top 10 most similar result 
+								foundWords = foundWords.map(obj => {
 									obj.similarity = this._similarity(obj.word, word);
 									return obj;
 								}).sort((x, y) => {
 									return ((x.similarity > y.similarity) ? -1 : 1);
-								});
+								}).slice(0, 10);
 
 							}
 
-							//returning the exact match
-							resolve({ word, correct: true, results: [foundWords[0]] });
+							resolve({ word, correct: true, results: foundWords });
 
 						}
 
@@ -908,10 +937,12 @@ const NodeSuggestiveSearch = class {
 			Promise.all(promises).then(items => {
 
 				//items variable contains an array of words objects and results for each word from the query
-				// {correct:bool, results: db.words[], word: string from query } 
+				// {word: word, results: db.words[]} 
 				//if there is any incorrect word, lets choose the best match between the results 
 				//to acomplish this, lets iterate over all words and their items to check how many items are similar between the words
-
+				let arrItemsIds = [];
+				let finalWords = [];
+				
 				if (items.length > 1){
 
 					let allItems = [];
@@ -923,60 +954,109 @@ const NodeSuggestiveSearch = class {
 							wordItems = _.concat(wordItems, results.items);
 						});
 
-						allItems.push(_.uniq(wordItems));
+						allItems.push(wordItems);
 					});
-
+					
 					let allItemsFiltered = _.intersection.apply(_, allItems);	
-
+					
+					//promote items that have itemsId within the intersection ordering them up
 					items.map(objWord => {
-						objWord.results.map(results => {
+						objWord.results = objWord.results.map(results => {
 							let arr = _.intersection(results.items, allItemsFiltered);
 							results.similarity = (arr.length > 0) ? ((results.similarity || 0) + 1) : 0;
+							return results;
+						}).sort((x, y) => {
+							return ((x.similarity > y.similarity) ? -1 : 1);
 						});
 					});
-				}
 
-				//get the best match over similarity and transform word.results[] in only one result{} json object for each word from the query
-				items.map(objWord => {
-					if (objWord.results.length > 0) {
-						objWord.results = objWord.results.reduce((x, y) => {
-							return ((x.similarity > y.similarity) ? x : y);
+					//if some word is head to head to another in the same col, lets deal with this by checking if this word is present at the top of another column
+					let hasTosortAgain = false;
+					items.map((objWord, col) => {
+						if (objWord.results[1] !== undefined && objWord.results[0].similarity === objWord.results[1].similarity) {
+							items.map((objInnerWord, innerCol) => {
+								if (innerCol !== col) {
+									if (objWord.results[0].word === objInnerWord.results[0].word || objWord.results[1].word === objInnerWord.results[0].word) {
+										hasTosortAgain = true;
+										if (objWord.results[0].word === objInnerWord.results[0].word){
+											objWord.results[0].similarity -= 0.1;
+										}else{
+											objWord.results[1].similarity -= 0.1;
+										}
+									}
+								}
+							});
+						}
+					});
+
+					//sort again after the decision above 
+					if (hasTosortAgain){
+						items.map(objWord => {
+							objWord.results = objWord.results.sort((x, y) => {
+								return ((x.similarity > y.similarity) ? -1 : 1);
+							});
 						});
 					}
-				});
 
-				let arrItemsIds = [];
-				items.map(word => {
-					arrItemsIds.push(word.results.items);
-				});
+					arrItemsIds = this._getItemsIdFromMatrix(items);
 
-				//get the intersection on the itemsId from all words
-				arrItemsIds = _.intersection.apply(_, arrItemsIds);	
-
-				//iterate all words to check if they have at least one itemId from the intersection
-				let finalWords = [];
-				items.map(objWord => {
-					let found = false;
-					
-					if (objWord.results.items !== undefined) {
-						for (let i = 0; i < objWord.results.items.length; i++) {
-							if (arrItemsIds.indexOf(objWord.results.items[i]) > -1) {
-								found = true;
-								break;
+					//get the best match over similarity and transform word.results[] in only one result{} json object for each word from the query
+					items.map(objWord => {
+						if (objWord.results.length > 0) {
+							let hasMatch = false;
+							for (let i = 0; i < objWord.results.length; i++) {
+								if (_.intersection(arrItemsIds, objWord.results[i].items).length > 0) {
+									objWord.results = objWord.results[i];
+									hasMatch = true;
+									break;
+								}
+							}
+							if (!hasMatch){
+								objWord.results = objWord.results[0];
 							}
 						}
-					}
-					
-					if (found) {
-						finalWords.push(objWord.results.word);
-					} else {
-						//if this word was not found, lets remove from the results
-						finalWords.push(null);
-					}
-				});
+					});
 
+					//iterate all words to check if they have at least one itemId from the intersection
+					items.map(objWord => {
+						let found = false;
+					
+						if (objWord.results.items !== undefined) {
+							for (let i = 0; i < objWord.results.items.length; i++) {
+								if (arrItemsIds.indexOf(objWord.results.items[i]) > -1) {
+									found = true;
+									break;
+								}
+							}
+						}
+						
+						if (found) {
+							finalWords.push(objWord.results.word);
+						} else {
+							//if this word was not found, lets remove from the results
+							finalWords.push(null);
+						}
+					});
+
+				}else{
+					//get the best match over similarity and transform word.results[] in only one result{} json object for each word from the query
+					if (items[0].results.length > 0) {
+						items[0].results = items[0].results[0];
+						arrItemsIds = items[0].results.items;
+						finalWords.push(items[0].results.word);
+					}
+				}
+				
 				//pos search - match quoted expressions, hyphenated words and separated by slashes
-				let quotedStrings = words.match(/"(.*?)"|'(.*?)'|((?:\w+-)+\w+)|((?:\w+\/|\\)+\w+)/g, "$1");
+				let regExp = /"(.*?)"|'(.*?)'|((?:\w+-)+\w+)|((?:\w+\/|\\)+\w+)/g;
+				let quotedStrings = words.match(regExp, "$1");
+
+				// let match;// = regExp.exec(words);
+				// console.log(finalWords)
+				// console.log(quotedStrings)
+				// while (match = regExp.exec(words))
+				// 	console.log(match.index + " - " + match[0].length + " - " + match[0]);
+
 				if (quotedStrings !== null && quotedStrings.length > 0){
 
 					quotedStrings = quotedStrings.map(item => {
@@ -990,7 +1070,10 @@ const NodeSuggestiveSearch = class {
 								if (item.itemName.search(new RegExp(quotedStrings[quotedString], "ig")) >= 0 ||
 									(item.keywords !== undefined && item.keywords.search(new RegExp(quotedStrings[quotedString], "ig")) >= 0)) {
 									return item;
-								}
+								}//else{
+								//	break;
+								//}
+								// todo: do not break the response if we dont find the results that includes those expressions
 							}
 						});
 
@@ -1201,7 +1284,7 @@ const NodeSuggestiveSearch = class {
 
 								// And then, remove repetitions and sort it by popularity
 								relatedWords = relatedWords.sort((x, y) => {
-									return ((x.word.toLowerCase() < y.word.toLowerCase()) ? -1 : 1)
+									return ((x.word.toLowerCase() < y.word.toLowerCase()) ? -1 : 1);
 								}).filter((item, pos, arr) => {
 
 									//remove repetitions
@@ -1447,7 +1530,7 @@ const NodeSuggestiveSearch = class {
 		});
 
 	}
-}
+};
 	
 util.inherits(NodeSuggestiveSearch, EventEmitter);
 

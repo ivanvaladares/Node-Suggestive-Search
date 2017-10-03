@@ -4,3 +4,6 @@
 .eslintrc.js
 .npmignore
 package-lock.json
+.vscode
+launch.json
+.DS_Store

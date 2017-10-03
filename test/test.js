@@ -1,4 +1,5 @@
-const mocha = require('mocha')
+
+const mocha = require('mocha');
 const assert = require("assert");
 const describe = mocha.describe;
 const before = mocha.before;
@@ -58,7 +59,7 @@ describe('Test test.json -', () => {
         });
     });
 
-    it('load json file test.json', () => {
+    it('load json file test.json with 6 items and 18 words', () => {
         return nss.loadJson("test/test.json")
             .then(data => {
                 assert(
@@ -70,7 +71,7 @@ describe('Test test.json -', () => {
             });
     });
 
-    it('load json file test.json to second instance', () => {
+    it('load json file test.json with 6 items and 18 words into second instance', () => {
         return nss2.loadJson("test/test.json")
             .then(data => {
                 assert(
@@ -82,7 +83,7 @@ describe('Test test.json -', () => {
             });
     });
 
-    it('load json string', () => {
+    it('load json string with 11 items and 31 words', () => {
         return nss.loadJsonString(`[{"nm":"WHISKY RED LABEL","id":"1","kw": "fancy"},
                                     {"nm":"WHISKY BLACK LABEL","id":"2"},
                                     {"nm":"BLACK FOREST BEECHWOOD HAM L/S","id":"3"},
@@ -126,10 +127,9 @@ describe('Test test.json -', () => {
             .then(data => {
                 assert(
                     data != null &&
-                    data.words.length == 1 &&
-                    data.words[0] == null &&
+                    data.words.length == 0 &&
                     data.itemsId.length == 0,
-                    "Error on query for: whisky red label"
+                    "Error on query for: coffee"
                 );
             });
     });
@@ -380,11 +380,10 @@ describe('Test test.json -', () => {
 
     it('query for: absolut', () => {
         return nss.query("absolut")
-            .then(data => {                
+            .then(data => {           
                 assert(
                     data != null &&
-                    data.words.length == 1 &&
-                    data.words[0] == null &&
+                    data.words.length == 0 &&
                     data.itemsId.length == 0,
                     "Error on query for: absolut"
                 );
