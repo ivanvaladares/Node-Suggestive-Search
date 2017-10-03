@@ -430,19 +430,6 @@ describe('Test test.json -', () => {
     });
 
 
-    it('get items suggestions for: L/S', () => {
-        return nss.getSuggestedItems("L/S")
-            .then(data => {
-                assert(
-                    data != null &&
-                    data.items.length == 1 &&
-                    data.items[0].itemName == "BLACK FOREST BEECHWOOD HAM L/S",
-                    "Error on get items suggestions for: L/S"
-                );
-            });
-    });
-
-
     it('get items suggestions for: FANC', () => {
         return nss.getSuggestedItems("FANC")
             .then(data => {

@@ -166,7 +166,6 @@ describe('Test names.json -', () => {
     it('query for: ivam vala', () => {
         return nss.query("ivam vala")
             .then(data => {
-                //console.log(data);
                 assert(
                     data != null &&
                     data.words.length == 2 &&
@@ -182,12 +181,12 @@ describe('Test names.json -', () => {
     it('query for: ivan consentino valadares', () => {
         return nss.query("ivan consentino valadares")
             .then(data => {
-                console.log(data); //todo line 143
                 assert(
                     data != null &&
-                    data.words.length == 2 &&
+                    data.words.length == 3 &&
                     data.words[0] == "Ivan" &&
-                    data.words[1] == "Valadares" &&
+                    data.words[1] == null &&
+                    data.words[2] == "Valadares" &&
                     data.itemsId.length == 1 &&
                     data.itemsId[0] == "49999",
                     "Error on query for: ivan consentino valadares"
@@ -214,14 +213,13 @@ describe('Test names.json -', () => {
 
     it('get items suggestions for: ivan v', () => {
         return nss.getSuggestedItems("ivan v")
-            .then(data => {
+            .then(data => {                
                 assert(
                     data != null &&
-                    data.items.length == 4 &&
+                    data.items.length == 3 &&
                     data.items[0].itemName == "Ivan Valadares" &&
-                    data.items[1].itemName == "Ivan SandoVal" &&
-                    data.items[2].itemName == "Ivan Campos" &&
-                    data.items[3].itemName == "Ivan Valentino",
+                    data.items[1].itemName == "Ivan Campos" &&
+                    data.items[2].itemName == "Ivan Valentino",
                     "Error on get items suggestions for: ivan v"
                 );
             });

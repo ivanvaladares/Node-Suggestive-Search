@@ -504,10 +504,6 @@
     "itemName": "CARNE BOVINA CHÃ 1KG ( APROXIMADAMENTE )"
   },
   {
-    "itemId": "10503",
-    "itemName": "CARNE BOVINA CHÃ EM BIFES 500G ( APROXIMADAMENTE )"
-  },
-  {
     "itemId": "10505",
     "itemName": "BLANQUET PERU SADIA LIGHT FATIADO 300G ( APROXIMADAMENTE )"
   },
@@ -816,16 +812,8 @@
     "itemName": "CARNE BOVINA ALCATRA 1KG ( APROXIMADAMENTE )"
   },
   {
-    "itemId": "11197",
-    "itemName": "CARNE BOVINA ALCATRA EM BIFES 500G ( APROXIMADAMENTE )"
-  },
-  {
     "itemId": "11199",
     "itemName": "CARNE BOVINA CONTRA-FILE 1KG ( APROXIMADAMENTE )"
-  },
-  {
-    "itemId": "11199",
-    "itemName": "CARNE BOVINA CONTRA-FILE EM BIFES 500G (APROXIMADAMENTE)"
   },
   {
     "itemId": "11202",
@@ -842,14 +830,6 @@
   {
     "itemId": "11205",
     "itemName": "CARNE BOVINA MOIDA PATINHO 500G ( APROXIMADAMENTE )"
-  },
-  {
-    "itemId": "11205",
-    "itemName": "CARNE BOVINA PATINHO 1KG ( APROXIMADAMENTE )"
-  },
-  {
-    "itemId": "11205",
-    "itemName": "CARNE BOVINA PATINHO EM BIFES 500G ( APROXIMADAMENTE )"
   },
   {
     "itemId": "11207",
@@ -3261,14 +3241,6 @@
   },
   {
     "itemId": "14529",
-    "itemName": "CARNE BOVINA FILÉ MIGNON 1KG ( APROXIMADAMENTE )"
-  },
-  {
-    "itemId": "14529",
-    "itemName": "CARNE BOVINA FILÉ MIGNON EM BIFES 500G( APROXIMADAMENTE )"
-  },
-  {
-    "itemId": "14529",
     "itemName": "CARNE BOVINA FILÉ MIGNON EM MEDALHÃO 500G ( APROXIMADAMENTE )"
   },
   {
@@ -4756,18 +4728,6 @@
     "itemName": "SUCO SOJA SHEFA VITAMINA 1L"
   },
   {
-    "itemId": "20408",
-    "itemName": "SUCO SOJA SHEFA VITAMINA 1L"
-  },
-  {
-    "itemId": "20408",
-    "itemName": "SUCO SOJA SHEFA VITAMINA 1L"
-  },
-  {
-    "itemId": "20411",
-    "itemName": "SUCO SHEFA CONCENTRADO PERA LIGHT 1L"
-  },
-  {
     "itemId": "20411",
     "itemName": "SUCO SHEFA CONCENTRADO PERA LIGHT 1L"
   },
@@ -4838,10 +4798,6 @@
   {
     "itemId": "20522",
     "itemName": "AZEITONA PRAMESA VERDE 350G"
-  },
-  {
-    "itemId": "20525",
-    "itemName": "SUCO SHEFA CONCENTRADO CHOCOLATE LIGHT 1L"
   },
   {
     "itemId": "20525",
@@ -5242,10 +5198,6 @@
   {
     "itemId": "21811",
     "itemName": "ENERGÉTICO MAD DOG 2L"
-  },
-  {
-    "itemId": "21822",
-    "itemName": "SUCO SOJA SHEFA ORIGINAL LIGHT 1L"
   },
   {
     "itemId": "21822",
@@ -6064,10 +6016,6 @@
     "itemName": "SALAME ITALIANO SADIA FATIADO 100G ( APROXIMADAMENTE )"
   },
   {
-    "itemId": "23388",
-    "itemName": "SALAME ITALIANO SADIA PEÇA 800G ( APROXIMADAMENTE )"
-  },
-  {
     "itemId": "23395",
     "itemName": "MAIONESE ARISCO LIGHT 250G"
   },
@@ -6262,10 +6210,6 @@
   {
     "itemId": "23610",
     "itemName": "FILÉ DE PEITO DE FRANGO SEARA BANDEJA 1KG"
-  },
-  {
-    "itemId": "23610",
-    "itemName": "FILE PEITO FGO.SEARA 1K"
   },
   {
     "itemId": "23613",
@@ -8296,10 +8240,6 @@
     "itemName": "RAÇÃO CAT CHOW GATINHO 1KG"
   },
   {
-    "itemId": "26820",
-    "itemName": "RAÇÃO CAT CHOW GATINHOS 1 A 12 MESES 1KG"
-  },
-  {
     "itemId": "26821",
     "itemName": "RAÇÃO DOG CHOW FILHOTE RAÇAS MÉDIAS E GRANDES 1KG"
   },
@@ -8370,10 +8310,6 @@
   {
     "itemId": "26989",
     "itemName": "RAÇÃO PARA GATOS SECA WHISKAS FRANGO LEITE 1K"
-  },
-  {
-    "itemId": "26989",
-    "itemName": "RAÇÃO PARA GATOS SECA WHISKAS FRANGO LEITE 1KG"
   },
   {
     "itemId": "26990",
@@ -8982,10 +8918,6 @@
   {
     "itemId": "28655",
     "itemName": "PIZZA POMAR BANANA 400G"
-  },
-  {
-    "itemId": "28655",
-    "itemName": "PIZZA POMAR CHOCOLATE COM MORANGO 400G"
   },
   {
     "itemId": "28656",
@@ -10124,20 +10056,12 @@
     "itemName": "SUCO SOJA SHEFA MAÇA 200ML"
   },
   {
-    "itemId": "32387",
-    "itemName": "SUCO SOJA SHEFA MAÇA 200ML"
-  },
-  {
     "itemId": "32388",
     "itemName": "SUCO SOJA SHEFA LARANJA E PÊSSEGO 200ML"
   },
   {
     "itemId": "32390",
     "itemName": "SUCO SOJA SHEFA MANGA 200ML"
-  },
-  {
-    "itemId": "32392",
-    "itemName": "SUCO SOJA SHEFA PERA 200ML"
   },
   {
     "itemId": "32392",
@@ -11220,10 +11144,6 @@
     "itemName": "SUCO SHEFA CONCENTRADO AÇAI E GUARANA 1L"
   },
   {
-    "itemId": "35866",
-    "itemName": "SUCO SHEFA CONCENTRADO AÇAI E GUARANA 1L"
-  },
-  {
     "itemId": "35867",
     "itemName": "SUCO SHEFA CONCENTRADO LICHIA 1L"
   },
@@ -11670,10 +11590,6 @@
   {
     "itemId": "37045",
     "itemName": "SABONETE DOVE INFANTIL BABY 75G"
-  },
-  {
-    "itemId": "37045",
-    "itemName": "SABONETE INFANTIL DOVE BABY 75G"
   },
   {
     "itemId": "37047",
@@ -13092,10 +13008,6 @@
     "itemName": "SHAMPOO CLEAR COOL MENTHOL 200ML"
   },
   {
-    "itemId": "39681",
-    "itemName": "SHAMPOO CLEAR COOL MENTHOL 200ML"
-  },
-  {
     "itemId": "39685",
     "itemName": "LOÇÃO HIDRATANTE NIVEA HAPPY TIME 200ML"
   },
@@ -13466,10 +13378,6 @@
   {
     "itemId": "40292",
     "itemName": "\"FILÉ DE SALMÃO FRESCATTO PREMIUM 1"
-  },
-  {
-    "itemId": "40292",
-    "itemName": "FILÉ DE SALMÃO FRESCATTO PREMIUM S/ ESPINHA 1KG (APROXIMADAMENTE)"
   },
   {
     "itemId": "40296",
@@ -13882,10 +13790,6 @@
   {
     "itemId": "40935",
     "itemName": "\"CARNE BOVINA CONTRA-FILÉ SWIFT MATURATTA 1"
-  },
-  {
-    "itemId": "40935",
-    "itemName": "CARNE BOVINA CONTRA-FILÉ SWIFT MATURATTA 2KG (APROXIMADAMENTE)"
   },
   {
     "itemId": "40939",
@@ -14614,10 +14518,6 @@
   {
     "itemId": "100750",
     "itemName": "DESODORANTE REXONA SEM PERFUME HIPOALERGENICO AEROSOL 105G"
-  },
-  {
-    "itemId": "100786",
-    "itemName": "CONDIMENTO MARCA DO SABOR COLORÍFICO 25G"
   },
   {
     "itemId": "100786",
@@ -15658,10 +15558,6 @@
   {
     "itemId": "103438",
     "itemName": "VINHO NACIONAL MIOLO LOTE 43 MERLOT & CABERNET SAUVIGNON 750ML"
-  },
-  {
-    "itemId": "103857",
-    "itemName": "CESTA DE NATAL POMAR ESPECIAL"
   },
   {
     "itemId": "103857",
@@ -18228,10 +18124,6 @@
     "itemName": "KIT ESPUMANTE ALMADEN MEIO-DOCE 660ML C/ 2 TAÇAS"
   },
   {
-    "itemId": "113117",
-    "itemName": "KIT ESPUMANTE ALMADEN MEIO-DOCE 660ML C/ 2 TAÇAS"
-  },
-  {
     "itemId": "113133",
     "itemName": "SABONETE PALMOLIVE NUTRIÇÃO DELICIOSA IOGURTE E GELÉIA REAL 90G"
   },
@@ -18558,10 +18450,6 @@
   {
     "itemId": "113762",
     "itemName": "DANONINHO BANANA E MAÇÃ 900G"
-  },
-  {
-    "itemId": "113763",
-    "itemName": "DANONINHO MINI DINOS AMORA E MORANGO 480G"
   },
   {
     "itemId": "113763",
@@ -20476,10 +20364,6 @@
     "itemName": "OVO DE PÁSCOA LACTA BARBIE COM BOLSA 100G"
   },
   {
-    "itemId": "118723",
-    "itemName": "OVO DE PÁSCOA LACTA BARBIE COM BOLSA 100G"
-  },
-  {
     "itemId": "118724",
     "itemName": "OVO DE PASCOA LACTA DIET 215G"
   },
@@ -22124,10 +22008,6 @@
     "itemName": "EDAMAME SOJA VERDE NA VAGEM VEGGIE 300G"
   },
   {
-    "itemId": "122996",
-    "itemName": "EDAMAME SOJA VERDE NA VAGEM VEGGIE 300G"
-  },
-  {
     "itemId": "123013",
     "itemName": "IOGURTE SEM LACTOSE LACFREE MORANGO 140G"
   },
@@ -22412,10 +22292,6 @@
     "itemName": "ESPUMANTE GARIBALDI BRUT PROSECCO 750ML"
   },
   {
-    "itemId": "123514",
-    "itemName": "ESPUMANTE GARIBALDI BRUT PROSECCO 750ML"
-  },
-  {
     "itemId": "123604",
     "itemName": "COLHER DESCARTÁVEL INDIPEL BRANCA REFORÇADA 10 UNIDADES"
   },
@@ -22446,10 +22322,6 @@
   {
     "itemId": "123669",
     "itemName": "QUEIJO POLENGUINHO GRUYÈRE 4 UNIDADES 68G"
-  },
-  {
-    "itemId": "123669",
-    "itemName": "QUEIJO POLENGUINHO GRUYÈRE 68G"
   },
   {
     "itemId": "123682",
@@ -22812,10 +22684,6 @@
     "itemName": "CERVEJA BADEN BADEN AMERICAN IPA 600ML"
   },
   {
-    "itemId": "124670",
-    "itemName": "CERVEJA BADEN BADEN AMERICAN IPA 600ML"
-  },
-  {
     "itemId": "124694",
     "itemName": "ABSORVENTE ALWAYS NOITES TRANQUILAS SECA LARGA COM ABAS 8 UN."
   },
@@ -23078,10 +22946,6 @@
   {
     "itemId": "125391",
     "itemName": "PALMITO DE AÇAI EM CONSERVA NATURAL PREMIUM INTEIRO VIDRO 300G"
-  },
-  {
-    "itemId": "125442",
-    "itemName": "LEITE EM PÓ NINHO ZERO LACTOSE 380G"
   },
   {
     "itemId": "125442",
@@ -23354,10 +23218,6 @@
   {
     "itemId": "126004",
     "itemName": "SHAMPOO SEDA KERAFORCE ORIGINAL 325ML"
-  },
-  {
-    "itemId": "126015",
-    "itemName": "LOMBO DE BACALHAU REYMAR GADUS MORHUA MORHUA 1KG"
   },
   {
     "itemId": "126015",
@@ -23812,10 +23672,6 @@
     "itemName": "IOGURTE DANONINHO PRONTO PARA BEBER MORANGO 400G"
   },
   {
-    "itemId": "127515",
-    "itemName": "IOGURTE DANONINHO PRONTO PARA BEBER MORANGO 400G"
-  },
-  {
     "itemId": "127522",
     "itemName": "FILÉ DE POLACA DO ALASCA MINERVA 1KG"
   },
@@ -24253,10 +24109,6 @@
   },
   {
     "itemId": "129004",
-    "itemName": "KIT SHAMPOO TRESEMME HIDRATAÇÃO PROFUNDA SHAMPOO 400ML + CONDICIONADOR 200ML"
-  },
-  {
-    "itemId": "129004",
     "itemName": "KIT TRESEMME HIDRATAÇÃO PROFUNDA SHAMPOO 400ML + CONDICIONADOR 200ML"
   },
   {
@@ -24660,10 +24512,6 @@
     "itemName": "\"WAFER LACTA BIS OREO 100"
   },
   {
-    "itemId": "131080",
-    "itemName": "\"WAFER LACTA BIS OREO 100"
-  },
-  {
     "itemId": "131083",
     "itemName": "ABSORVENTE ALWAYS SECA LARANJA COM ABAS C/16 UNIDADES"
   },
@@ -24870,10 +24718,6 @@
   {
     "itemId": "131983",
     "itemName": "WAFFLE FORNO DE MINAS COBERTURA DE CHOCOLATE 210G"
-  },
-  {
-    "itemId": "131994",
-    "itemName": "CEBOLA EM RODELAS EMPANADAS ONION RINGS FARM FRITES 1KG"
   },
   {
     "itemId": "131994",
