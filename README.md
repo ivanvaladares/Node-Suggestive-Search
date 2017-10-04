@@ -100,7 +100,7 @@ Load the JSON from file
 
 nss.loadJson("Items.json", "utf8").then( //you can change the charset to match your file
 	data => {
-		// response: { "words": 17, "items": 5, "timeElapsed": 21 }
+		// response: { "words": 17, "items": 5, "timeElapsed": 4 }
 	},
 	err => {
 		//...
@@ -114,7 +114,7 @@ Load the JSON from file with your own poperties names
 
 nss.loadJson("Items.json", "utf8", "itemId", "itemName", "keywords").then(
 	data => {
-		// response: { "words": 17, "items": 5, "timeElapsed": 25 }
+		// response: { "words": 17, "items": 5, "timeElapsed": 3 }
 	},
 	err => {
 		//...
@@ -131,7 +131,7 @@ let jSonString = `[{"itemName":"WHISKY RED LABEL", "itemId":"1", "keywords": "fa
 
 nss.loadJsonString(jSonString).then(
 	data => {
-		// response: { "words": 5, "items": 2, "timeElapsed": 9 }
+		// response: { "words": 5, "items": 2, "timeElapsed": 2 }
 	},
 	err => {
 		//...
@@ -148,7 +148,7 @@ let jSonString = `[{"nm":"WHISKY RED LABEL", "id":"1", "kw": "fancy"},{
 
 nss.loadJsonString(jSonString, "id", "nm", "kw").then(
 	data => {
-		// response: { "words": 5, "items": 2, "timeElapsed": 8 }
+		// response: { "words": 5, "items": 2, "timeElapsed": 2 }
 	},
 	err => {
 		//...
