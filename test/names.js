@@ -71,7 +71,9 @@ describe('Test names.json -', () => {
                     data.words[0] == "Ivan" &&
                     data.words[1] == "Valadares" &&
                     data.itemsId.length == 1 &&
-                    data.itemsId[0] == "49999",
+                    data.itemsId[0] == "49999" &&
+                    data.expressions.length == 0 &&
+                    data.missingExpressions.length == 0,
                     "Error on query for: ivan valadares"
                 );
             });
@@ -84,7 +86,9 @@ describe('Test names.json -', () => {
                     data != null &&
                     data.words[0] == "Vickie" &&
                     data.words.length == 1 &&
-                    data.itemsId.length == 20,
+                    data.itemsId.length == 20 &&
+                    data.expressions.length == 0 &&
+                    data.missingExpressions.length == 0,
                     "Error on query for: VICHI"
                 );
             });
@@ -108,7 +112,9 @@ describe('Test names.json -', () => {
                     data != null &&
                     data.words.length == 1 &&
                     data.itemsId.length == 1 &&
-                    data.itemsId[0] == "50004",
+                    data.itemsId[0] == "50004" &&
+                    data.expressions.length == 0 &&
+                    data.missingExpressions.length == 0,
                     "Error on query for: VICHI"
                 );
             });
@@ -121,7 +127,10 @@ describe('Test names.json -', () => {
                     data != null &&
                     data.words.length == 2 &&
                     data.itemsId.length == 1 &&
-                    data.itemsId[0] == "50004",
+                    data.itemsId[0] == "50004" &&
+                    data.expressions.length == 1 &&
+                    data.expressions[0] == "EDUARDO VICHI" &&
+                    data.missingExpressions.length == 0,
                     "Error on query for: \"EDUARDO VICHI\""
                 );
             });
@@ -145,7 +154,10 @@ describe('Test names.json -', () => {
                     data != null &&
                     data.words[0] == "Vickie" &&
                     data.words.length == 1 &&
-                    data.itemsId.length == 20,
+                    data.itemsId.length == 20 &&
+                    data.missingWords.length == 0 &&
+                    data.expressions.length == 0 &&
+                    data.missingExpressions.length == 0,
                     "Error on query for: VICHI"
                 );
             });
@@ -157,7 +169,10 @@ describe('Test names.json -', () => {
                 assert(
                     data != null &&
                     data.words.length == 1 &&
-                    data.words[0] == "Abbott",
+                    data.words[0] == "Abbott" &&
+                    data.missingWords.length == 0 &&
+                    data.expressions.length == 0 &&
+                    data.missingExpressions.length == 0,
                     "Error on query for: absolut"
                 );
             });
@@ -172,7 +187,10 @@ describe('Test names.json -', () => {
                     data.words[0] == "Ivan" &&
                     data.words[1] == "Valadares" &&
                     data.itemsId.length == 1 &&
-                    data.itemsId[0] == "49999",
+                    data.itemsId[0] == "49999" &&
+                    data.missingWords.length == 0 &&
+                    data.expressions.length == 0 &&
+                    data.missingExpressions.length == 0,
                     "Error on query for: ivam vala"
                 );
             });
@@ -183,12 +201,15 @@ describe('Test names.json -', () => {
             .then(data => {
                 assert(
                     data != null &&
-                    data.words.length == 3 &&
+                    data.words.length == 2 &&
                     data.words[0] == "Ivan" &&
-                    data.words[1] == null &&
-                    data.words[2] == "Valadares" &&
+                    data.words[1] == "Valadares" &&
                     data.itemsId.length == 1 &&
-                    data.itemsId[0] == "49999",
+                    data.itemsId[0] == "49999" &&
+                    data.missingWords.length == 1 &&
+                    data.missingWords[0] == "consentino" &&
+                    data.expressions.length == 0 &&
+                    data.missingExpressions.length == 0,
                     "Error on query for: ivan consentino valadares"
                 );
             });

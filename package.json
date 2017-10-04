@@ -1,6 +1,6 @@
 {
   "name": "node-suggestive-search",
-  "version": "1.7.4",
+  "version": "1.7.5",
   "author": {
     "name": "Ivan Valadares",
     "email": "ivanvaladares@hotmail.com"
@@ -31,10 +31,7 @@
   "dependencies": {
     "lodash": "^4.17.4",
     "mongodb": "2.2.19",
-    "mysql2": "^1.3.6",
-    "nedb": "^1.8.0",
-    "sequelize": "^4.2.1",
-    "tedious": "^2.0.0"
+    "nedb": "^1.8.0"
   },
   "devDependencies": {
     "eslint": "^4.7.2",
@@ -43,6 +40,9 @@
     "eslint-plugin-node": "^5.2.0",
     "eslint-plugin-promise": "^3.5.0",
     "eslint-plugin-standard": "^3.0.1",
-    "mocha": "^3.5.3"
+    "mocha": "^3.5.3",
+    "mysql2": "^1.3.6",
+    "sequelize": "^4.2.1",
+    "tedious": "^2.0.0"    
   }
 }

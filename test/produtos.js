@@ -89,7 +89,11 @@ describe('Test produtos.json -', () => {
                     data.words[6] == "UNIDADES" &&
                     data.itemsId.length == 2 &&
                     ["25", "26"].indexOf(data.itemsId[0]) >= 0 &&
-                    ["25", "26"].indexOf(data.itemsId[1]) >= 0,
+                    ["25", "26"].indexOf(data.itemsId[1]) >= 0 &&
+                    data.missingWords.length == 0 &&
+                    data.expressions.length == 1 &&
+                    data.missingExpressions.length == 1 &&
+                    data.missingExpressions[0] == "coca-cora",
                     "Error on: REFRIGERANTE coca-cora 'EMBALAGEM COM 6 UNIDADES'"
                 );
             });
@@ -100,9 +104,13 @@ describe('Test produtos.json -', () => {
             .then(data => {
                 assert(
                     data != null &&
-                    data.words.length == 2 &&
-                    data.words[1] == null &&
-                    data.itemsId.length == 27,
+                    data.words.length == 1 &&
+                    data.words[0] == "COCA" &&
+                    data.itemsId.length == 27 &&
+                    data.missingWords.length == 1 &&
+                    data.missingWords[0] == "abjabajbajba" &&
+                    data.expressions.length == 0 &&
+                    data.missingExpressions.length == 0,
                     "Error on: coca abjabajbajba"
                 );
             });
@@ -113,9 +121,14 @@ describe('Test produtos.json -', () => {
             .then(data => {
                 assert(
                     data != null &&
-                    data.words.length == 3 &&
-                    data.words[1] == null &&
-                    data.itemsId.length == 27,
+                    data.words.length == 2 &&
+                    data.words[0] == "COCA" &&
+                    data.words[1] == "COLA" &&
+                    data.itemsId.length == 27 &&
+                    data.missingWords.length == 1 &&
+                    data.missingWords[0] == "abjabajbajba" &&
+                    data.expressions.length == 0 &&
+                    data.missingExpressions.length == 0,
                     "Error on: coca abjabajbajba cola"
                 );
             });
@@ -126,9 +139,14 @@ describe('Test produtos.json -', () => {
             .then(data => {
                 assert(
                     data != null &&
-                    data.words.length == 3 &&
-                    data.words[3] == null &&
-                    data.itemsId.length == 27,
+                    data.words.length == 2 &&
+                    data.words[0] == "COCA" &&
+                    data.words[1] == "COLA" &&
+                    data.itemsId.length == 27 &&
+                    data.missingWords.length == 1 &&
+                    data.missingWords[0] == "abjabajbajba" &&
+                    data.expressions.length == 0 &&
+                    data.missingExpressions.length == 0,
                     "Error on: coca cola abjabajbajba"
                 );
             });
@@ -139,9 +157,15 @@ describe('Test produtos.json -', () => {
             .then(data => {
                 assert(
                     data != null &&
-                    data.words.length == 4 &&
-                    data.words[2] == null &&
-                    data.itemsId.length == 27,
+                    data.words.length == 3 &&
+                    data.words[0] == "COCA" &&
+                    data.words[1] == "COLA" &&
+                    data.words[2] == "REFRIGERANTE" &&
+                    data.itemsId.length == 27 &&
+                    data.missingWords.length == 1 &&
+                    data.missingWords[0] == "abjabajbajba" &&
+                    data.expressions.length == 0 &&
+                    data.missingExpressions.length == 0,
                     "Error on: coca cola abjabajbajba refri"
                 );
             });
@@ -152,9 +176,15 @@ describe('Test produtos.json -', () => {
             .then(data => {
                 assert(
                     data != null &&
-                    data.words.length == 4 &&
-                    data.words[0] == null &&
-                    data.itemsId.length == 27,
+                    data.words.length == 3 &&
+                    data.words[0] == "COCA" &&
+                    data.words[1] == "COLA" &&
+                    data.words[2] == "REFRIGERANTE" &&
+                    data.itemsId.length == 27 &&
+                    data.missingWords.length == 1 &&
+                    data.missingWords[0] == "abjabajbajba" &&
+                    data.expressions.length == 0 &&
+                    data.missingExpressions.length == 0,
                     "Error on: abjabajbajba coca cola refri"
                 );
             });
@@ -169,7 +199,10 @@ describe('Test produtos.json -', () => {
                     data.words.length == 1 &&
                     data.words[0] == "TOFFEE" &&
                     data.itemsId.length == 1 &&
-                    data.itemsId[0] == "21360",
+                    data.itemsId[0] == "21360" &&
+                    data.missingWords.length == 0 &&
+                    data.expressions.length == 0 &&
+                    data.missingExpressions.length == 0,
                     "Error on query for: coffee"
                 );
             });
@@ -185,7 +218,10 @@ describe('Test produtos.json -', () => {
                     data.words[1] == "RED" &&
                     data.words[2] == "LABEL" &&
                     data.itemsId.length == 1 &&
-                    data.itemsId[0] == "11896",
+                    data.itemsId[0] == "11896" &&
+                    data.missingWords.length == 0 &&
+                    data.expressions.length == 0 &&
+                    data.missingExpressions.length == 0,
                     "Error on query for: whisky red label"
                 );
             });
@@ -197,7 +233,11 @@ describe('Test produtos.json -', () => {
                 assert(
                     data != null &&
                     data.words.length == 2 &&
-                    data.itemsId.length == 0 &&
+                    data.itemsId.length == 4 &&
+                    data.missingWords.length == 0 &&
+                    data.expressions.length == 0 &&
+                    data.missingExpressions.length == 1 &&
+                    data.missingExpressions[0] == "whisky label",
                     "Error on query for: \"whisky label\""
                 );
             });
@@ -212,7 +252,11 @@ describe('Test produtos.json -', () => {
                     data.words[0] == "RED" &&
                     data.words[1] == "LABEL" &&
                     data.itemsId.length == 1 &&
-                    data.itemsId[0] == "11896",
+                    data.itemsId[0] == "11896" &&
+                    data.missingWords.length == 0 &&
+                    data.expressions.length == 1 &&
+                    data.missingExpressions.length == 0 &&
+                    data.expressions[0] == "red label",
                     "Error on query for: \"red label\""
                 );
             });
@@ -226,7 +270,12 @@ describe('Test produtos.json -', () => {
                     data.words.length == 2 &&
                     data.words[0] == "LABEL" &&
                     data.words[1] == "RED" &&
-                    data.itemsId.length == 0,
+                    data.itemsId.length == 1 &&
+                    data.itemsId[0] == "11896" &&
+                    data.missingWords.length == 0 &&
+                    data.expressions.length == 0 &&
+                    data.missingExpressions.length == 1 &&
+                    data.missingExpressions[0] == "label red",
                     "Error on query for: \"label red\""
                 );
             });

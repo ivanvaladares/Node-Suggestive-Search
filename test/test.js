@@ -116,7 +116,9 @@ describe('Test test.json -', () => {
                     data.words[1] == "RED" &&
                     data.words[2] == "LABEL" &&
                     data.itemsId.length == 1 &&
-                    data.itemsId[0] == "1",
+                    data.itemsId[0] == "1" &&
+                    data.expressions.length == 0 &&
+                    data.missingExpressions.length == 0,
                     "Error on query for: whisky red label"
                 );
             });
@@ -128,7 +130,9 @@ describe('Test test.json -', () => {
                 assert(
                     data != null &&
                     data.words.length == 0 &&
-                    data.itemsId.length == 0,
+                    data.itemsId.length == 0 &&
+                    data.expressions.length == 0 &&
+                    data.missingExpressions.length == 0,
                     "Error on query for: coffee"
                 );
             });
@@ -142,7 +146,9 @@ describe('Test test.json -', () => {
                     data.words.length == 1 &&
                     data.words[0] == "COFFE" &&
                     data.itemsId.length == 1 &&
-                    data.itemsId[0] == "11",
+                    data.itemsId[0] == "11" &&
+                    data.expressions.length == 0 &&
+                    data.missingExpressions.length == 0,
                     "Error on query for: coffee"
                 );
             });
@@ -158,7 +164,9 @@ describe('Test test.json -', () => {
                     data.words[1] == "RED" &&
                     data.words[2] == "LABEL" &&
                     data.itemsId.length == 1 &&
-                    data.itemsId[0] == "1",
+                    data.itemsId[0] == "1" &&
+                    data.expressions.length == 1 &&
+                    data.expressions[0] == "whisky red label",
                     "Error on query for: 'whisky red label'"
                 );
             });
@@ -166,11 +174,14 @@ describe('Test test.json -', () => {
 
     it('query for: "whisky label"', () => {
         return nss.query("\"whisky label\"")
-            .then(data => {
+            .then(data => { 
                 assert(
                     data != null &&
                     data.words.length == 2 &&
-                    data.itemsId.length == 0 &&
+                    data.itemsId.length == 2 &&
+                    data.expressions.length == 0 &&
+                    data.missingExpressions.length == 1 &&
+                    data.missingExpressions[0] == "whisky label",
                     "Error on query for: \"whisky label\""
                 );
             });
@@ -178,14 +189,17 @@ describe('Test test.json -', () => {
     
     it('query for: "red label"', () => {
         return nss.query("\"red label\"")
-            .then(data => {
+            .then(data => {                
                 assert(
                     data != null &&
                     data.words.length == 2 &&
                     data.words[0] == "RED" &&
                     data.words[1] == "LABEL" &&
                     data.itemsId.length == 1 &&
-                    data.itemsId[0] == "1",
+                    data.itemsId[0] == "1" &&
+                    data.expressions.length == 1  &&
+                    data.expressions[0] == "red label" &&
+                    data.missingExpressions.length == 0,
                     "Error on query for: \"red label\""
                 );
             });
@@ -199,7 +213,10 @@ describe('Test test.json -', () => {
                     data.words.length == 2 &&
                     data.words[0] == "LABEL" &&
                     data.words[1] == "RED" &&
-                    data.itemsId.length == 0,
+                    data.itemsId.length == 2  &&
+                    data.expressions.length == 0 &&
+                    data.missingExpressions.length == 1 &&
+                    data.missingExpressions[0] == "label red",
                     "Error on query for: \"label red\""
                 );
             });
@@ -227,7 +244,11 @@ describe('Test test.json -', () => {
                     data.words.length == 2 &&
                     data.words[0] == "RED" &&
                     data.words[1] == "BLOOD" &&
-                    data.itemsId.length == 0,
+                    data.itemsId.length == 1 &&
+                    data.itemsId[0] == "10" &&
+                    data.expressions.length == 0 &&
+                    data.missingExpressions.length == 1 &&
+                    data.missingExpressions[0] == "Red-Blood",
                     "Error on query for: Red-Blood"
                 );
             });
@@ -242,7 +263,10 @@ describe('Test test.json -', () => {
                     data.words[0] == "BLOOD" &&
                     data.words[1] == "RED" &&
                     data.itemsId.length == 1 &&
-                    data.itemsId[0] == "10",
+                    data.itemsId[0] == "10" &&
+                    data.expressions.length == 1  &&
+                    data.expressions[0] == "Blood-Red" &&
+                    data.missingExpressions.length == 0,
                     "Error on query for: Blood-Red"
                 );
             });
@@ -304,7 +328,10 @@ describe('Test test.json -', () => {
                     data.words[0] == "X" &&
                     data.words[1] == "14" &&
                     data.itemsId.length == 1 &&
-                    data.itemsId[0] == "12",
+                    data.itemsId[0] == "12" &&
+                    data.expressions.length == 1 &&
+                    data.expressions[0] == "X-14" &&
+                    data.missingExpressions.length == 0,
                     "Error on query for: X-14"
                 );
             });
@@ -320,7 +347,10 @@ describe('Test test.json -', () => {
                     data.words[1] == "L" &&
                     data.words[2] == "S" &&
                     data.itemsId.length == 1 &&
-                    data.itemsId[0] == "3",
+                    data.itemsId[0] == "3" &&
+                    data.expressions.length == 1 &&
+                    data.expressions[0] == "L/S" &&
+                    data.missingExpressions.length == 0,
                     "Error on query for: HAM L/S"
                 );
             });
@@ -337,7 +367,10 @@ describe('Test test.json -', () => {
                     data.words[1] == "L" &&
                     data.words[2] == "S" &&
                     data.itemsId.length == 1 &&
-                    data.itemsId[0] == "3",
+                    data.itemsId[0] == "3" &&
+                    data.expressions.length == 1 &&
+                    data.expressions[0] == "HAM L/S" &&
+                    data.missingExpressions.length == 0,
                     "Error on query for: \"HAM L/S\""
                 );
             });
@@ -380,11 +413,13 @@ describe('Test test.json -', () => {
 
     it('query for: absolut', () => {
         return nss.query("absolut")
-            .then(data => {           
+            .then(data => {  
                 assert(
                     data != null &&
                     data.words.length == 0 &&
-                    data.itemsId.length == 0,
+                    data.itemsId.length == 0 &&
+                    data.missingWords.length == 1 &&
+                    data.missingWords[0] == "absolut",
                     "Error on query for: absolut"
                 );
             });

@@ -1,5 +1,5 @@
 /*
-node-suggestive-search v1.7.4
+node-suggestive-search v1.7.5
 https://github.com/ivanvaladares/node-suggestive-search/
 by Ivan Valadares 
 http://ivanvaladares.com 
@@ -953,6 +953,9 @@ const NodeSuggestiveSearch = class {
 				//to acomplish this, lets iterate over all words and their items to check how many items are similar between the words
 				let arrItemsIds = [];
 				let finalWords = [];
+				let missingWords = [];
+				let expressions = [];
+				let missingExpressions = [];
 								
 				if (items.length > 1){
 
@@ -1047,7 +1050,7 @@ const NodeSuggestiveSearch = class {
 							finalWords.push(objWord.results.word);
 						} else {
 							//if this word was not found, lets remove from the results
-							finalWords.push(null);
+							missingWords.push(objWord.word);
 						}
 					});
 
@@ -1058,6 +1061,8 @@ const NodeSuggestiveSearch = class {
 						items[0].results = items[0].results[0];
 						arrItemsIds = items[0].results.items;
 						finalWords.push(items[0].results.word);
+					}else{
+						missingWords.push(items[0].word);
 					}
 				}
 				
@@ -1065,6 +1070,7 @@ const NodeSuggestiveSearch = class {
 				let regExp = /"(.*?)"|'(.*?)'|((?:\w+-)+\w+)|((?:\w+\/|\\)+\w+)/g;
 				let quotedStrings = words.match(regExp, "$1");
 
+				// todo: create a better way to check the expressions and repetitions
 				// let match;// = regExp.exec(words);
 				// console.log(finalWords)
 				// console.log(quotedStrings)
@@ -1083,21 +1089,29 @@ const NodeSuggestiveSearch = class {
 							for (let quotedString in quotedStrings){
 								if (item.itemName.search(new RegExp(quotedStrings[quotedString], "ig")) >= 0 ||
 									(item.keywords !== undefined && item.keywords.search(new RegExp(quotedStrings[quotedString], "ig")) >= 0)) {
+									if (expressions.indexOf(quotedStrings[quotedString]) < 0){
+										expressions.push(quotedStrings[quotedString]);
+									}
 									return item;
-								}//else{
-								//	break;
-								//}
-								// todo: do not break the response if we dont find the results that includes those expressions
+								}
 							}
 						});
 
-						//tranform object items to array of ids
-						arrItemsIds = [];
-						for (let item in foundItems) {
-							arrItemsIds.push(foundItems[item].itemId);
+						quotedStrings.map(quotedString => {
+							if (expressions.indexOf(quotedString) < 0){
+								missingExpressions.push(quotedString);
+							}
+						});
+
+						if (foundItems.length > 0){
+							//tranform filtered object items to array of itemsId
+							arrItemsIds = [];
+							for (let item in foundItems) {
+								arrItemsIds.push(foundItems[item].itemId);
+							}
 						}
 
-						resolve({ query: words, words: finalWords, itemsId: arrItemsIds, timeElapsed: (new Date() - time) });
+						resolve({ query: words, words: finalWords, missingWords, expressions, missingExpressions, itemsId: arrItemsIds, timeElapsed: (new Date() - time) });
 										
 					}).catch(err => {
 						reject(err);
@@ -1105,7 +1119,7 @@ const NodeSuggestiveSearch = class {
 
 				}else{
 
-					resolve({ query: words, words: finalWords, itemsId: arrItemsIds, timeElapsed: (new Date() - time) });
+					resolve({ query: words, words: finalWords, missingWords, expressions, missingExpressions, itemsId: arrItemsIds, timeElapsed: (new Date() - time) });
 
 				}
 
