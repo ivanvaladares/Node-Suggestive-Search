@@ -195,7 +195,7 @@ nss.query("wisk read lbel").then( //misspelled search criteria
 //quoted search criteria
 nss.query("'red label'").then(
 	data => {
-		//response: { query: '"red label"', words: [ 'RED', 'LABEL' ], missingWords: [], expressions: [ 'red label' ], missingExpressions: [], itemsId: [ '1' ], timeElapsed: 1 }
+		//response: { query: '\'red label\'', words: [ 'RED', 'LABEL' ], missingWords: [], expressions: [ 'red label' ], missingExpressions: [], itemsId: [ '1' ], timeElapsed: 1 }
 	},
 	err => {
 		//...
@@ -375,7 +375,11 @@ nss.removetItem(itemId).then(
 ## Roadmap
 * catalog (several dictionaries)
 * Microsoft SQL Server and MySQL support
+* Inject your own database plugin
+* Inject your own ordering functions
+* Personalized items fields
 * filter stopwords
+* In memory javascript database plugin 
 * Browser version.
 
 
