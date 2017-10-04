@@ -100,7 +100,7 @@ Load the JSON from file
 
 nss.loadJson("Items.json", "utf8").then( //you can change the charset to match your file
 	data => {
-		// response: {"words":17,"items":5,"timeElapsed":21}
+		// response: { "words": 17, "items": 5, "timeElapsed": 21 }
 	},
 	err => {
 		//...
@@ -114,7 +114,7 @@ Load the JSON from file with your own poperties names
 
 nss.loadJson("Items.json", "utf8", "itemId", "itemName", "keywords").then(
 	data => {
-		// response: {"words":17,"items":5,"timeElapsed":25}
+		// response: { "words": 17, "items": 5, "timeElapsed": 25 }
 	},
 	err => {
 		//...
@@ -131,7 +131,7 @@ let jSonString = `[{"itemName":"WHISKY RED LABEL", "itemId":"1", "keywords": "fa
 
 nss.loadJsonString(jSonString).then(
 	data => {
-		// response: {"words":5,"items":2,"timeElapsed":9}
+		// response: { "words": 5, "items": 2, "timeElapsed": 9 }
 	},
 	err => {
 		//...
@@ -148,7 +148,7 @@ let jSonString = `[{"nm":"WHISKY RED LABEL", "id":"1", "kw": "fancy"},{
 
 nss.loadJsonString(jSonString, "id", "nm", "kw").then(
 	data => {
-		// response: {"words":5,"items":2,"timeElapsed":8}
+		// response: { "words": 5, "items": 2, "timeElapsed": 8 }
 	},
 	err => {
 		//...
@@ -165,7 +165,7 @@ Examples of how to call the api and responses:
 
 nss.query("whisky").then(
 	data => {
-		//response: {"query":"whisky","words":["WHISKY"],"itemsId":["1","2"],"timeElapsed":1}
+		//response:  { query: 'whisky', words: [ 'WHISKY' ], missingWords: [], expressions: [], missingExpressions: [], itemsId: [ '1', '2' ], timeElapsed: 1 }
 	},
 	err => {
 		//...
@@ -175,7 +175,7 @@ nss.query("whisky").then(
 //did you mean search result
 nss.query("wisk").then( //misspelled search criteria
 	data => {
-		//response: {"query":"wisk","words":["WHISKY"],"itemsId":["1","2"],"timeElapsed":1}
+		//response: { query: 'wisk', words: [ 'WHISKY' ], missingWords: [], expressions: [], missingExpressions: [], itemsId: [ '1', '2' ], timeElapsed: 1 }
 	},
 	err => {
 		//...
@@ -185,12 +185,63 @@ nss.query("wisk").then( //misspelled search criteria
 //did you mean search result
 nss.query("wisk read lbel").then( //misspelled search criteria
 	data => {
-		//response: {"query":"wisk read lbel","words":["WHISKY","RED","LABEL"],"itemsId":["1"],"timeElapsed":4}
+		//response: { query: 'wisk read labl', words: [ 'WHISKY', 'RED', 'LABEL' ], missingWords: [], expressions: [], missingExpressions: [], itemsId: [ '1' ], timeElapsed: 2 }
 	},
 	err => {
 		//...
 	}
 );
+
+//quoted search criteria
+nss.query("'red label'").then(
+	data => {
+		//response: { query: '"red label"', words: [ 'RED', 'LABEL' ], missingWords: [], expressions: [ 'red label' ], missingExpressions: [], itemsId: [ '1' ], timeElapsed: 1 }
+	},
+	err => {
+		//...
+	}
+);
+
+//quoted search criteria
+nss.query("'red label'").then(
+	data => {
+		//response: { query: '\'label red\'', words: [ 'LABEL', 'RED' ], missingWords: [], expressions: [], missingExpressions: [ 'label red' ], itemsId: [ '1' ], timeElapsed: 2 }
+	},
+	err => {
+		//...
+	}
+);
+
+//dashed search criteria
+nss.query("Red-Blood").then(
+	data => {
+		//response: { query: 'Red-Blood', words: [ 'RED' ], missingWords: [ 'Blood' ], expressions: [], missingExpressions: [ 'Red-Blood' ], itemsId: [ '1' ], timeElapsed: 2 }
+	},
+	err => {
+		//...
+	}
+);
+
+//slashed search criteria
+nss.query("HAM L/S").then(
+	data => {
+		//response: { query: 'HAM L/S', words: [ 'HAM', 'L', 'S' ], missingWords: [], expressions: [ 'L/S' ], missingExpressions: [], itemsId: [ '3' ], timeElapsed: 2 }
+	},
+	err => {
+		//...
+	}
+);
+
+//double quoted search criteria
+nss.query("\"HAM L/S\"").then(
+	data => {
+		//response: { query: '"HAM L/S"', words: [ 'HAM', 'L', 'S' ], missingWords: [], expressions: [ 'HAM L/S' ], missingExpressions: [], itemsId: [ '3' ], timeElapsed: 2 }
+	},
+	err => {
+		//...
+	}
+);
+
   
 ```
 
@@ -203,7 +254,7 @@ Examples of how to call the api and responses:
 
 nss.getSuggestedWords("whi").then(
 	data => {
-		//response: {"suggestions":["WHISKY"],"timeElapsed":1}
+		//response: { "suggestions": [ "WHISKY" ], "timeElapsed": 1 }
 	},
 	err => {
 		//...
@@ -212,7 +263,7 @@ nss.getSuggestedWords("whi").then(
 
 nss.getSuggestedWords("whisky ").then(
 	data => {
-		//response: {"suggestions":["WHISKY","WHISKY LABEL","WHISKY BLACK","WHISKY RED"],"timeElapsed":1}
+		//response: { "suggestions": [ "WHISKY", "WHISKY LABEL", "WHISKY RED", "WHISKY BLACK" ], "timeElapsed": 1 }
 	},
 	err => {
 		//...
@@ -221,7 +272,7 @@ nss.getSuggestedWords("whisky ").then(
 
 nss.getSuggestedWords("whisky re").then(
 	data => {
-		//response: {"suggestions":["WHISKY","WHISKY RED"],"timeElapsed":2}
+		//response: { "suggestions": [ "WHISKY", "WHISKY RED" ], "timeElapsed": 2 }
 	},
 	err => {
 		//...
@@ -240,7 +291,7 @@ Examples of how to call the api and responses:
 
 nss.getSuggestedItems("parme").then(
 	data => {
-		//response: {"items":[{"itemId":"4","itemName":"PESTO PARMESAN HAM"}],"timeElapsed":2}
+		//response: { "items": [ { "itemId": "4", "itemName": "PESTO PARMESAN HAM" } ], "timeElapsed": 2 }
 	},
 	err => {
 		//...
@@ -249,7 +300,7 @@ nss.getSuggestedItems("parme").then(
 
 nss.getSuggestedItems("whisky fancy").then(
 	data => {
-		//response: {"items":[{"itemId":"1","itemName":"WHISKY RED LABEL"}],"timeElapsed":1}
+		//response: { "items": [ { "itemId": "1", "itemName":"WHISKY RED LABEL" } ], "timeElapsed": 1 }
 	},
 	err => {
 		//...
@@ -258,7 +309,7 @@ nss.getSuggestedItems("whisky fancy").then(
 
 nss.getSuggestedItems("whisky re").then(
 	data => {
-		//response: {"items":[{"itemId":"1","itemName":"WHISKY RED LABEL"}],"timeElapsed":1}
+		//response: { "items":[ { "itemId": "1", "itemName": "WHISKY RED LABEL" } ], "timeElapsed": 1 }
 	},
 	err => {
 		//...
@@ -267,7 +318,7 @@ nss.getSuggestedItems("whisky re").then(
 
 nss.getSuggestedItems("whisky label").then(
 	data => {
-		//response: {"items":[{"itemId":"1","itemName":"WHISKY RED LABEL"},{"itemId":"2","itemName":"WHISKY BLACK LABEL"}],"timeElapsed":2}
+		//response: { "items": [ {"itemId": "1", "itemName": "WHISKY RED LABEL" }, { "itemId": "2", "itemName": "WHISKY BLACK LABEL" } ], "timeElapsed": 2 }
 	},
 	err => {
 		//...
@@ -291,7 +342,7 @@ let newItem = {
 
 nss.insertItem(newItem, "iId", "iName", "iKw").then(
 	data => {
-		//response: {"timeElapsed":2}
+		//response: { "timeElapsed": 2 }
 	},
 	err => {
 		//...
@@ -311,7 +362,7 @@ let itemId = "6";
 
 nss.removetItem(itemId).then(
 	data => {
-		//response: {"timeElapsed":2}
+		//response: { "timeElapsed": 2 }
 	},
 	err => {
 		//...
