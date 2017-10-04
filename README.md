@@ -109,7 +109,7 @@ nss.loadJson("Items.json", "utf8").then( //you can change the charset to match y
 
 ```
 
-Load the JSON from file with your own poperties names
+Load the JSON from file with your properties names
 ```javascript
 
 nss.loadJson("Items.json", "utf8", "itemId", "itemName", "keywords").then(
@@ -140,7 +140,7 @@ nss.loadJsonString(jSonString).then(
 
 ```
 
-Load the JSON from string with your own poperties names
+Load the JSON from string with your properties names
 ```javascript
 
 let jSonString = `[{"nm":"WHISKY RED LABEL", "id":"1", "kw": "fancy"},{  
@@ -375,8 +375,8 @@ nss.removetItem(itemId).then(
 ## Roadmap
 * catalog (several dictionaries)
 * Microsoft SQL Server and MySQL support
-* Inject your own database plugin
-* Inject your own ordering functions
+* Inject your database plugin
+* Inject your ordering functions
 * Personalized items fields
 * filter stopwords
 * In memory javascript database plugin 
