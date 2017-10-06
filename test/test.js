@@ -28,9 +28,11 @@ describe('Test test.json -', () => {
             });
 
         //tests using mongogdb
-        // let nss = require('../index.js').init(
+        // nss = require('../index.js').init(
         //         {
         //             dataBase: "mongodb", 
+        //             itemsCollectionName: "nss-test-items",
+        //             wordsCollectionName: "nss-test-words",
         //             mongoDatabase: "mongodb://localhost:27017/nodeSugestiveSearchTest"
         //         });
 

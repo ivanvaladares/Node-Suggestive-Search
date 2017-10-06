@@ -21,7 +21,9 @@ describe('Test names.json -', () => {
         //tests using mongogdb
         // nss = require('../index.js').init(
         // {
-        //     dataBase: "mongodb", 
+        //     dataBase: "mongodb",  
+        //     itemsCollectionName: "nss-names-items",
+        //     wordsCollectionName: "nss-names-words",
         //     mongoDatabase: "mongodb://localhost:27017/nodeSugestiveSearchTest"
         // });
 
