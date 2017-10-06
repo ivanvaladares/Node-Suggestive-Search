@@ -21,7 +21,9 @@ describe('Test produtos.json -', () => {
         //tests using mongogdb
         // nss = require('../index.js').init(
         //         {
-        //             dataBase: "mongodb", 
+        //             dataBase: "mongodb",  
+        //             itemsCollectionName: "nss-produtos-items",
+        //             wordsCollectionName: "nss-produtos-words",
         //             mongoDatabase: "mongodb://localhost:27017/nodeSugestiveSearchTest"
         //         });
 

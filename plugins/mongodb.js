@@ -26,8 +26,7 @@ let DbDriver = class {
         return new Promise((resolve, reject) => {
             collection.insert(entry, { w: 0 }, (err, newDoc) => {
                 if (err) { return reject(err); }
-    
-                resolve(newDoc);
+                resolve(newDoc.ops);
             });
         });
     }
@@ -147,10 +146,10 @@ let DbDriver = class {
         return this._remove(this.dbWords, criteria1, { multi: false });
     }
 
-}
+};
 
 util.inherits(DbDriver, EventEmitter);
 
 exports.init = (options) => {
     return new DbDriver(options);
-}
+};
