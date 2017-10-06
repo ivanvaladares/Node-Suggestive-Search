@@ -152,10 +152,10 @@ let DbDriver = class {
         return this._remove(this.dbWords, criteria1, { multi: false });
     }
 
-}
+};
 
 util.inherits(DbDriver, EventEmitter);
 
 exports.init = (options) => {
     return new DbDriver(options);
-}
+};

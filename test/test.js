@@ -20,18 +20,18 @@ describe('Test test.json -', () => {
             });
 
         //tests using nedb
-        nss = require('../index.js').init(
-            {
-                dataBase: "nedb",
-                neDbDataPath: "",
-                neDbInMemoryOnly: true
-            });
+        // nss = require('../index.js').init(
+        //     {
+        //         dataBase: "nedb",
+        //         neDbDataPath: "",
+        //         neDbInMemoryOnly: true
+        //     });
 
         //tests using mongogdb
-        // let nss = require('../index.js').init(
+        // nss = require('../index.js').init(
         //         {
         //             dataBase: "mongodb", 
-        //             mongoDatabase: "mongodb://localhost:27017/nodeSugestiveSearchTest"
+        //             mongoDatabase: "mongodb://localhost:27017/nodeSugestiveSearchTest3"
         //         });
 
         //tests using ms-sql
@@ -52,6 +52,25 @@ describe('Test test.json -', () => {
         //             }
         //         }   
         //     });
+
+        //tests using my-sql
+        nss = require('../index.js').init(
+            {
+                dataBase: "mysql",
+                force: false,
+                itemsTableName: "nss-test-items",
+                wordsTableName: "nss-test-words",
+                itemsWordsTableName: "nss-test-itemsWords",
+                dbConnection: {
+                    host: '127.0.0.1',
+                    username: "root",
+                    password: 'mysqlpass',
+                    database: "test",        
+                    dialect: 'mysql',     
+                    logging: false,       
+                    dialectOptions: { requestTimeout: 60000 }
+                }   
+            });
 
         //wait for the initialization process
         nss.on("initialized", () => {

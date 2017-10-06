@@ -33,6 +33,8 @@ let DbDriver = class {
                 allowNull: true
             }
         }, {
+            indexes: [{unique: true, fields: ['itemId']}] 
+        }, {
             tableName: itemsTableName,
             timestamps: false
         });
@@ -82,6 +84,19 @@ let DbDriver = class {
                 allowNull: true
             }
         }, {
+            indexes: [
+                {unique: true, fields: ['id']},
+                {unique: false, fields: ['word']},
+                {unique: false, fields: ['cleanWord']},
+                {unique: false, fields: ['soundex']},
+                {unique: false, fields: ['p2i']},
+                {unique: false, fields: ['p2e']},
+                {unique: false, fields: ['p3i']},
+                {unique: false, fields: ['p3e']},
+                {unique: false, fields: ['p4i']},
+                {unique: false, fields: ['p4e']}
+            ] 
+        }, {
             tableName: wordsTableName,
             timestamps: false
         });
@@ -97,6 +112,10 @@ let DbDriver = class {
                 allowNull: false,
                 unique: false
             }
+        }, {
+            indexes: [
+                {unique: true, fields: ['itemId', 'wordId']}
+            ] 
         }, {
             tableName: itemsWordsTableName,
             timestamps: false

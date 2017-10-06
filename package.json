@@ -1,6 +1,6 @@
 {
   "name": "node-suggestive-search",
-  "version": "1.7.5",
+  "version": "1.7.6",
   "author": {
     "name": "Ivan Valadares",
     "email": "ivanvaladares@hotmail.com"
@@ -22,7 +22,7 @@
   ],
   "main": "index.js",
   "scripts": {
-    "test": "mocha -R list --timeout 10000"
+    "test": "mocha -R list --timeout 20000"
   },
   "repository": {
     "type": "git",
