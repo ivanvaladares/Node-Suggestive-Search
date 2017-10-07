@@ -141,18 +141,22 @@ const NodeSuggestiveSearch = class {
 
 		if (itemsIds === undefined){
 			wordItems.map(word => {
-				if (word.results[0].similarity > maxSimilarity){
+				if (word.results.length > 0 && word.results[0].similarity > maxSimilarity){
 					maxSimilarity = word.results[0].similarity;
 					wordItem = word;
 				}
 			});
 
-			wordItem.processed = true;
+			if (wordItem !== null){
+				wordItem.processed = true;
+				return this._getItemsIdFromMatrix(wordItems, wordItem.results[0].items);
+			}else{
+				return this._getItemsIdFromMatrix(wordItems, []);
+			}
 
-			return this._getItemsIdFromMatrix(wordItems, wordItem.results[0].items);
 		}else{
 			wordItems.map(word => {
-				if (word.processed === undefined){
+				if (word.results.length > 0 && word.processed === undefined){
 					if (word.results[0].similarity > maxSimilarity){
 						maxSimilarity = word.results[0].similarity;
 						wordItem = word;
@@ -1033,7 +1037,8 @@ const NodeSuggestiveSearch = class {
 						if (objWord.results[1] !== undefined && objWord.results[0].similarity === objWord.results[1].similarity) {
 							items.map((objInnerWord, innerCol) => {
 								if (innerCol !== col) {
-									if (objWord.results[0].word === objInnerWord.results[0].word || objWord.results[1].word === objInnerWord.results[0].word) {
+									if (objWord.results.length > 0 && objInnerWord.results.length > 0 && 
+											(objWord.results[0].word === objInnerWord.results[0].word || objWord.results[1].word === objInnerWord.results[0].word)) {
 										hasTosortAgain = true;
 										if (objWord.results[0].word === objInnerWord.results[0].word){
 											objWord.results[0].similarity -= 0.1;
