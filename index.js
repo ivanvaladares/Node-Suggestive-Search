@@ -52,6 +52,8 @@ const NodeSuggestiveSearch = class {
 		return this;
 	}
 
+	//#region private functions
+
 	_checkInitialized () {
 		if (!this._initialized) {
 			throw new Error("Module not initialized!!");
@@ -140,6 +142,7 @@ const NodeSuggestiveSearch = class {
 		let wordItem = null;
 
 		if (itemsIds === undefined){
+			//choosing the best column to start
 			wordItems.map(word => {
 				if (word.results.length > 0 && word.results[0].similarity > maxSimilarity){
 					maxSimilarity = word.results[0].similarity;
@@ -155,6 +158,7 @@ const NodeSuggestiveSearch = class {
 			}
 
 		}else{
+			//choosing the best column to continue
 			wordItems.map(word => {
 				if (word.results.length > 0 && word.processed === undefined){
 					if (word.results[0].similarity > maxSimilarity){
@@ -434,6 +438,8 @@ const NodeSuggestiveSearch = class {
 		});
 
 	}
+	
+	//#endregion
 
 	/**
 	 * Removes an item and its words from the dictionary database.
@@ -1016,6 +1022,10 @@ const NodeSuggestiveSearch = class {
 						allItems.push(wordItems);
 					});
 					
+					//this is the intersection on the columns.
+					//each word from query has none or several itemsId for each similar word
+					//the intersection is performed on those groups
+					//[1, 2, 3], [2, 4, 5], [2, 6] == [2]
 					let allItemsFiltered = _.intersection.apply(_, allItems);	
 					
 					//promote items that have itemsId within the intersection by ordering them up
@@ -1073,33 +1083,13 @@ const NodeSuggestiveSearch = class {
 									break;
 								}
 							}
-							if (!hasMatch){
-								objWord.results = objWord.results[0];
+							if (hasMatch){
+								finalWords.push(objWord.results.word);
+							}else{
+								missingWords.push(objWord.word);
 							}
 						}
 					});
-
-					//iterate all words to check if they have at least one itemId from the intersection
-					items.map(objWord => {
-						let found = false;
-					
-						if (objWord.results.items !== undefined) {
-							for (let i = 0; i < objWord.results.items.length; i++) {
-								if (arrItemsIds.indexOf(objWord.results.items[i]) > -1) {
-									found = true;
-									break;
-								}
-							}
-						}
-						
-						if (found) {
-							finalWords.push(objWord.results.word);
-						} else {
-							//if this word was not found, lets remove from the results
-							missingWords.push(objWord.word);
-						}
-					});
-
 
 				}else{
 					//get the best match over similarity and transform word.results[] in only one result{} json object for each word from the query
