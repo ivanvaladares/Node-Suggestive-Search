@@ -60,29 +60,6 @@ let DbDriver = class {
             });
         });    
     }
-
-    createWordObject (word, cleanWord, soundexWord) {
-        
-        let objWord = { word, cleanWord, soundex: soundexWord, items: {} };
-        
-        for (let i = 2; i <= cleanWord.length && i <= 4; i++) {
-            objWord[`p${i}i`] = cleanWord.substr(0, i).toLowerCase();
-            objWord[`p${i}e`] = cleanWord.substr(cleanWord.length - i, cleanWord.length).toLowerCase();
-        }
-    
-        return objWord;
-    }
-    
-    createItemObject (itemId, itemName, keywords) {
-    
-        let objItem = { itemId, itemName };
-    
-        if (keywords !== undefined){
-            objItem.keywords = keywords;
-        }
-    
-        return objItem;
-    }
         
     cleanDatabase () {
         return new Promise((resolve, reject) => {

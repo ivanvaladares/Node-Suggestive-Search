@@ -26,25 +26,6 @@ describe('Test names.json -', () => {
         //     wordsCollectionName: "nss-names-words",
         //     mongoDatabase: "mongodb://localhost:27017/nodeSugestiveSearchTest"
         // });
-
-        //tests using ms-sql
-        // nss = require('../index.js').init(
-        //     {
-        //         dataBase: "mssql",
-        //         force: false,
-        //         dbConnection: {
-        //             host: '127.0.0.1',
-        //             username: "sa",
-        //             password: 'mssqlpass',
-        //             database: "test",        
-        //             dialect: 'mssql',     
-        //             logging: false,       
-        //             dialectOptions: {
-        //                 requestTimeout: 60000,
-        //                 encrypt: true // Use this if you're on Windows Azure                
-        //             }
-        //         }   
-        //     });
         
         //wait for the initialization process
         nss.on("initialized", () => {
@@ -180,24 +161,6 @@ describe('Test names.json -', () => {
             });
     });
 
-    it('query for: ivam vala', () => {
-        return nss.query("ivam vala")
-            .then(data => {
-                assert(
-                    data != null &&
-                    data.words.length == 2 &&
-                    data.words[0] == "Ivan" &&
-                    data.words[1] == "Valadares" &&
-                    data.itemsId.length == 1 &&
-                    data.itemsId[0] == "49999" &&
-                    data.missingWords.length == 0 &&
-                    data.expressions.length == 0 &&
-                    data.missingExpressions.length == 0,
-                    "Error on query for: ivam vala"
-                );
-            });
-    });
-
     it('query for: ivan consentino valadares', () => {
         return nss.query("ivan consentino valadares")
             .then(data => {
@@ -219,15 +182,15 @@ describe('Test names.json -', () => {
 
     it('get words suggestions for: ivan v', () => {
         return nss.getSuggestedWords("ivan v")
-            .then(data => {
+            .then(data => {       
                 assert(
                     data != null &&
                     data.suggestions.length == 2 &&
                     (
-                        (data.suggestions[0] == "Ivan Valadares" &&
-                        data.suggestions[1] == "Ivan Valentino") ||
-                        (data.suggestions[1] == "Ivan Valadares" &&
-                        data.suggestions[0] == "Ivan Valentino")
+                        (data.suggestions[0] == "ivan Valadares" &&
+                        data.suggestions[1] == "ivan Valentino") ||
+                        (data.suggestions[1] == "ivan Valadares" &&
+                        data.suggestions[0] == "ivan Valentino")
                     ),
                     "Error on get words suggestions for: ivan v"
                 );
@@ -236,7 +199,7 @@ describe('Test names.json -', () => {
 
     it('get items suggestions for: ivan v', () => {
         return nss.getSuggestedItems("ivan v")
-            .then(data => {                
+            .then(data => {       
                 assert(
                     data != null &&
                     data.items.length == 3 &&
@@ -244,6 +207,24 @@ describe('Test names.json -', () => {
                     data.items[1].itemName == "Ivan Campos" &&
                     data.items[2].itemName == "Ivan Valentino",
                     "Error on get items suggestions for: ivan v"
+                );
+            });
+    });
+
+    it('query for: ivam valadar', () => {
+        return nss.query("ivam valadar")
+            .then(data => {
+                assert(
+                    data != null &&
+                    data.words.length == 2 &&
+                    data.words[0] == "Ivan" &&
+                    data.words[1] == "Valadares" &&
+                    data.itemsId.length == 1 &&
+                    data.itemsId[0] == "49999" &&
+                    data.missingWords.length == 0 &&
+                    data.expressions.length == 0 &&
+                    data.missingExpressions.length == 0,
+                    "Error on query for: ivam valadar"
                 );
             });
     });

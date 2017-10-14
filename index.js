@@ -1,5 +1,5 @@
 /*
-node-suggestive-search v1.7.6
+node-suggestive-search v1.7.7
 https://github.com/ivanvaladares/node-suggestive-search/
 by Ivan Valadares 
 http://ivanvaladares.com 
@@ -124,6 +124,30 @@ const NodeSuggestiveSearch = class {
 			(string.length == 4 ? "" : (new Array(5 - string.length)).join("0"));
 	}
 
+	_createWordObject (word) {
+		
+		let cleanWord = word.toLowerCase().latinize();
+        let objWord = { word, cleanWord, soundex: this._soundex(cleanWord), items: {} };
+        
+        for (let i = 2; i <= cleanWord.length && i <= 4; i++) {
+            objWord[`p${i}i`] = cleanWord.substr(0, i).toLowerCase();
+            objWord[`p${i}e`] = cleanWord.substr(cleanWord.length - i, cleanWord.length).toLowerCase();
+        }
+
+        return objWord;
+    }
+
+    _createItemObject (itemId, itemName, keywords) {
+
+        let objItem = { itemId, itemName };
+
+        if (keywords !== undefined){
+            objItem.keywords = keywords;
+        }
+
+        return objItem;
+    }
+
 	_splitWords (text) {
 		//separate words using this regexp pattern
 		let arr = text.replace(/[.,/#!$%^&*;:{}=+\-_`~()?<>"”“]/gi, ' ').split(" ");
@@ -136,12 +160,23 @@ const NodeSuggestiveSearch = class {
 		});
 	}
 
-	_getItemsIdFromMatrix (wordItems, itemsIds) {
+	_matchWordsByItemsIds (wordItems, finalWordItems) {
 	
 		let maxSimilarity = -1;
 		let wordItem = null;
 
-		if (itemsIds === undefined){
+		if (finalWordItems === undefined){
+
+			finalWordItems = {};
+			finalWordItems.wordsObjects = [];
+			finalWordItems.itemsIds = [];
+			finalWordItems.finalWords = _.fill(Array(wordItems.length), "");
+			finalWordItems.missingWords = [];
+
+			wordItems.map((word, index) => {
+				word.index = index;
+			});
+
 			//choosing the best column to start
 			wordItems.map(word => {
 				if (word.results.length > 0 && word.results[0].similarity > maxSimilarity){
@@ -152,9 +187,14 @@ const NodeSuggestiveSearch = class {
 
 			if (wordItem !== null){
 				wordItem.processed = true;
-				return this._getItemsIdFromMatrix(wordItems, wordItem.results[0].items);
+				wordItem.results = wordItem.results[0];
+				finalWordItems.itemsIds = wordItem.results.items;
+
+				finalWordItems.finalWords[wordItem.index] = wordItem.results.word;
+				finalWordItems.wordsObjects.push(wordItem);
+				return this._matchWordsByItemsIds(wordItems, finalWordItems);
 			}else{
-				return this._getItemsIdFromMatrix(wordItems, []);
+				return this._matchWordsByItemsIds(wordItems, finalWordItems);
 			}
 
 		}else{
@@ -168,24 +208,40 @@ const NodeSuggestiveSearch = class {
 				}
 			});
 
-			//there is no more words to process
+			//there are no more words to process
 			if (wordItem === null){
-				return itemsIds;
+				finalWordItems.finalWords = finalWordItems.finalWords.filter((word, index) => {
+					if (word === "") {
+						finalWordItems.missingWords.push(wordItems[index].word);
+					}
+					return word !== "";
+				});
+				return finalWordItems;
 			}
 
 			wordItem.processed = true;
-		}
+
+			for (let i = 0; i < wordItem.results.length; i++){
+				if (finalWordItems.finalWords.indexOf(wordItem.results[i].word) > -1){ //todo check if is a repeated one
+					continue;
+				}
 	
-		for (let i = 0; i < wordItem.results.length; i++){
-			let arr = _.intersection(wordItem.results[i].items, itemsIds);
-	
-			if (arr.length > 0){
-				return this._getItemsIdFromMatrix(wordItems, arr);
+				let arr = _.intersection(wordItem.results[i].items, finalWordItems.itemsIds);
+		
+				if (arr.length > 0){
+					wordItem.results = wordItem.results[i];
+					finalWordItems.itemsIds = arr;
+					finalWordItems.finalWords[wordItem.index] = wordItem.results.word;
+					finalWordItems.wordsObjects.push(wordItem);
+					return this._matchWordsByItemsIds(wordItems, finalWordItems);
+				}
 			}
+	
+			//did not find itemsId for this words, go to the next
+			return this._matchWordsByItemsIds(wordItems, finalWordItems);
+
 		}
 
-		//did not find itemsId for this words, go to the next
-		return this._getItemsIdFromMatrix(wordItems, itemsIds);
 	}
 
 	_getWordsBySoundexAndParts (word) {
@@ -319,7 +375,7 @@ const NodeSuggestiveSearch = class {
 
 					//validate json object
 					if (item[itemId] !== undefined && item[itemName] !== undefined){
-						itemsArray.push(this._db.createItemObject(item[itemId], item[itemName], item[keywords]));
+						itemsArray.push(this._createItemObject(item[itemId], item[itemName], item[keywords]));
 					}
 
 				});
@@ -353,19 +409,18 @@ const NodeSuggestiveSearch = class {
 
 							} else {
 								//keep the word without accent and lowercase
-								let cleanWord = strWord.latinize();
 
-								let objWord = this._db.createWordObject(word, cleanWord, this._soundex(word));
+								let objWord = this._createWordObject(word);
 
 								//add this new item into related items of this word
 								objWord.items[itemId] = true;
 
 								objWords[strWord] = objWord;
 
-								if (repeatedObjWords[cleanWord]) {
-									repeatedObjWords[cleanWord].push(strWord);
+								if (repeatedObjWords[objWord.cleanWord]) {
+									repeatedObjWords[objWord.cleanWord].push(strWord);
 								} else {
-									repeatedObjWords[cleanWord] = [strWord];
+									repeatedObjWords[objWord.cleanWord] = [strWord];
 								}
 
 							}
@@ -592,7 +647,7 @@ const NodeSuggestiveSearch = class {
 				return reject(new Error('Item must have itemId and itemName!'));
 			}
 
-			let itemObject = this._db.createItemObject(itemJson[itemId], itemJson[itemName], itemJson[keywords]);
+			let itemObject = this._createItemObject(itemJson[itemId], itemJson[itemName], itemJson[keywords]);
 
 			this.removeItem(itemObject.itemId).then(() => {
 
@@ -721,9 +776,7 @@ const NodeSuggestiveSearch = class {
 							let objWords = {};
 
 							notFoundedWords.map(word => {
-								let cleanWord = word.toLowerCase().latinize();
-
-								let objWord = this._db.createWordObject(word, cleanWord, this._soundex(word));
+								let objWord = this._createWordObject(word);
 
 								//add this new item into related items of this word
 								objWord.items = [itemObject.itemId];
@@ -1001,110 +1054,17 @@ const NodeSuggestiveSearch = class {
 				//items variable contains an array of words objects and results for each word from the query
 				// {word: word, results: db.words[]} 
 				//if there is any incorrect word, lets choose the best match between the results 
-				//to acomplish this, lets iterate over all words and their items to check how many items are similar between the words
-				let arrItemsIds = [];
-				let finalWords = [];
-				let missingWords = [];
-				let expressions = [];
-				let missingExpressions = [];
-								
-				if (items.length > 1){
+				let objFinal = this._matchWordsByItemsIds(items);
+				let arrItemsIds = objFinal.itemsIds;
+				let finalWords = objFinal.finalWords;
+				let missingWords = objFinal.missingWords;
 
-					let allItems = [];
-
-					items.map(objWord => {
-						let wordItems = [];
-
-						objWord.results.map(results => {
-							wordItems = _.concat(wordItems, results.items);
-						});
-
-						allItems.push(wordItems);
-					});
-					
-					//this is the intersection on the columns.
-					//each word from query has none or several itemsId for each similar word
-					//the intersection is performed on those groups
-					//[1, 2, 3], [2, 4, 5], [2, 6] == [2]
-					let allItemsFiltered = _.intersection.apply(_, allItems);	
-					
-					//promote items that have itemsId within the intersection by ordering them up
-					items.map(objWord => {
-						objWord.results = objWord.results.map(results => {
-							let arr = _.intersection(results.items, allItemsFiltered);
-							if (arr.length > 0) {
-								results.similarity = ((results.similarity || 0) + 1);
-							}
-							return results;
-						}).sort((x, y) => {
-							return ((x.similarity > y.similarity) ? -1 : 1);
-						});
-					});
-
-					//if some word is head to head to another in the same col, lets deal with this by checking if this word is present at the top of another column
-					let hasTosortAgain = false;
-					items.map((objWord, col) => {
-						if (objWord.results[1] !== undefined && objWord.results[0].similarity === objWord.results[1].similarity) {
-							items.map((objInnerWord, innerCol) => {
-								if (innerCol !== col) {
-									if (objWord.results.length > 0 && objInnerWord.results.length > 0 && 
-											(objWord.results[0].word === objInnerWord.results[0].word || objWord.results[1].word === objInnerWord.results[0].word)) {
-										hasTosortAgain = true;
-										if (objWord.results[0].word === objInnerWord.results[0].word){
-											objWord.results[0].similarity -= 0.1;
-										}else{
-											objWord.results[1].similarity -= 0.1;
-										}
-									}
-								}
-							});
-						}
-					});
-
-					//sort again after the decision above 
-					if (hasTosortAgain){
-						items.map(objWord => {
-							objWord.results = objWord.results.sort((x, y) => {
-								return ((x.similarity > y.similarity) ? -1 : 1);
-							});
-						});
-					}
-
-					arrItemsIds = this._getItemsIdFromMatrix(items);
-
-					//get the best match over similarity and transform word.results[] in only one result{} json object for each word from the query
-					items.map(objWord => {
-						if (objWord.results.length > 0) {
-							let hasMatch = false;
-							for (let i = 0; i < objWord.results.length; i++) {
-								if (_.intersection(arrItemsIds, objWord.results[i].items).length > 0) {
-									objWord.results = objWord.results[i];
-									hasMatch = true;
-									break;
-								}
-							}
-							if (hasMatch){
-								finalWords.push(objWord.results.word);
-							}else{
-								missingWords.push(objWord.word);
-							}
-						}
-					});
-
-				}else{
-					//get the best match over similarity and transform word.results[] in only one result{} json object for each word from the query
-					if (items[0].results.length > 0) {
-						items[0].results = items[0].results[0];
-						arrItemsIds = items[0].results.items;
-						finalWords.push(items[0].results.word);
-					}else{
-						missingWords.push(items[0].word);
-					}
-				}
-				
 				//pos search - match quoted expressions, hyphenated words and separated by slashes
 				let regExp = /"(.*?)"|'(.*?)'|((?:\w+-)+\w+)|((?:\w+\/|\\)+\w+)/g;
 				let quotedStrings = words.match(regExp, "$1");
+
+				let expressions = [];
+				let missingExpressions = [];
 
 				// todo: create a better way to check the expressions and repetitions
 				// let match;// = regExp.exec(words);
@@ -1245,25 +1205,21 @@ const NodeSuggestiveSearch = class {
 
 							if (!foundWords || foundWords.length <= 0) {
 
-								//instead of returning an error, lets return null
+								//instead of returning an error, lets return a null
 								resolve(null);
 
 							} else {
 
-								if (foundWords.length > 1) {
-
-									//sort to return the best match
-									foundWords = foundWords.map((obj) => {
-										obj.similarity = this._similarity(obj.word, word);
-										return obj;
-									}).sort((x, y) => {
-										return ((x.similarity > y.similarity) ? -1 : 1);
-									});
-
-								}
+								//sort to return the best match
+								foundWords = foundWords.map((obj) => {
+									obj.similarity = this._similarity(obj.word, word);
+									return obj;
+								}).sort((x, y) => {
+									return ((x.similarity > y.similarity) ? -1 : 1);
+								}).slice(0, 1);
 
 								//returning the best match
-								resolve({ word: foundWords[0].word });
+								resolve({ word, results: foundWords });
 
 							}
 
@@ -1293,114 +1249,110 @@ const NodeSuggestiveSearch = class {
 
 					previousWords = previousWords.trim();
 
-					//query for the previous words to check if there is items with this combination
-					this.query(previousWords).then(queryResponse => {
 
-						//after this query, one or more words could be missing because its items did not match
-						//if that is true, break the response
-						for (let index = 0; index < queryResponse.words.length; index++) {
-							if (queryResponse.words[index] === null) {
-								//some word is not correct, break the response
-								return resolve({ suggestions: [], timeElapsed: (new Date() - time) });
-							}
-						}
+					let objFinal = this._matchWordsByItemsIds(foundItems);
+					let arrItemsIds = objFinal.itemsIds;
+					let missingWords = objFinal.missingWords;
 
-						let arrResponse = [];
+					
+					//after this query, one or more words could be missing because its items did not match
+					//if that is true, break the response
+					if (missingWords.length > 0) {
+						//some word is not correct, break the response
+						return resolve({ suggestions: [], timeElapsed: (new Date() - time) });
+					}
 
-						let lastWord = arrWords[arrWords.length - 1].toLowerCase().latinize();
+					let arrResponse = [];
+					let objResponse = {};					
+					let lastWord = arrWords[arrWords.length - 1].toLowerCase().latinize();
+					
+					this._splitWords(previousWords).map(el => {
+						objResponse[el.toLowerCase().latinize()] = 1;
+					});
 
-						let objResponse = {};
-						this._splitWords(previousWords).map(el => {
-							objResponse[el.toLowerCase().latinize()] = 1;
-						});
+					this._db.findItems({ itemId: { $in: arrItemsIds.slice(0, 1000) } }).then(othersItems => {
 
-						this._db.findItems({ itemId: { $in: queryResponse.itemsId.slice(0, 1000) } }).then(othersItems => {
+						//get all item's names from items returned from query and create a relatedWords dictionary
+						let objRelatedWords = {};
+						othersItems.map(item => {
 
-							//get all item's names from items returned from query and create a relatedWords dictionary
-							let objRelatedWords = {};
-							othersItems.map(item => {
+							this._splitWords(item.itemName).map(word => {
 
-								this._splitWords(item.itemName).map(word => {
+								let wordLoweredLatinized = word.toLowerCase().latinize();
 
-									let wordLoweredLatinized = word.toLowerCase().latinize();
-
-									if (objResponse[wordLoweredLatinized] != 1) {
-										//only keep this word if is like to the last word from query or there is no last words
-										if (lastWord == "" || wordLoweredLatinized.indexOf(lastWord) == 0) {
-											if (word in objRelatedWords) {
-												objRelatedWords[word]++;
-											} else {
-												objRelatedWords[word] = 1;
-											}
+								if (objResponse[wordLoweredLatinized] != 1) {
+									//only keep this word if is like to the last word from query or there is no last words
+									if (lastWord == "" || wordLoweredLatinized.indexOf(lastWord) == 0) {
+										if (word in objRelatedWords) {
+											objRelatedWords[word]++;
+										} else {
+											objRelatedWords[word] = 1;
 										}
 									}
-								});
+								}
+							});
+						});
+
+						// First create the array of keys/values with relatedWords so that we can sort it
+						let relatedWords = [];
+						for (let key in objRelatedWords) {
+							relatedWords.push({ word: key, value: objRelatedWords[key] });
+						}
+
+						if (relatedWords.length > 0) {
+
+							// And then, remove repetitions and sort it by popularity
+							relatedWords = relatedWords.sort((x, y) => {
+								return ((x.word.toLowerCase() < y.word.toLowerCase()) ? -1 : 1);
+							}).filter((item, pos, arr) => {
+
+								//remove repetitions
+								if (pos == 0) {
+									return true;
+								}
+
+								if (item.word.toLowerCase() == arr[pos - 1].word.toLowerCase()) {
+									arr[pos - 1].value += item.value;
+									return false;
+								}
+								return true;
+								
+							}).sort((x, y) => {
+
+								//sort by popularity and alphabetically
+								if (x.value > y.value) {
+									return -1;
+								}
+								else if (x.value < y.value) {
+									return 1;
+								}
+								else {
+									if (x.word > y.word) {
+										return -1;
+									}
+									else if (x.word < y.word) {
+										return 1;
+									}
+									return 0;
+								}
 
 							});
 
-							// First create the array of keys/values with relatedWords so that we can sort it
-							let relatedWords = [];
-							for (let key in objRelatedWords) {
-								relatedWords.push({ word: key, value: objRelatedWords[key] });
+							//todo: filter words that begins with numbers and stopwords if we have others results to show
+							
+							for (let index = 0; index < relatedWords.length && index < 5; index++) {
+								arrResponse.push(previousWords + " " + relatedWords[index].word);
 							}
 
-							if (relatedWords.length > 0) {
+						}
 
-								// And then, remove repetitions and sort it by popularity
-								relatedWords = relatedWords.sort((x, y) => {
-									return ((x.word.toLowerCase() < y.word.toLowerCase()) ? -1 : 1);
-								}).filter((item, pos, arr) => {
+						resolve({ suggestions: arrResponse, timeElapsed: (new Date() - time) });
 
-									//remove repetitions
-									if (pos == 0) {
-										return true;
-									}
-
-									if (item.word.toLowerCase() == arr[pos - 1].word.toLowerCase()) {
-										arr[pos - 1].value += item.value;
-										return false;
-									}
-									return true;
-									
-								}).sort((x, y) => {
-
-									//sort by popularity and alphabetically
-									if (x.value > y.value) {
-										return -1;
-									}
-									else if (x.value < y.value) {
-										return 1;
-									}
-									else {
-										if (x.word > y.word) {
-											return -1;
-										}
-										else if (x.word < y.word) {
-											return 1;
-										}
-										return 0;
-									}
-
-								});
-
-								//todo: filter words that begins with numbers and stopwords if we have others results to show
-								
-								for (let index = 0; index < relatedWords.length && index < 5; index++) {
-									arrResponse.push(previousWords + " " + relatedWords[index].word);
-								}
-
-							}
-
-							resolve({ suggestions: arrResponse, timeElapsed: (new Date() - time) });
-
-						}).catch(err => {
-							reject(err);
-						});
-
+					}).catch(err => {
+						reject(err);
 					});
 
 				});
-
 			}
 
 		});
@@ -1485,20 +1437,16 @@ const NodeSuggestiveSearch = class {
 
 							} else {
 
-								if (foundWords.length > 1) {
-
-									//sort to return the best match
-									foundWords = foundWords.map((obj) => {
-										obj.similarity = this._similarity(obj.word, word);
-										return obj;
-									}).sort((x, y) => {
-										return ((x.similarity > y.similarity) ? -1 : 1);
-									});
-
-								}
+								//sort to return the best match
+								foundWords = foundWords.map((obj) => {
+									obj.similarity = this._similarity(obj.word, word);
+									return obj;
+								}).sort((x, y) => {
+									return ((x.similarity > y.similarity) ? -1 : 1);
+								}).slice(0, 1);
 
 								//returning the best match
-								resolve({ word: foundWords[0].word });
+								resolve({ word, results: foundWords });
 
 							}
 
@@ -1514,84 +1462,78 @@ const NodeSuggestiveSearch = class {
 				//now, lets resolve all promises from the array of promises
 				Promise.all(promises).then(foundItems => {
 
-					let previousWords = "";
-
 					//test if all words exists
 					for (let index in foundItems) {
 						if (foundItems[index] === null) {
 							//some word is not correct, break the response
 							return resolve({ suggestions: [], timeElapsed: (new Date() - time) });
 						}
-
-						previousWords += foundItems[index].word + " ";
 					}
 
-					previousWords = previousWords.trim();
 
-					//query for the previous words to check if there is items with this combination
-					this.query(previousWords).then(queryResponse => {
+					let objFinal = this._matchWordsByItemsIds(foundItems);
+					let arrItemsIds = objFinal.itemsIds;
+					let missingWords = objFinal.missingWords;
 
-						//after this query, one or more words could be missing because its items did not match
-						//if that is true, break the response
-						for (let index = 0; index < queryResponse.words.length; index++) {
-							if (queryResponse.words[index] === null) {
-								//some word is not correct, break the response
-								return resolve({ suggestions: [], timeElapsed: (new Date() - time) });
-							}
-						}
 
-						this._db.findItems({ itemId: { $in: queryResponse.itemsId } }).then(foundItems => {
+					//after this query, one or more words could be missing because its items did not match
+					//if that is true, break the response
+					if (missingWords.length > 0) {
+						//some word is not correct, break the response
+						return resolve({ suggestions: [], timeElapsed: (new Date() - time) });
+					}
 
-							let arrResponse = [];
 
-							if (foundItems !== null) {
+					this._db.findItems({ itemId: { $in: arrItemsIds } }).then(foundItems => {
 
-								foundItems.map(item => {
+						let arrResponse = [];
 
-									let includeThisItem = false;
+						if (foundItems !== null) {
 
-									let arrItemWords = "";
-									
-									if (item.keywords !== null && item.keywords !== undefined){
-										arrItemWords = this._splitWords(item.itemName.toLowerCase().latinize() + " " + item.keywords.toLowerCase().latinize());
-									} else {
-										arrItemWords = this._splitWords(item.itemName.toLowerCase().latinize());
-									}
+							foundItems.map(item => {
 
-									//check if the item name contains the words from the query
-									for (let index = 0; index < arrWords.length - 1; index++) {
-										for (let y = 0; y < arrItemWords.length; y++){
-											if (arrWords[index].toLowerCase().latinize() === arrItemWords[y]){
-												includeThisItem = true;
-												break;
-											}
-										}
-									}
+								let includeThisItem = false;
 
-									let foundLast = false;
+								let arrItemWords = "";
+								
+								if (item.keywords !== null && item.keywords !== undefined){
+									arrItemWords = this._splitWords(item.itemName.toLowerCase().latinize() + " " + item.keywords.toLowerCase().latinize());
+								} else {
+									arrItemWords = this._splitWords(item.itemName.toLowerCase().latinize());
+								}
+
+								//check if the item name contains the words from the query
+								for (let index = 0; index < arrWords.length - 1; index++) {
 									for (let y = 0; y < arrItemWords.length; y++){
-										if (arrItemWords[y].indexOf(arrWords[arrWords.length - 1].toLowerCase().latinize()) == 0){
-											foundLast = true;
+										if (arrWords[index].toLowerCase().latinize() === arrItemWords[y]){
+											includeThisItem = true;
 											break;
 										}
 									}
+								}
 
-									if (includeThisItem && foundLast){
-										arrResponse.push({itemId: item.itemId, itemName: item.itemName });
+								let foundLast = false;
+								for (let y = 0; y < arrItemWords.length; y++){
+									if (arrItemWords[y].indexOf(arrWords[arrWords.length - 1].toLowerCase().latinize()) == 0){
+										foundLast = true;
+										break;
 									}
+								}
 
-								});
-			
-							}
+								if (includeThisItem && foundLast){
+									arrResponse.push({itemId: item.itemId, itemName: item.itemName });
+								}
 
-							resolve({ items: arrResponse, timeElapsed: (new Date() - time) });
+							});
+		
+						}
 
-						}).catch(err => {
-							reject(err);
-						});
+						resolve({ items: arrResponse, timeElapsed: (new Date() - time) });
 
-
+					}).catch(err => {
+						reject(err);
 					});
+
 
 				});
 

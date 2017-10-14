@@ -36,25 +36,6 @@ describe('Test test.json -', () => {
         //             mongoDatabase: "mongodb://localhost:27017/nodeSugestiveSearchTest"
         //         });
 
-        //tests using ms-sql
-        // nss = require('../index.js').init(
-        //     {
-        //         dataBase: "mssql",
-        //         force: false,
-        //         dbConnection: {
-        //             host: '127.0.0.1',
-        //             username: "sa",
-        //             password: 'mssqlpass',
-        //             database: "test",        
-        //             dialect: 'mssql',     
-        //             logging: false,       
-        //             dialectOptions: {
-        //                 requestTimeout: 60000,
-        //                 encrypt: true // Use this if you're on Windows Azure                
-        //             }
-        //         }   
-        //     });
-
         //wait for the initialization process
         nss.on("initialized", () => {
             done();
