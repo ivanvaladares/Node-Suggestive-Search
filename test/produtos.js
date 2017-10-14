@@ -27,25 +27,6 @@ describe('Test produtos.json -', () => {
         //             mongoDatabase: "mongodb://localhost:27017/nodeSugestiveSearchTest"
         //         });
 
-        //tests using ms-sql
-        // nss = require('../index.js').init(
-        //     {
-        //         dataBase: "mssql",
-        //         force: false,
-        //         dbConnection: {
-        //             host: '127.0.0.1',
-        //             username: "sa",
-        //             password: 'mssqlpass',
-        //             database: "test",        
-        //             dialect: 'mssql',     
-        //             logging: false,       
-        //             dialectOptions: {
-        //                 requestTimeout: 60000,
-        //                 encrypt: true // Use this if you're on Windows Azure                
-        //             }
-        //         }   
-        //     });
-
         //wait for the initialization process
         nss.on("initialized", () => {
             done();
@@ -385,11 +366,11 @@ describe('Test produtos.json -', () => {
                 assert(
                     data != null &&
                     data.suggestions.length == 5 &&
-                    data.suggestions[0] == "VINHO 750ML" &&
-                    data.suggestions[1] == "VINHO CHILENO" &&
-                    data.suggestions[2] == "VINHO TINTO" &&
-                    data.suggestions[3] == "VINHO PORTUGUÊS" &&
-                    data.suggestions[4] == "VINHO SAUVIGNON",
+                    data.suggestions[0] == "vinho 750ML" &&
+                    data.suggestions[1] == "vinho CHILENO" &&
+                    data.suggestions[2] == "vinho TINTO" &&
+                    data.suggestions[3] == "vinho PORTUGUÊS" &&
+                    data.suggestions[4] == "vinho SAUVIGNON",
                     "Error on get words suggestions for: vinho "
                 );
             });
