@@ -7,3 +7,4 @@ package-lock.json
 .vscode
 launch.json
 .DS_Store
+_experiments.js

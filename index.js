@@ -1,5 +1,5 @@
 /*
-node-suggestive-search v1.7.7
+node-suggestive-search v1.7.8
 https://github.com/ivanvaladares/node-suggestive-search/
 by Ivan Valadares 
 http://ivanvaladares.com 
@@ -152,11 +152,10 @@ const NodeSuggestiveSearch = class {
 		//separate words using this regexp pattern
 		let arr = text.replace(/[.,/#!$%^&*;:{}=+\-_`~()?<>"”“]/gi, ' ').split(" ");
 
-		return arr.filter(item => {
-			item = item.trim();
-			if (item.length > 0){
-				return item;
-			}	
+		return arr.map(item => {
+			return item.trim().replace(/^["|']/, '').replace(/["|']$/, ''); //remove quotes
+		}).filter(item => {
+			return (item.length > 0);
 		});
 	}
 
@@ -173,12 +172,10 @@ const NodeSuggestiveSearch = class {
 			finalWordItems.finalWords = _.fill(Array(wordItems.length), "");
 			finalWordItems.missingWords = [];
 
+			
+			//choosing the best column to start
 			wordItems.map((word, index) => {
 				word.index = index;
-			});
-
-			//choosing the best column to start
-			wordItems.map(word => {
 				if (word.results.length > 0 && word.results[0].similarity > maxSimilarity){
 					maxSimilarity = word.results[0].similarity;
 					wordItem = word;
@@ -252,7 +249,7 @@ const NodeSuggestiveSearch = class {
 
 			//todo: research a better way to improve the performance of this query
 
-			let _word = word.replace(/^"(.+(?="$))"$/, '$1').replace(/^'(.+(?='$))'$/, '$1').replace(/^'(.+(?=$))$/, '$1').replace(/^(.+(?='$))'$/, '$1'); //remove quotes
+			let _word = word.trim().replace(/^["|']/, '').replace(/["|']$/, ''); //remove quotes
 
 			let queryCriteria = [{ soundex: this._soundex(_word) }];
 
