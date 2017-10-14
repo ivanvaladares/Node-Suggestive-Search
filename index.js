@@ -125,28 +125,28 @@ const NodeSuggestiveSearch = class {
 	}
 
 	_createWordObject (word) {
-		
+
 		let cleanWord = word.toLowerCase().latinize();
-        let objWord = { word, cleanWord, soundex: this._soundex(cleanWord), items: {} };
-        
-        for (let i = 2; i <= cleanWord.length && i <= 4; i++) {
-            objWord[`p${i}i`] = cleanWord.substr(0, i).toLowerCase();
-            objWord[`p${i}e`] = cleanWord.substr(cleanWord.length - i, cleanWord.length).toLowerCase();
-        }
+		let objWord = { word, cleanWord, soundex: this._soundex(cleanWord), items: {} };
 
-        return objWord;
-    }
+		for (let i = 2; i <= cleanWord.length && i <= 4; i++) {
+			objWord[`p${i}i`] = cleanWord.substr(0, i).toLowerCase();
+			objWord[`p${i}e`] = cleanWord.substr(cleanWord.length - i, cleanWord.length).toLowerCase();
+		}
 
-    _createItemObject (itemId, itemName, keywords) {
+		return objWord;
+	}
 
-        let objItem = { itemId, itemName };
+	_createItemObject (itemId, itemName, keywords) {
 
-        if (keywords !== undefined){
-            objItem.keywords = keywords;
-        }
+		let objItem = { itemId, itemName };
 
-        return objItem;
-    }
+		if (keywords !== undefined) {
+			objItem.keywords = keywords;
+		}
+
+		return objItem;
+	}
 
 	_splitWords (text) {
 		//separate words using this regexp pattern
