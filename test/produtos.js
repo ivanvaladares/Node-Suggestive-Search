@@ -38,7 +38,7 @@ describe('Test produtos.json -', () => {
             .then(data => {
                 assert(
                     data != null &&
-                    data.words == 4175 &&
+                    data.words == 4191 &&
                     data.items == 6240,
                     "Could not load json file."
                 );
@@ -375,7 +375,6 @@ describe('Test produtos.json -', () => {
                 );
             });
     });
-
 
     it('get items suggestions for: frascat', () => {
         return nss.getSuggestedItems("frascat")
