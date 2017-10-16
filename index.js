@@ -1,5 +1,5 @@
 /*
-node-suggestive-search v1.7.8
+node-suggestive-search v1.7.9
 https://github.com/ivanvaladares/node-suggestive-search/
 by Ivan Valadares 
 http://ivanvaladares.com 
@@ -150,21 +150,23 @@ const NodeSuggestiveSearch = class {
 
 	_splitWords (text) {
 
+		//todo: reserach for a better strategy for splitting words
+
 		let words = [];
-		let textForUnits = text;
 		
 		//do not split dates
 		let dates = text.match(/([^-/. ]{1,10})([.|/|-])([^-/. ]{1,10})([.|/|-])[^-/. ]{1,10}/g, "$1");		
 		
 		if (dates !== null){
 			dates = dates.map(item => {
-				textForUnits = textForUnits.replace(item, '');
+				text = text.replace(item, '');
 				return item;
 			});
+			words = words.concat(dates);			
 		}
 
 		//do not split numbers with comma or points separators, followed or not by a measurement unit. ex: 1.5 or 1.5L or 1,5ml
-		let units = textForUnits.match(/([0-9]+[0-9,.]*[0-9]*[a-zA-Z]{1,10})|\d+([,.]\d{2-3})*([.,]\d*)/g, "$1");
+		let units = text.match(/([0-9]+[0-9,.]*[0-9]*[a-zA-Z]{1,10})|\d+([,.]\d{2-3})*([.,]\d*)/g, "$1");
 
 		if (units !== null){
 			units = units.map(item => {
@@ -176,11 +178,13 @@ const NodeSuggestiveSearch = class {
 				return item.length <= 20; 
 			});
 
-			words = units;
+			words = words.concat(units);
 		}
 
 		if (dates !== null){
-			words = words.concat(dates);
+			dates = dates.map(item => {
+				text += ' ' + item.replace(/[-/.0-9]/gi, ' ').trim(); //return month names to main text
+			});			
 		}
 
 		//separate words using this regexp pattern
