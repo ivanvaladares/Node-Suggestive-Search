@@ -149,10 +149,44 @@ const NodeSuggestiveSearch = class {
 	}
 
 	_splitWords (text) {
-		//separate words using this regexp pattern
-		let arr = text.replace(/[.,/#!$%^&*;:{}=+\-_`~()?<>"”“]/gi, ' ').split(" ");
 
-		return arr.map(item => {
+		let words = [];
+		let textForUnits = text;
+		
+		//do not split dates
+		let dates = text.match(/([^-/. ]{1,10})([.|/|-])([^-/. ]{1,10})([.|/|-])[^-/. ]{1,10}/g, "$1");		
+		
+		if (dates !== null){
+			dates = dates.map(item => {
+				textForUnits = textForUnits.replace(item, '');
+				return item;
+			});
+		}
+
+		//do not split numbers with comma or points separators, followed or not by a measurement unit. ex: 1.5 or 1.5L or 1,5ml
+		let units = textForUnits.match(/([0-9]+[0-9,.]*[0-9]*[a-zA-Z]{1,10})|\d+([,.]\d{2-3})*([.,]\d*)/g, "$1");
+
+		if (units !== null){
+			units = units.map(item => {
+				if (item.length <= 20){
+					text = text.replace(item, '');
+				}
+				return item;
+			}).filter(item => {
+				return item.length <= 20; 
+			});
+
+			words = units;
+		}
+
+		if (dates !== null){
+			words = words.concat(dates);
+		}
+
+		//separate words using this regexp pattern
+		words = words.concat(text.replace(/[.,/#!$%^&*;:{}=+\-_`~()?<>"”“]/gi, ' ').split(" "));
+
+		return words.map(item => {
 			return item.trim().replace(/^["|']/, '').replace(/["|']$/, ''); //remove quotes
 		}).filter(item => {
 			return (item.length > 0);
@@ -218,7 +252,7 @@ const NodeSuggestiveSearch = class {
 
 			wordItem.processed = true;
 
-			for (let i = 0; i < wordItem.results.length; i++){
+			for (let i = 0; i < wordItem.results.length && i < 25; i++){
 				if (finalWordItems.finalWords.indexOf(wordItem.results[i].word) > -1){ //todo check if is a repeated one
 					continue;
 				}
