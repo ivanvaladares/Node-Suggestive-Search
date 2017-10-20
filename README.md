@@ -2,9 +2,10 @@
 A node module to help type-ahead and dropdown search boxes and also correct misspelled searches (did you mean?).
 
 
-This module requires:
+This module is compatible with:
 - NeDB 1.8.0, The JavaScript Database from Louis Chatriot https://github.com/louischatriot/nedb
 - MongoDB Node.JS Driver 2.2.19, Driver to connect with MongoDB 3.2 http://mongodb.github.io/node-mongodb-native/
+
 
 ## Installation, tests
 Module name on npm is "node-suggestive-search".
@@ -34,12 +35,18 @@ https://runkit.com/ivanvaladares/node-suggestive-search
 ### Setting options
 This module supports MongoDB and NeDB. You must set this options in order to use this module. 
 
+Here is an example of a configuration wihtout a database (in-memory):
+```javascript
+var nss = require('node-suggestive-search').init();
+
+
 Here is an example of a configuration to use MongoDB: 
 ```javascript
 var nss = require('node-suggestive-search').init(
 			{
 			dataBase: "mongodb", 
-			mongoDatabase: "mongodb://127.0.0.1:27017/nodeSugestiveSearch"
+			mongoDatabase: "mongodb://127.0.0.1:27017/nodeSugestiveSearch",
+			cache: true
 			});
 
 ```
@@ -49,20 +56,25 @@ var nss = require('node-suggestive-search').init(
 			{
 			dataBase: "nedb", 
 			neDbDataPath: "dataFolder",
-			neDbInMemoryOnly: false
+			neDbInMemoryOnly: false,
+			cache: true
 			});
 
 ```
-Here is an example of a configuration to use NeDB without a datafile (in memory): 
+Here is an example of a configuration to use NeDB without a datafile (in-memory): 
 ```javascript
 var nss = require('node-suggestive-search').init(
 			{
 			dataBase: "nedb", 
 			neDbDataPath: "",
-			neDbInMemoryOnly: true
+			neDbInMemoryOnly: true,
+			cache: false
 			});
 
 ```
+
+The "cache" option enables an in-memory copy of the structure boosting the performance. If you have more than one instance accessing the same database, turn off this option. 
+
 
 ### Loading a database
 It uses an in-memory database to build a dictionary composed by items and words that need to be searched. 
@@ -376,10 +388,8 @@ nss.removetItem(itemId).then(
 * catalog (several dictionaries)
 * Microsoft SQL Server and MySQL support
 * Inject your database plugin
-* Inject your ordering functions
-* Personalized items fields
+* Personalized items fields and ordering functions
 * filter stopwords
-* In memory javascript database plugin 
 * Browser version.
 
 

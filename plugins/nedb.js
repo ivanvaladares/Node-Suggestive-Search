@@ -6,6 +6,13 @@ const EventEmitter = require('events');
 let DbDriver = class {
         
     constructor (options) {
+        this._cacheOn = false;
+        this._cache = {};
+
+        if (options.cache === true){
+            this._cacheOn = true;
+            this._cache = require('./memory.js').init();
+        }
 
         let itemsCollectionName = (options.itemsCollectionName !== undefined) ? options.itemsCollectionName : 'node-suggestive-search-items.db'; 
         let wordsCollectionName = (options.wordsCollectionName !== undefined) ? options.wordsCollectionName : 'node-suggestive-search-words.db';         
@@ -25,7 +32,49 @@ let DbDriver = class {
         this.dbWords.loadDatabase(err => {
             if (err) { throw err; }
 
-            this.emit('initialized');
+            //if is cached and the database is not empty, lets fill the cache
+            if (this._cacheOn){
+
+                let pCountItems = new Promise(resolve => { 
+                    this.dbItems.count({}, (err, count) => {
+                        resolve(count);
+                    });
+                });
+
+                let pCountWords = new Promise(resolve => { 
+                    this.dbWords.count({}, (err, count) => {
+                        resolve(count);
+                    });
+                });
+
+                Promise.all([pCountItems, pCountWords]).then(results => {
+                    
+                    if (results[0] > 0 || results[1] > 0) {
+
+                        this.dbItems.find({}, (err, items) => {
+
+                            this._cache.insertItem(items).then(() => {
+                                
+                                this.dbWords.find({}, (err, words) => {
+        
+                                    this._cache.insertWord(words).then(() => {
+
+                                        this.emit('initialized');
+
+                                    });
+                                });
+                            });
+                        });
+                        
+                    }else{
+                        this.emit('initialized');
+                    }
+                });
+
+            }else{
+                this.emit('initialized');
+            }
+
         });
         
         return this;
@@ -61,11 +110,11 @@ let DbDriver = class {
         });    
     }
 
-    _update (collection, criteria, data, multi) {
+    updateWordItems (cleanWord, items) {
         return new Promise((resolve, reject) => {
-            collection.update(criteria, data, multi, (err, numUpdated) => {
+            this.dbWords.update({cleanWord: cleanWord}, { $set: { "items": items }}, { multi: true }, (err, numUpdated) => {
                 if (err) { return reject(err); }
-
+    
                 resolve(numUpdated);
             });
         });    
@@ -73,6 +122,10 @@ let DbDriver = class {
 
     cleanDatabase () {                
         return new Promise((resolve, reject) => {
+            if (this._cacheOn){
+                this._cache.cleanDatabase();
+            }
+
             let p1 = this._remove(this.dbItems, {}, { multi: true });
             let p2 = this._remove(this.dbWords, {}, { multi: true });
 
@@ -102,31 +155,45 @@ let DbDriver = class {
     }
 
     insertItem (entry) {
+        if (this._cacheOn){
+            this._cache.insertItem(entry);
+        }
         return this._insert(this.dbItems, entry);
     }
     
     insertWord (entry) {
+        if (this._cacheOn){
+            this._cache.insertWord(entry);
+        }
         return this._insert(this.dbWords, entry);
     }
     
     findItems (criteria) {
+        if (this._cacheOn){
+            return this._cache.findItems(criteria);
+        }
         return this._find(this.dbItems, criteria);
     }
     
     findWords (criteria) {
+        if (this._cacheOn){
+            return this._cache.findWords(criteria);
+        }
         return this._find(this.dbWords, criteria);
     }
-    
-    updateWord (criteria1, data, multi) {
-        return this._update(this.dbWords, criteria1, data, multi);
+
+    removeItem (criteria) {
+        if (this._cacheOn){
+            this._cache.removeItem(criteria);
+        }
+        return this._remove(this.dbItems, criteria, { multi: false });
     }
     
-    removeItem (criteria1) {
-        return this._remove(this.dbItems, criteria1, { multi: false });
-    }
-    
-    removeWords (criteria1) {
-        return this._remove(this.dbWords, criteria1, { multi: false });
+    removeWords (criteria) {
+        if (this._cacheOn){
+            this._cache.removeWords(criteria);
+        }
+        return this._remove(this.dbWords, criteria, { multi: false });
     }
 
 };

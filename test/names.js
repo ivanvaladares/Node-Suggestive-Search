@@ -15,11 +15,12 @@ describe('Test names.json -', () => {
 
         //tests using nedb
         // nss = require('../index.js').init(
-        //     {
-        //         dataBase: "nedb",
-        //         neDbDataPath: "",
-        //         neDbInMemoryOnly: true
-        //     });
+        // {
+        //     dataBase: "nedb",
+        //     neDbDataPath: "",
+        //     neDbInMemoryOnly: true,
+        //     cache: true
+        // });
 
         //tests using mongogdb
         // nss = require('../index.js').init(
@@ -27,7 +28,8 @@ describe('Test names.json -', () => {
         //     dataBase: "mongodb",  
         //     itemsCollectionName: "nss-names-items",
         //     wordsCollectionName: "nss-names-words",
-        //     mongoDatabase: "mongodb://localhost:27017/nodeSugestiveSearchTest"
+        //     mongoDatabase: "mongodb://localhost:27017/nodeSugestiveSearchTest",
+        //     cache: true
         // });
         
         //wait for the initialization process
