@@ -1,5 +1,5 @@
 /*
-node-suggestive-search v1.7.9
+node-suggestive-search v1.8.0
 https://github.com/ivanvaladares/node-suggestive-search/
 by Ivan Valadares 
 http://ivanvaladares.com 
@@ -32,20 +32,20 @@ const NodeSuggestiveSearch = class {
 		this._initialized = false;
 		this._options = options;
 
-		if (!options) {
-			throw new Error("Options are required!");
-		}
-
-		if (options.dataBase.toLowerCase() == "mongodb" || 
-			options.dataBase.toLowerCase() == "nedb") {
-			this._db = require(`./plugins/${options.dataBase.toLowerCase()}.js`).init(options);
+		if (options !== undefined && options.dataBase !== undefined){
+			if (options.dataBase.toLowerCase() == "mongodb" || 
+				options.dataBase.toLowerCase() == "nedb") {
+				this._db = require(`./plugins/${options.dataBase.toLowerCase()}.js`).init(options);
+			} else {
+				throw new Error("This module requires MongoDB or NeDB!");
+			}
 		} else {
-			throw new Error("This module requires MongoDB or NeDB!");
+			this._db = require(`./plugins/memory.js`).init();
 		}
 
 		this._db.on("initialized", () => {
 			this._initialized = true;
-
+			
 			this.emit('initialized');
 		});
 
@@ -1430,7 +1430,7 @@ const NodeSuggestiveSearch = class {
 					//remove duplications
 					arrItemsIds = _.uniq(arrItemsIds);					
 
-					this._db.findItems({ itemId: { $in: arrItemsIds } }).then(foundItems => {
+					this._db.findItems({ itemId: { $in: arrItemsIds.slice(0, 10) } }).then(foundItems => {
 
 						let arrResponse = [];
 
@@ -1444,7 +1444,7 @@ const NodeSuggestiveSearch = class {
 		
 						}
 
-						resolve({ items: arrResponse, timeElapsed: (new Date() - time) });
+						resolve({ items: arrResponse.slice(0, 10), timeElapsed: (new Date() - time) });
 
 					}).catch(err => {
 						reject(err);
@@ -1525,8 +1525,8 @@ const NodeSuggestiveSearch = class {
 
 						if (foundItems !== null) {
 
-							foundItems.map(item => {
-
+							for (let i = 0; i < foundItems.length; i++){
+								let item = foundItems[i];
 								let includeThisItem = false;
 
 								let arrItemWords = "";
@@ -1559,7 +1559,10 @@ const NodeSuggestiveSearch = class {
 									arrResponse.push({itemId: item.itemId, itemName: item.itemName });
 								}
 
-							});
+								if (arrResponse.length > 9){
+									break;
+								}
+							}
 		
 						}
 

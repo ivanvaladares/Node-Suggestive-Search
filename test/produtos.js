@@ -10,13 +10,16 @@ describe('Test produtos.json -', () => {
 
     before(done => {
 
+        //tests using memory
+        nss = require('../index.js').init();        
+
         //tests using nedb
-        nss = require('../index.js').init(
-            {
-                dataBase: "nedb",
-                neDbDataPath: "",
-                neDbInMemoryOnly: true
-            });
+        // nss = require('../index.js').init(
+        //     {
+        //         dataBase: "nedb",
+        //         neDbDataPath: "",
+        //         neDbInMemoryOnly: true
+        //     });
 
         //tests using mongogdb
         // nss = require('../index.js').init(
@@ -403,7 +406,7 @@ describe('Test produtos.json -', () => {
             .then(data => {
                 assert(
                     data != null &&
-                    data.items.length == 19,
+                    data.items.length == 10,
                     "Error on get items suggestions for: whisky"
                 );
             });
