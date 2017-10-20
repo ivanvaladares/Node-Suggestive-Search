@@ -19,7 +19,7 @@ npm install node-suggestive-search --save   # Put latest version in your package
 https://ivanvaladares.herokuapp.com
 
 ## Playground on Runkit
-https://runkit.com/ivanvaladares/node-suggestive-search
+https://runkit.com/ivanvaladares/node-suggestive-search-1.8.0
 
 
 ## API
@@ -39,6 +39,7 @@ Here is an example of a configuration wihtout a database (in-memory):
 ```javascript
 var nss = require('node-suggestive-search').init();
 
+```
 
 Here is an example of a configuration to use MongoDB: 
 ```javascript
