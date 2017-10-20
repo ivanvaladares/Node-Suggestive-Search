@@ -10,13 +10,16 @@ describe('Test names.json -', () => {
 
     before(done => {
 
+        //tests using memory
+        nss = require('../index.js').init();        
+
         //tests using nedb
-        nss = require('../index.js').init(
-            {
-                dataBase: "nedb",
-                neDbDataPath: "",
-                neDbInMemoryOnly: true
-            });
+        // nss = require('../index.js').init(
+        //     {
+        //         dataBase: "nedb",
+        //         neDbDataPath: "",
+        //         neDbInMemoryOnly: true
+        //     });
 
         //tests using mongogdb
         // nss = require('../index.js').init(

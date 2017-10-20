@@ -11,21 +11,27 @@ describe('Test test.json -', () => {
 
     before(done => {
 
-        //tests using nedb
-        nss2 = require('../index.js').init(
-            {
-                dataBase: "nedb",
-                neDbDataPath: "",
-                neDbInMemoryOnly: true
-            });
+        //tests using memory
+        nss2 = require('../index.js').init();         
 
         //tests using nedb
-        nss = require('../index.js').init(
-            {
-                dataBase: "nedb",
-                neDbDataPath: "",
-                neDbInMemoryOnly: true
-            });
+        // nss2 = require('../index.js').init(
+        //     {
+        //         dataBase: "nedb",
+        //         neDbDataPath: "",
+        //         neDbInMemoryOnly: true
+        //     });
+            
+        //tests using memory
+        nss = require('../index.js').init();            
+
+        //tests using nedb
+        // nss = require('../index.js').init(
+        //     {
+        //         dataBase: "nedb",
+        //         neDbDataPath: "",
+        //         neDbInMemoryOnly: true
+        //     });
 
         //tests using mongogdb
         // nss = require('../index.js').init(
