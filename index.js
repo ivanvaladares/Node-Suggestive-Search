@@ -40,7 +40,7 @@ const NodeSuggestiveSearch = class {
 				throw new Error("This module requires MongoDB or NeDB!");
 			}
 		} else {
-			this._db = require(`./plugins/memory.js`).init();
+			this._db = require('./plugins/memory.js').init();
 		}
 
 		this._db.on("initialized", () => {
@@ -619,10 +619,7 @@ const NodeSuggestiveSearch = class {
 									//update this word 
 									let innerPromise = new Promise((resolve)  => {
 
-										this._db.updateWord(
-											{ word: word.word },
-											{ $set: { "items": word.items } },
-											{ multi: false }).then(numReplaced => {
+										this._db.updateWordItems(word.cleanWord, word.items).then(numReplaced => {
 												resolve(numReplaced);
 											}).catch(err => {
 												reject(err);
@@ -778,10 +775,7 @@ const NodeSuggestiveSearch = class {
 
 										//send it back to the database
 										return new Promise((resolve, reject) => {  
-												this._db.updateWord(
-												{ cleanWord: word.cleanWord },
-												{ $set: { "items": word.items } },
-												{ multi: true }).then(() => {
+												this._db.updateWordItems(word.cleanWord, word.items).then(() => {
 													resolve(true);
 												}).catch(err => {
 													reject(err);
@@ -860,10 +854,7 @@ const NodeSuggestiveSearch = class {
 														//send it back to the database
 														updatePromises.push(  
 															new Promise((resolve, reject) => {  
-																this._db.updateWord(
-																{ cleanWord: word.toLowerCase().latinize() },
-																{ $set: { "items": itemsId } },
-																{ multi: true }).then(() => {
+																this._db.updateWordItems(word.toLowerCase().latinize(), itemsId).then(() => {
 																	resolve(true);
 																}).catch(err => {
 																	reject(err);
@@ -1301,32 +1292,37 @@ const NodeSuggestiveSearch = class {
 					let objResponse = {};					
 					let lastWord = arrWords[arrWords.length - 1].toLowerCase().latinize();
 					
+
 					this._splitWords(previousWords).map(el => {
 						objResponse[el.toLowerCase().latinize()] = 1;
 					});
 
-					this._db.findItems({ itemId: { $in: arrItemsIds.slice(0, 1000) } }).then(othersItems => {
+
+					this._db.findItems({ itemId: { $in: arrItemsIds.slice(0, 100) } }).then(othersItems => {
 
 						//get all item's names from items returned from query and create a relatedWords dictionary
 						let objRelatedWords = {};
-						othersItems.map(item => {
+						for (let countWords = 0, i = 0; i < othersItems.length && countWords < 50; i++){
+							let item = othersItems[i];
 
 							this._splitWords(item.itemName).map(word => {
 
 								let wordLoweredLatinized = word.toLowerCase().latinize();
 
+								//reject if is repeated
 								if (objResponse[wordLoweredLatinized] != 1) {
-									//only keep this word if is like to the last word from query or there is no last words
-									if (lastWord == "" || wordLoweredLatinized.indexOf(lastWord) == 0) {
+									//only keep this word if is like to the beggining of the last word from query or there is no last words
+									if (lastWord === "" || wordLoweredLatinized.indexOf(lastWord) == 0) {
 										if (word in objRelatedWords) {
 											objRelatedWords[word]++;
 										} else {
 											objRelatedWords[word] = 1;
+											countWords++;
 										}
 									}
 								}
 							});
-						});
+						}
 
 						// First create the array of keys/values with relatedWords so that we can sort it
 						let relatedWords = [];
@@ -1338,21 +1334,6 @@ const NodeSuggestiveSearch = class {
 
 							// And then, remove repetitions and sort it by popularity
 							relatedWords = relatedWords.sort((x, y) => {
-								return ((x.word.toLowerCase() < y.word.toLowerCase()) ? -1 : 1);
-							}).filter((item, pos, arr) => {
-
-								//remove repetitions
-								if (pos == 0) {
-									return true;
-								}
-
-								if (item.word.toLowerCase() == arr[pos - 1].word.toLowerCase()) {
-									arr[pos - 1].value += item.value;
-									return false;
-								}
-								return true;
-								
-							}).sort((x, y) => {
 
 								//sort by popularity and alphabetically
 								if (x.value > y.value) {
@@ -1501,7 +1482,7 @@ const NodeSuggestiveSearch = class {
 					for (let index in foundItems) {
 						if (foundItems[index] === null) {
 							//some word is not correct, break the response
-							return resolve({ suggestions: [], timeElapsed: (new Date() - time) });
+							return resolve({ items: [], timeElapsed: (new Date() - time) });
 						}
 					}
 
@@ -1515,7 +1496,7 @@ const NodeSuggestiveSearch = class {
 					//if that is true, break the response
 					if (missingWords.length > 0) {
 						//some word is not correct, break the response
-						return resolve({ suggestions: [], timeElapsed: (new Date() - time) });
+						return resolve({ items: [], timeElapsed: (new Date() - time) });
 					}
 
 
