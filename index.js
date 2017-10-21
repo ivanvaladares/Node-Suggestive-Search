@@ -1,5 +1,5 @@
 /*
-node-suggestive-search v1.8.3
+node-suggestive-search v1.8.4
 https://github.com/ivanvaladares/node-suggestive-search/
 by Ivan Valadares 
 http://ivanvaladares.com 
@@ -771,18 +771,21 @@ const NodeSuggestiveSearch = class {
 									let updatePromises = foundWords.map(word => {
 
 										//associate with this itemId
-										word.items.push(itemObject.itemId);
-										word.items = _.uniq(word.items);
+										if (word.items.indexOf(itemObject.itemId) < 0){
 
-										//send it back to the database
-										return new Promise((resolve, reject) => {  
-											this._db.updateWordItems(word.cleanWord, word.items).then(() => {
-												resolve(true);
-											}).catch(err => {
-												reject(err);
+											word.items.push(itemObject.itemId);
+
+											//send it back to the database
+											return new Promise((resolve, reject) => {  
+												this._db.updateWordItems(word.cleanWord, word.items).then(() => {
+													resolve(true);
+												}).catch(err => {
+													reject(err);
+												});
 											});
-										});
-										
+												
+										}
+
 									});
 
 									Promise.all(updatePromises).then(() => {

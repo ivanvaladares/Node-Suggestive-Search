@@ -110,7 +110,7 @@ let DbDriver = class {
         });    
     }
 
-    updateWordItems (cleanWord, items) {
+    _updateWordItems (cleanWord, items) {
         return new Promise((resolve, reject) => {
             this.dbWords.update({cleanWord: cleanWord}, { $set: { "items": items }}, { multi: true }, (err, numUpdated) => {
                 if (err) { return reject(err); }
@@ -205,6 +205,16 @@ let DbDriver = class {
             });
         }else{
             return this._remove(this.dbWords, criteria, { multi: false });
+        }
+    }
+
+    updateWordItems (cleanWord, items) {
+        if (this._cacheOn){
+            return this._cache.updateWordItems(cleanWord, items).then(() => {
+                return this._updateWordItems(cleanWord, items);
+            });
+        }else{
+            return this._updateWordItems(cleanWord, items);
         }
     }
 
