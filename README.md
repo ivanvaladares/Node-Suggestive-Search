@@ -216,7 +216,7 @@ nss.query("'red label'").then(
 );
 
 //quoted search criteria
-nss.query("'red label'").then(
+nss.query("'label red'").then(
 	data => {
 		//response: { query: '\'label red\'', words: [ 'LABEL', 'RED' ], missingWords: [], expressions: [], missingExpressions: [ 'label red' ], itemsId: [ '1' ], timeElapsed: 2 }
 	},
