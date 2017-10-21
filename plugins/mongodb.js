@@ -149,16 +149,22 @@ let DbDriver = class {
 
     insertItem (entry) {
         if (this._cacheOn){
-            this._cache.insertItem(entry);
+            return this._cache.insertItem(entry).then(() => {
+                return this._insert(this.dbItems, entry);
+            });
+        }else{
+            return this._insert(this.dbItems, entry);
         }
-        return this._insert(this.dbItems, entry);
     }
     
     insertWord (entry) {
         if (this._cacheOn){
-            this._cache.insertWord(entry);
+            return this._cache.insertWord(entry).then(() => {
+                return this._insert(this.dbWords, entry);
+            });
+        }else{
+            return this._insert(this.dbWords, entry);
         }
-        return this._insert(this.dbWords, entry);
     }
     
     findItems (criteria) {
@@ -177,16 +183,22 @@ let DbDriver = class {
     
     removeItem (criteria) {
         if (this._cacheOn){
-            this._cache.removeItem(criteria);
+            return this._cache.removeItem(criteria).then(() => {
+                return this._remove(this.dbItems, criteria, { multi: false });
+            });
+        }else{
+            return this._remove(this.dbItems, criteria, { multi: false });
         }
-        return this._remove(this.dbItems, criteria, { multi: false });
     }
     
     removeWords (criteria) {
         if (this._cacheOn){
-            this._cache.removeWords(criteria);
+            return this._cache.removeWords(criteria).then(() => {
+                return this._remove(this.dbWords, criteria, { multi: false });
+            });
+        }else{
+            return this._remove(this.dbWords, criteria, { multi: false });
         }
-        return this._remove(this.dbWords, criteria, { multi: false });
     }
 
 };
