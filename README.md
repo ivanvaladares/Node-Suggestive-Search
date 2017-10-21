@@ -35,13 +35,13 @@ https://runkit.com/ivanvaladares/node-suggestive-search-1.8.0
 ### Setting options
 This module supports MongoDB and NeDB. You must set this options in order to use this module. 
 
-Here is an example of a configuration wihtout a database (in-memory):
+Configuration without database (in-memory):
 ```javascript
 var nss = require('node-suggestive-search').init();
 
 ```
 
-Here is an example of a configuration to use MongoDB: 
+Configuration using MongoDB: 
 ```javascript
 var nss = require('node-suggestive-search').init(
 			{
@@ -51,7 +51,7 @@ var nss = require('node-suggestive-search').init(
 			});
 
 ```
-Here is an example of a configuration to use NeDB with a datafile: 
+Configuration using NeDB with a datafile: 
 ```javascript
 var nss = require('node-suggestive-search').init(
 			{
@@ -62,7 +62,7 @@ var nss = require('node-suggestive-search').init(
 			});
 
 ```
-Here is an example of a configuration to use NeDB without a datafile (in-memory): 
+Configuration using NeDB without a datafile (in-memory): 
 ```javascript
 var nss = require('node-suggestive-search').init(
 			{
@@ -74,13 +74,13 @@ var nss = require('node-suggestive-search').init(
 
 ```
 
-The "cache" option enables an in-memory copy of the structure boosting the performance. If you have more than one instance accessing the same database, turn off this option. 
+The "cache" option enables an in-memory copy of the data structure boosting the performance. If you have more than one instance accessing the same database, turn off this option. 
 
 
 ### Loading a database
-It uses an in-memory database to build a dictionary composed by items and words that need to be searched. 
+Build a dictionary composed by items and words that need to be searched. 
 
-Here is an example of a JSON to be imported (Items.json): 
+Example of a JSON to be imported (Items.json): 
 ```javascript
 [  
    {  
@@ -260,7 +260,7 @@ nss.query("\"HAM L/S\"").then(
 
 
 ### Getting words suggestions
-Getting suggestions to fill dropdown boxes or type ahead in text fields.
+Getting words suggestions to fill dropdown boxes or type ahead text fields.
 
 Examples of how to call the api and responses:
 ```javascript
@@ -297,7 +297,7 @@ nss.getSuggestedWords("whisky re").then(
 
 
 ### Getting items suggestions
-Getting suggestions to fill dropdown boxes.
+Getting items suggestions to fill dropdown boxes or type ahead text fields.
 
 Examples of how to call the api and responses:
 ```javascript
@@ -348,12 +348,12 @@ Examples of how to call the api and responses:
 ```javascript
 
 let newItem = {  
-	"iName":"VODKA ABSOLUT",
-	"iId":"6",
-	"iKw":"Keyword1, keyword2..."
+	"itemId": "VODKA ABSOLUT",
+	"itemName": "6",
+	"keywords": "Keyword1, keyword2..."
 	};
 
-nss.insertItem(newItem, "iId", "iName", "iKw").then(
+nss.insertItem(newItem).then(
 	data => {
 		//response: { "timeElapsed": 2 }
 	},
