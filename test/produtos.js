@@ -38,12 +38,12 @@ describe('Test produtos.json -', () => {
         });
     });
 
-    it('load json file produtos.json with 6240 items and 4175 words', () => {
+    it('load json file produtos.json with 6240 items and 4199 words', () => {
         return nss.loadJson("test/produtos.json")
             .then(data => {
                 assert(
                     data != null &&
-                    data.words == 4191 &&
+                    data.words == 4199 &&
                     data.items == 6240,
                     "Could not load json file."
                 );
@@ -319,7 +319,7 @@ describe('Test produtos.json -', () => {
             .then(data => {
                 assert(
                     data != null &&
-                    data.timeElapsed >= 0,
+                    data.timeElapsed !== undefined,
                     "Error on removing item 29852"
                 );
             });
