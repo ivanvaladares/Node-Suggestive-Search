@@ -1,5 +1,5 @@
 /*
-node-suggestive-search v1.8.5
+node-suggestive-search v1.8.6
 https://github.com/ivanvaladares/node-suggestive-search/
 by Ivan Valadares 
 http://ivanvaladares.com 
@@ -1321,7 +1321,7 @@ const NodeSuggestiveSearch = class {
 
 							//filter out the words from this item using words from the query
 							for (let x = 0; x < arrWords.length - 1; x++) {
-								for (let y = 0; y < arrItemWords.length - 1; y++) {
+								for (let y = 0; y < arrItemWords.length; y++) {
 									if (arrWords[x].toLowerCase().latinize() === arrItemWords[y].toLowerCase().latinize()){
 										arrItemWords.splice(y, 1);
 										break;
@@ -1538,7 +1538,7 @@ const NodeSuggestiveSearch = class {
 
 								//filter out the words from this item using words from the query
 								for (let x = 0; x < arrWords.length - 1; x++) {
-									for (let y = 0; y < arrItemWords.length - 1; y++) {
+									for (let y = 0; y < arrItemWords.length; y++) {
 										if (arrWords[x].toLowerCase().latinize() === arrItemWords[y].latinize()){
 											arrItemWords.splice(y, 1);
 											break;
