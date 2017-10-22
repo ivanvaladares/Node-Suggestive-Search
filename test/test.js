@@ -367,10 +367,10 @@ describe('Test test.json -', () => {
 
     it('insert item: 13 - VODKA ABSOLUTE', () => {
         return nss.insertItem({ "itemName": "VODKA ABSOLUTE", "itemId": "13" })
-            .then(data => {              
+            .then(data => {
                 assert(
                     data != null &&
-                    data.timeElapsed >= 0,
+                    data.timeElapsed !== undefined,
                     "Error on inserting item: 13 - VODKA ABSOLUTE"
                 );
             });
@@ -394,7 +394,7 @@ describe('Test test.json -', () => {
             .then(data => {
                 assert(
                     data != null &&
-                    data.timeElapsed >= 0,
+                    data.timeElapsed !== undefined,
                     "Error on removing item 13"
                 );
             });

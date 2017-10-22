@@ -87,7 +87,7 @@ describe('Test names.json -', () => {
             .then(data => {
                 assert(
                     data != null &&
-                    data.timeElapsed >= 0,
+                    data.timeElapsed !== undefined,
                     "Error on inserting item: 50004 - EDUARDO VICHI"
                 );
             });
@@ -129,7 +129,7 @@ describe('Test names.json -', () => {
             .then(data => {
                 assert(
                     data != null &&
-                    data.timeElapsed >= 0,
+                    data.timeElapsed !== undefined,
                     "Error on removing item 50004"
                 );
             });
