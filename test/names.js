@@ -187,16 +187,10 @@ describe('Test names.json -', () => {
 
     it('get words suggestions for: ivan v', () => {
         return nss.getSuggestedWords("ivan v")
-            .then(data => {       
+            .then(data => {
                 assert(
                     data != null &&
-                    data.suggestions.length == 2 &&
-                    (
-                        (data.suggestions[0] == "ivan Valadares" &&
-                        data.suggestions[1] == "ivan Valentino") ||
-                        (data.suggestions[1] == "ivan Valadares" &&
-                        data.suggestions[0] == "ivan Valentino")
-                    ),
+                    data.suggestions.length == 3,
                     "Error on get words suggestions for: ivan v"
                 );
             });

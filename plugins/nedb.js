@@ -156,8 +156,8 @@ let DbDriver = class {
 
     insertItem (entry) {
         if (this._cacheOn){
-            return this._cache.insertItem(entry).then(() => {
-                return this._insert(this.dbItems, entry);
+            return this._insert(this.dbItems, entry).then(() => {
+                return this._cache.insertItem(entry);
             });
         }else{
             return this._insert(this.dbItems, entry);
@@ -166,8 +166,8 @@ let DbDriver = class {
     
     insertWord (entry) {
         if (this._cacheOn){
-            return this._cache.insertWord(entry).then(() => {
-                return this._insert(this.dbWords, entry);
+            return this._insert(this.dbWords, entry).then(() => {
+                return this._cache.insertWord(entry);
             });
         }else{
             return this._insert(this.dbWords, entry);
@@ -190,8 +190,8 @@ let DbDriver = class {
 
     removeItem (criteria) {
         if (this._cacheOn){
-            return this._cache.removeItem(criteria).then(() => {
-                return this._remove(this.dbItems, criteria, { multi: false });
+            return this._remove(this.dbItems, criteria, { multi: false }).then(() => {
+                return this._cache.removeItem(criteria);
             });
         }else{
             return this._remove(this.dbItems, criteria, { multi: false });
@@ -200,8 +200,8 @@ let DbDriver = class {
     
     removeWords (criteria) {
         if (this._cacheOn){
-            return this._cache.removeWords(criteria).then(() => {
-                return this._remove(this.dbWords, criteria, { multi: false });
+            return this._remove(this.dbWords, criteria, { multi: false }).then(() => {
+                return this._cache.removeWords(criteria);
             });
         }else{
             return this._remove(this.dbWords, criteria, { multi: false });
@@ -210,8 +210,8 @@ let DbDriver = class {
 
     updateWordItems (cleanWord, items) {
         if (this._cacheOn){
-            return this._cache.updateWordItems(cleanWord, items).then(() => {
-                return this._updateWordItems(cleanWord, items);
+            return this._updateWordItems(cleanWord, items).then(() => {
+                return this._cache.updateWordItems(cleanWord, items);
             });
         }else{
             return this._updateWordItems(cleanWord, items);
