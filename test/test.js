@@ -434,8 +434,7 @@ describe('Test test.json -', () => {
             .then(data => {
                 assert(
                     data != null &&
-                    data.suggestions.length == 1 &&
-                    data.suggestions[0] == "fancy",
+                    data.suggestions.length == 3,
                     "Error on get words suggestions for: fanc"
                 );
             });

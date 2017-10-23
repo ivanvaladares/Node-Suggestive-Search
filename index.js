@@ -1,5 +1,5 @@
 /*
-node-suggestive-search v1.8.6
+node-suggestive-search v1.8.7
 https://github.com/ivanvaladares/node-suggestive-search/
 by Ivan Valadares 
 http://ivanvaladares.com 
@@ -164,7 +164,8 @@ const NodeSuggestiveSearch = class {
 		let words = [];
 		
 		//do not split dates
-		let dates = text.match(/([^-/. ]{1,10})([.|/|-])([^-/. ]{1,10})([.|/|-])[^-/. ]{1,10}|([0-9]{1,4})([.|/|-])([^-/. ]{2,10})|([^-/. ]{2,10})([.|/|-])([0-9]{1,4})|([0-9]{1,4})([.|/|-])([0-9]{1,4})/g, "$1");
+		//ex: N=number, L=letter NNNN/LLLLLLLLLL/NNNN, NNNN/NN/NNNN, NN/NN, NNNN/LLLLLLLLL, LLLLLLLLL/NNNN, NN/NNNN, NNNN/NN 
+		let dates = text.match(/([0-9]{1,4})([.|/|-])([^-/. ]{2,10})([.|/|-])[0-9]{1,4}|([0-9]{1,4})([.|/|-])([0-9]{1,2})([.|/|-])[0-9]{1,4}|([0-9]{1,4})([.|/|-])([^-/. ]{2,10})|([^-/. ]{2,10})([.|/|-])([0-9]{1,4})|([0-9]{1,2})([.|/|-])([0-9]{1,4})|([0-9]{1,4})([.|/|-])([0-9]{1,2})/g, "$1");
 
 		if (dates !== null){
 			dates = dates.map(item => {
@@ -188,12 +189,6 @@ const NodeSuggestiveSearch = class {
 			});
 
 			words = words.concat(units);
-		}
-
-		if (dates !== null){
-			dates = dates.map(item => {
-				text += ' ' + item.replace(/[-/.0-9]/gi, ' ').trim(); //return month names to main text
-			});			
 		}
 
 		//separate words using this regexp pattern
@@ -268,7 +263,7 @@ const NodeSuggestiveSearch = class {
 			for (let i = 0; i < wordItem.results.length && i < 25; i++){
 				//discard if is a repeated suggestion without a repeated query
 				if (finalWordItems.finalWords.indexOf(wordItem.results[i].word) > -1 &&
-					wordItem.results[i].word !== wordItem.word){ 
+					wordItem.results[i].word.toLowerCase() !== wordItem.word.toLowerCase()){ 
 					continue;
 				}
 
@@ -290,7 +285,7 @@ const NodeSuggestiveSearch = class {
 
 	}
 
-	_getWordsBySoundexAndParts (word) {
+	_getWordsFromSoundexAndParts (word) {
 
 		return new Promise((resolve, reject) => {
 
@@ -304,7 +299,7 @@ const NodeSuggestiveSearch = class {
 
 			let wordWithoutAccents = _word.latinize();
 
-			for (let i = 4; i >= 2; i--) {
+			for (let i = 4; i > 1; i--) {
 
 				if (wordWithoutAccents.length >= i) {
 
@@ -350,6 +345,46 @@ const NodeSuggestiveSearch = class {
 
 	}
 
+	_getWordsFromCleanWords (arrWords){
+
+		let promises = arrWords.map(word => {
+			
+			return new Promise((resolve, reject) => {
+
+				//try to find the exact word in our dictionary
+				this._db.findWords({ cleanWord: word.toLowerCase().latinize() }).then(foundWords => {
+
+					if (!foundWords || foundWords.length <= 0) {
+
+						//instead of returning an error, lets return a null
+						resolve(null);
+
+					} else {
+
+						//sort to return the best match
+						foundWords = foundWords.map((obj) => {
+							obj.similarity = this._similarity(obj.word, word);
+							return obj;
+						}).sort((x, y) => {
+							return ((x.similarity > y.similarity) ? -1 : 1);
+						}).slice(0, 1);
+
+						//returning the best match
+						resolve({ word, results: foundWords });
+
+					}
+
+				}).catch(err => {
+					reject(err);
+				});
+
+			});
+
+		});
+
+		return promises;
+	}
+
 	_getWordsStartingWith (word, limit) {
 
 		return new Promise((resolve, reject) => {
@@ -358,7 +393,7 @@ const NodeSuggestiveSearch = class {
 			let hasCriteria = false;
 
 			//create a search criteria from 4 to 2 letters to try to find words that starts like this one
-			for (let i = 4; i >= 2; i--) {
+			for (let i = 4; i > 1; i--) {
 				if (word.length >= i) {
 
 					queryCriteria[`p${i}i`] = word.substr(0, i).toLowerCase();
@@ -539,7 +574,27 @@ const NodeSuggestiveSearch = class {
 		});
 
 	}
-	
+
+	_filterWordsFromItem (item, arrWords) {
+		let arrItemWords = [];
+
+		if (item.keywords !== null && item.keywords !== undefined){
+			arrItemWords = this._splitWords(item.itemName.toLowerCase() + " " + item.keywords.toLowerCase());
+		} else {
+			arrItemWords = this._splitWords(item.itemName.toLowerCase());
+		}
+
+		//filter out the words from this item using words from the query
+		for (let x = 0; x < arrWords.length; x++) {
+			for (let y = 0; y < arrItemWords.length; y++) {
+				if (arrWords[x].toLowerCase().latinize() === arrItemWords[y].latinize()){
+					arrItemWords.splice(y, 1);
+					break;
+				}
+			}
+		}
+		return arrItemWords;
+	}
 	//#endregion
 
 	/**
@@ -1056,7 +1111,7 @@ const NodeSuggestiveSearch = class {
 						if (!foundWords || foundWords.length <= 0) {
 
 							//this function will try to get words in our dictionary that is similar to the word from the query
-							this._getWordsBySoundexAndParts(word).then(soudexFoundItems  => {
+							this._getWordsFromSoundexAndParts(word).then(soudexFoundItems  => {
 								if (soudexFoundItems !== null) {
 									resolve({ word: word, results: soudexFoundItems });
 								} else {
@@ -1101,27 +1156,25 @@ const NodeSuggestiveSearch = class {
 				let missingWords = objFinal.missingWords;
 
 				//pos search - match quoted expressions, hyphenated words and separated by slashes
-				let regExp = /"(.*?)"|'(.*?)'|((?:\w+-)+\w+)|((?:\w+\/|\\)+\w+)/g;
-				let quotedStrings = words.match(regExp, "$1");
+				let quotedStrings = words.match(/"(.*?)"|'(.*?)'|((?:\w+-)+\w+)|((?:\w+\/|\\)+\w+)/g, "$1");
 
 				let expressions = [];
 				let missingExpressions = [];
 
-				// todo: create a better way to check the expressions and repetitions
-				// let match;// = regExp.exec(words);
-				// console.log(finalWords)
-				// console.log(quotedStrings)
-				// while (match = regExp.exec(words))
-				// 	console.log(match.index + " - " + match[0].length + " - " + match[0]);
+
+				//todo: create a better way to check the expressions and repetitions
+
 
 				if (quotedStrings !== null && quotedStrings.length > 0){
 
+					//remove quotes from expressions
 					quotedStrings = quotedStrings.map(item => {
 						return item.replace(/^"(.+(?="$))"$/, '$1').replace(/^'(.+(?='$))'$/, '$1'); //remove quotes
 					});
 
 					this._db.findItems({ itemId: { $in: arrItemsIds.slice(0, 100) } }).then(foundItems => {
 						
+						//get the expressions from the item name and keywords
 						foundItems = foundItems.filter(item => {
 							for (let quotedString in quotedStrings){
 								if (item.itemName.search(new RegExp(quotedStrings[quotedString], "ig")) >= 0 ||
@@ -1134,6 +1187,7 @@ const NodeSuggestiveSearch = class {
 							}
 						});
 
+						//get the missing expressions
 						quotedStrings.map(quotedString => {
 							if (expressions.indexOf(quotedString) < 0){
 								missingExpressions.push(quotedString);
@@ -1179,7 +1233,13 @@ const NodeSuggestiveSearch = class {
 
 		return new Promise((resolve, reject) => {
 
-			let time = this._clock();
+			let time;
+			
+			if (arguments.length > 1){
+				time = arguments[1];
+			}else{
+				time = this._clock();
+			}
 
 			let arrWords = this._splitWords(words);
 
@@ -1190,6 +1250,7 @@ const NodeSuggestiveSearch = class {
 			if (arrWords.length <= 0) {
 				return reject(new Error("No word was given to search!"));
 			}
+			
 			//only one word came from query and no space at the end
 			if (arrWords.length == 1 && words.indexOf(" ") == -1) {
 
@@ -1199,11 +1260,9 @@ const NodeSuggestiveSearch = class {
 					let arrResponse = [];
 
 					if (queryResponse !== null) {
-
 						for (let index = 0; index < queryResponse.length; index++) {
 							arrResponse.push(queryResponse[index].word);
 						}
-
 					}
 
 					arrResponse.sort((x, y) => {
@@ -1226,7 +1285,14 @@ const NodeSuggestiveSearch = class {
 
 					});
 
-					resolve({ suggestions: arrResponse, timeElapsed: this._clock(time) });
+					//if there is only one result, call again to get more suggestions
+					if (arrResponse.length == 1 &&  arguments.length == 1){
+						this.getSuggestedWords(arrResponse[0] + " ", time).then(moreResults => {
+							resolve(moreResults);
+						});
+					}else{
+						resolve({ suggestions: arrResponse, timeElapsed: this._clock(time) });
+					}					
 
 				},
 				err => {
@@ -1237,60 +1303,26 @@ const NodeSuggestiveSearch = class {
 			} else { //one word with space at the end or more words came from the query.
 
 				//make a promise for each word from query, but last one, and create an array of promises
-				let promises = arrWords.slice(0, arrWords.length - 1).map(word => {
-
-					return new Promise((resolve, reject) => {
-
-						//try to find the exact word in our dictionary
-						this._db.findWords({ cleanWord: word.toLowerCase().latinize() }).then(foundWords => {
-
-							if (!foundWords || foundWords.length <= 0) {
-
-								//instead of returning an error, lets return a null
-								resolve(null);
-
-							} else {
-
-								//sort to return the best match
-								foundWords = foundWords.map((obj) => {
-									obj.similarity = this._similarity(obj.word, word);
-									return obj;
-								}).sort((x, y) => {
-									return ((x.similarity > y.similarity) ? -1 : 1);
-								}).slice(0, 1);
-
-								//returning the best match
-								resolve({ word, results: foundWords });
-
-							}
-
-						}).catch(err => {
-							reject(err);
-						});
-
-					});
-
-				});
-
-
+				let promises = this._getWordsFromCleanWords(arrWords.slice(0, arrWords.length - 1));
+				
 				//now, lets resolve all promises from the array of promises
-				Promise.all(promises).then(foundItems => {
+				Promise.all(promises).then(foundWords => {
 
 					let previousWords = "";
 
 					//test if all words exists
-					for (let index in foundItems) {
-						if (foundItems[index] === null) {
+					for (let index in foundWords) {
+						if (foundWords[index] === null) {
 							//some word is not correct, break the response
 							return resolve({ suggestions: [], timeElapsed: this._clock(time) });
 						}
 
-						previousWords += foundItems[index].word + " ";
+						previousWords += foundWords[index].word + " ";
 					}
 
 					previousWords = previousWords.trim();
 
-					let objFinal = this._matchWordsByItemsIds(foundItems);
+					let objFinal = this._matchWordsByItemsIds(foundWords);
 					let arrItemsIds = objFinal.itemsIds;
 					let missingWords = objFinal.missingWords;
 
@@ -1305,29 +1337,20 @@ const NodeSuggestiveSearch = class {
 					let objResponse = {};
 					let lastWord = arrWords[arrWords.length - 1].toLowerCase().latinize();
 				
-
 					this._splitWords(previousWords).map(el => {
 						objResponse[el.toLowerCase().latinize()] = 1;
 					});
 
-					this._db.findItems({ itemId: { $in: arrItemsIds.slice(0, 100) } }).then(othersItems => {
+					this._db.findItems({ itemId: { $in: arrItemsIds.slice(0, 1000) } }).then(othersItems => {
 
 						//get all item's names from items returned from query and create a relatedWords dictionary
 						let objRelatedWords = {};
 
 						for (let countWords = 0, i = 0; i < othersItems.length && countWords < 50; i++){
 							let item = othersItems[i];
-							let arrItemWords = this._splitWords(item.itemName);
 
 							//filter out the words from this item using words from the query
-							for (let x = 0; x < arrWords.length - 1; x++) {
-								for (let y = 0; y < arrItemWords.length; y++) {
-									if (arrWords[x].toLowerCase().latinize() === arrItemWords[y].toLowerCase().latinize()){
-										arrItemWords.splice(y, 1);
-										break;
-									}
-								}
-							}
+							let arrItemWords = this._filterWordsFromItem(item, arrWords.slice(0, arrWords.length - 1));
 
 							//the rest of the words will be compared with the last words from the query
 							for (let y = 0; y < arrItemWords.length; y++){
@@ -1352,10 +1375,9 @@ const NodeSuggestiveSearch = class {
 
 						if (relatedWords.length > 0) {
 
-							// And then, remove repetitions and sort it by popularity
+							// And then sort it by popularity and alphabetically
 							relatedWords = relatedWords.sort((x, y) => {
 
-								//sort by popularity and alphabetically
 								if (x.value > y.value) {
 									return -1;
 								}
@@ -1380,9 +1402,18 @@ const NodeSuggestiveSearch = class {
 								arrResponse.push(previousWords + " " + relatedWords[index].word);
 							}
 
+						}else{
+							arrResponse.push(previousWords);
 						}
 
-						resolve({ suggestions: arrResponse, timeElapsed: this._clock(time) });
+						//if there is only one result, call again to get more suggestions
+						if (arrResponse.length == 1 &&  arguments.length == 1){
+							this.getSuggestedWords(arrResponse[0] + " ", time).then(moreResults => {
+								resolve(moreResults);
+							});
+						}else{
+							resolve({ suggestions: arrResponse, timeElapsed: this._clock(time) });
+						}
 
 					}).catch(err => {
 						reject(err);
@@ -1436,13 +1467,9 @@ const NodeSuggestiveSearch = class {
 						let arrResponse = [];
 
 						if (foundItems !== null) {
-
 							foundItems.map(item => {
-
 								arrResponse.push({itemId: item.itemId, itemName: item.itemName });
-								
 							});
-		
 						}
 
 						resolve({ items: arrResponse, timeElapsed: this._clock(time) });
@@ -1459,41 +1486,7 @@ const NodeSuggestiveSearch = class {
 			} else { //two or more words came from the query.
 
 				//make a promise for each word from query, but last one and create an array of promises
-				let promises = arrWords.slice(0, arrWords.length - 1).map(word => {
-
-					return new Promise((resolve, reject) => {
-
-						//try to find the exact word in our dictionary
-						this._db.findWords({ cleanWord: word.toLowerCase().latinize() }).then(foundWords => {
-
-							if (!foundWords || foundWords.length <= 0) {
-
-								//instead of returning an error, lets return null
-								resolve(null);
-
-							} else {
-
-								//sort to return the best match
-								foundWords = foundWords.map((obj) => {
-									obj.similarity = this._similarity(obj.word, word);
-									return obj;
-								}).sort((x, y) => {
-									return ((x.similarity > y.similarity) ? -1 : 1);
-								}).slice(0, 1);
-
-								//returning the best match
-								resolve({ word, results: foundWords });
-
-							}
-
-						}).catch(err => {
-							reject(err);
-						});
-
-					});
-
-				});
-
+				let promises = this._getWordsFromCleanWords(arrWords.slice(0, arrWords.length - 1));
 
 				//now, lets resolve all promises from the array of promises
 				Promise.all(promises).then(foundWords => {
@@ -1506,11 +1499,9 @@ const NodeSuggestiveSearch = class {
 						}
 					}
 
-
 					let objFinal = this._matchWordsByItemsIds(foundWords);
 					let arrItemsIds = objFinal.itemsIds;
 					let missingWords = objFinal.missingWords;
-
 
 					//after this query, one or more words could be missing because its items did not match
 					//if that is true, break the response
@@ -1519,7 +1510,7 @@ const NodeSuggestiveSearch = class {
 						return resolve({ items: [], timeElapsed: this._clock(time) });
 					}
 
-					this._db.findItems({ itemId: { $in: arrItemsIds.slice(0, 100) } }).then(foundItems => {
+					this._db.findItems({ itemId: { $in: arrItemsIds.slice(0, 1000) } }).then(foundItems => {
 
 						let arrResponse = [];
 						let lastWord = arrWords[arrWords.length - 1].toLowerCase().latinize();
@@ -1528,23 +1519,9 @@ const NodeSuggestiveSearch = class {
 
 							for (let i = 0; i < foundItems.length; i++){
 								let item = foundItems[i];
-								let arrItemWords = [];
-								
-								if (item.keywords !== null && item.keywords !== undefined){
-									arrItemWords = this._splitWords(item.itemName.toLowerCase() + " " + item.keywords.toLowerCase());
-								} else {
-									arrItemWords = this._splitWords(item.itemName.toLowerCase());
-								}
 
 								//filter out the words from this item using words from the query
-								for (let x = 0; x < arrWords.length - 1; x++) {
-									for (let y = 0; y < arrItemWords.length; y++) {
-										if (arrWords[x].toLowerCase().latinize() === arrItemWords[y].latinize()){
-											arrItemWords.splice(y, 1);
-											break;
-										}
-									}
-								}
+								let arrItemWords = this._filterWordsFromItem(item, arrWords.slice(0, arrWords.length - 1));
 								
 								//the rest of the words will be compared with the last words from the query
 								let foundLast = false;
