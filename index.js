@@ -1,5 +1,5 @@
 /*
-node-suggestive-search v1.8.7
+node-suggestive-search v1.8.8
 https://github.com/ivanvaladares/node-suggestive-search/
 by Ivan Valadares 
 http://ivanvaladares.com 
