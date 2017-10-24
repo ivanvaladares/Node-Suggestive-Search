@@ -5,16 +5,16 @@ const EventEmitter = require('events');
 let DbDriver = class {
         
     constructor (options) {
+        
+        this._cacheOn = false;
+        this._cache = {};
+
+        if (options.cache === true){
+            this._cacheOn = true;
+            this._cache = require('./memory.js').init();
+        }
 
         mongo.connect(options.mongoDatabase).then((database) => {
-            this._cacheOn = false;
-            this._cache = {};
-
-            if (options.cache === true){
-                this._cacheOn = true;
-                this._cache = require('./memory.js').init();
-            }
-
             let itemsCollectionName = (options.itemsCollectionName !== undefined) ? options.itemsCollectionName : 'node-suggestive-search-items'; 
             let wordsCollectionName = (options.wordsCollectionName !== undefined) ? options.wordsCollectionName : 'node-suggestive-search-words';         
 
@@ -67,7 +67,6 @@ let DbDriver = class {
         });
 
         return this;
-        
     }
 
     _insert (collection, entry) {
@@ -191,10 +190,10 @@ let DbDriver = class {
         }
     }
     
-    removeWords (criteria) {
+    removeWord (criteria) {
         if (this._cacheOn){
             return this._remove(this.dbWords, criteria, { multi: false }).then(() => {
-                return this._cache.removeWords(criteria);
+                return this._cache.removeWord(criteria);
             });
         }else{
             return this._remove(this.dbWords, criteria, { multi: false });

@@ -1,6 +1,6 @@
 {
   "name": "node-suggestive-search",
-  "version": "1.8.8",
+  "version": "1.8.9",
   "author": {
     "name": "Ivan Valadares",
     "email": "ivanvaladares@hotmail.com"
@@ -31,7 +31,8 @@
   "dependencies": {
     "lodash": "^4.17.4",
     "mongodb": "2.2.19",
-    "nedb": "^1.8.0"
+    "nedb": "^1.8.0",
+    "redis": "^2.8.0"
   },
   "devDependencies": {
     "eslint": "^4.7.2",

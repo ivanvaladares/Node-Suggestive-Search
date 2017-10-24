@@ -7,7 +7,6 @@ let DbDriver = class {
     constructor () {
 
 		this.items = {};
-        this.words = {};
         this.soundex = {};
 		this.cleanWords = {};
 		this.parts = {};
@@ -19,7 +18,7 @@ let DbDriver = class {
         return this;
     }
     
-    _getWordsFromCleanWords (cleanWords){
+    _getWordsFromCleanWord (cleanWords){
         let arr = [];
 
         cleanWords.map(cleanWord => {
@@ -37,7 +36,7 @@ let DbDriver = class {
         return arr;
     }
 
-    _getWordsFromPartsAndSoundex (parts, soundex){
+    _getWordsFromSoundexAndParts (parts, soundex){
         let objs = {};
         let arr = [];
         
@@ -93,13 +92,11 @@ let DbDriver = class {
         return new Promise(resolve => {
 
             delete this.items;
-            delete this.words;
             delete this.soundex;
             delete this.cleanWords;
             delete this.parts;               
 
             this.items = {};
-            this.words = {};
             this.soundex = {};
             this.cleanWords = {};
             this.parts = {};
@@ -137,7 +134,7 @@ let DbDriver = class {
                 }else{
 
                     //create the cleanWord key
-                    this.cleanWords[word.cleanWord] = {cleanWord: word.cleanWord, soundex: word.soundex, words: [word.word], items: word.items, parts: []};
+                    this.cleanWords[word.cleanWord] = {cleanWord: word.cleanWord, soundex: word.soundex, words: [word.word], items: word.items};
                 
                     //create the soundex key
                     if (word.soundex != "0000"){
@@ -176,8 +173,6 @@ let DbDriver = class {
 
                     }                    
                 }
-
-                this.words[word.word] = this.cleanWords[word.cleanWord];
                 
             });
             resolve(entry);
@@ -210,7 +205,7 @@ let DbDriver = class {
         return new Promise(resolve => {
 
             if (criteria.cleanWord !== undefined){
-                resolve(this._getWordsFromCleanWords([criteria.cleanWord]));
+                resolve(this._getWordsFromCleanWord([criteria.cleanWord]));
             }else{
                 let criterias = [];
 
@@ -240,7 +235,7 @@ let DbDriver = class {
                     }
                 });
 
-                resolve(this._getWordsFromPartsAndSoundex(parts, soundex));
+                resolve(this._getWordsFromSoundexAndParts(parts, soundex));
             }
         });    
     }
@@ -258,30 +253,26 @@ let DbDriver = class {
         });   
     }
     
-    removeWords (criteria) {
+    removeWord (criteria) {
         return new Promise(resolve => {
 
-            let word = this.words[criteria.word];
+            let cleanWord = this.cleanWords[criteria.cleanWord];
 
-            if (word !== undefined){
-                let wordsCount = word.words.length;
+            if (cleanWord !== undefined){
 
-                if (this.soundex[word.soundex] !== undefined){
-                    if (this.soundex[word.soundex].length == 1){
-                        delete this.soundex[word.soundex];
+                if (this.soundex[cleanWord.soundex] !== undefined){
+                    if (this.soundex[cleanWord.soundex].length == 1){
+                        delete this.soundex[cleanWord.soundex];
                     }else{
-                        this.soundex[word.soundex] = _.without(this.soundex[word.soundex], word.cleanWord);  
+                        this.soundex[cleanWord.soundex] = _.without(this.soundex[cleanWord.soundex], cleanWord.cleanWord);  
                     }
                 }
 
-                if (word.words.length == 1){
-                    delete this.cleanWords[word.cleanWord];
-                    delete this.words[word.words[0]];
-                }
+                delete this.cleanWords[cleanWord.cleanWord];
 
                 //todo: cleanup orphans parts
 
-                resolve(wordsCount);
+                resolve(1);
 
             }else{
                 resolve(0);
