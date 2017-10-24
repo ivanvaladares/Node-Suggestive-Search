@@ -13,6 +13,15 @@ describe('Test names.json -', () => {
         //tests using memory
         nss = require('../index.js').init();        
 
+        //tests using redis
+        // nss = require("../index.js").init(
+        // {
+        //     dataBase: "redis",  
+        //     keysPrefixName: "nss-",
+        //     redisDatabase: "redis://localhost:6379",
+        //     cache: false
+        // });
+        
         //tests using nedb
         // nss = require('../index.js').init(
         // {

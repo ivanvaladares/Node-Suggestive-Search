@@ -198,10 +198,10 @@ let DbDriver = class {
         }        
     }
     
-    removeWords (criteria) {
+    removeWord (criteria) {
         if (this._cacheOn){
             return this._remove(this.dbWords, criteria, { multi: false }).then(() => {
-                return this._cache.removeWords(criteria);
+                return this._cache.removeWord(criteria);
             });
         }else{
             return this._remove(this.dbWords, criteria, { multi: false });

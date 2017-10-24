@@ -12,7 +12,18 @@ describe('Test test.json -', () => {
     before(done => {
 
         //tests using memory
-        nss2 = require('../index.js').init();         
+        nss2 = require('../index.js').init();      
+        
+
+        //tests using redis
+        // nss = require("../index.js").init(
+        //     {
+        //         dataBase: "redis",  
+        //         keysPrefixName: "nss-",
+        //         redisDatabase: "redis://localhost:6379",
+        //         cache: true
+        //     });
+            
 
         //tests using nedb
         // nss2 = require('../index.js').init(

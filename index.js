@@ -1,5 +1,5 @@
 /*
-node-suggestive-search v1.8.8
+node-suggestive-search v1.8.9
 https://github.com/ivanvaladares/node-suggestive-search/
 by Ivan Valadares 
 http://ivanvaladares.com 
@@ -34,10 +34,11 @@ const NodeSuggestiveSearch = class {
 
 		if (options !== undefined && options.dataBase !== undefined){
 			if (options.dataBase.toLowerCase() == "mongodb" || 
-				options.dataBase.toLowerCase() == "nedb") {
+				options.dataBase.toLowerCase() == "nedb" || 
+				options.dataBase.toLowerCase() == "redis") {
 				this._db = require(`./plugins/${options.dataBase.toLowerCase()}.js`).init(options);
 			} else {
-				throw new Error("This module requires MongoDB or NeDB!");
+				throw new Error("This module requires MongoDB, Redis or NeDB!");
 			}
 		} else {
 			this._db = require('./plugins/memory.js').init();
@@ -595,6 +596,7 @@ const NodeSuggestiveSearch = class {
 		}
 		return arrItemWords;
 	}
+	
 	//#endregion
 
 	/**
@@ -670,7 +672,7 @@ const NodeSuggestiveSearch = class {
 
 									let innerPromise = new Promise((resolve, reject) => {
 
-										this._db.removeWords({ word: word.word }).then(numRemoved => {
+										this._db.removeWord({ cleanWord: word.cleanWord }).then(numRemoved => {
 											resolve(numRemoved);
 										}).catch(err => {
 											reject(err);
