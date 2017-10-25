@@ -4,7 +4,7 @@ A node module to help type-ahead and dropdown search boxes and also correct miss
 
 This module is compatible with:
 - Redis Node.JS Client 2.8.0, Client to connect with Redis https://www.npmjs.com/package/redis
-- MongoDB Node.JS Driver 2.2.19, Driver to connect with MongoDB 3.2 http://mongodb.github.io/node-mongodb-native/
+- MongoDB Node.JS Driver 2.2.19, Driver to connect with MongoDB http://mongodb.github.io/node-mongodb-native/
 - NeDB 1.8.0, The JavaScript Database from Louis Chatriot https://github.com/louischatriot/nedb
 
 
@@ -12,7 +12,7 @@ This module is compatible with:
 Module name on npm is "node-suggestive-search".
 
 ```
-npm install node-suggestive-search --save   # Install the latest version in project
+npm install node-suggestive-search --save   # Install the latest version in your project
 ```
 
 
@@ -20,7 +20,7 @@ npm install node-suggestive-search --save   # Install the latest version in proj
 https://ivanvaladares.herokuapp.com
 
 ## Playground on Runkit
-https://runkit.com/ivanvaladares/node-suggestive-search-1.8.8
+https://runkit.com/ivanvaladares/node-suggestive-search-1.9.0
 
 
 ## API
@@ -34,7 +34,7 @@ https://runkit.com/ivanvaladares/node-suggestive-search-1.8.8
 
 
 ### Setting options
-This module supports MongoDB and NeDB. You must set this options in order to use this module. 
+This module supports Redis, MongoDB and NeDB but you can use an in-memory volatile cache.
 
 Configuration without database (in-memory):
 ```javascript
@@ -270,7 +270,7 @@ nss.query("\"HAM L/S\"").then(
 
 
 ### Getting words suggestions
-Getting words suggestions to fill dropdown boxes or type ahead text fields.
+Getting words suggestions to fill dropdown boxes or type-ahead text fields.
 
 Examples of how to call the api and responses:
 ```javascript
@@ -307,7 +307,7 @@ nss.getSuggestedWords("whisky re").then(
 
 
 ### Getting items suggestions
-Getting items suggestions to fill dropdown boxes or type ahead text fields.
+Getting items suggestions to fill dropdown boxes or type-ahead text fields.
 
 Examples of how to call the api and responses:
 ```javascript
@@ -405,7 +405,7 @@ nss.removetItem(itemId).then(
 
 
 ## Pull requests
-If you submit a pull request, thanks! There are a couple rules to follow though to make it manageable:
+If you submit a pull request, thanks! There are a couple of rules to follow to make it manageable:
 * The pull request should be atomic, i.e. contain only one feature. If it contains more, please submit multiple pull requests.
 * Please stick to the current coding style. It's important that the code uses a coherent style for readability.
 * Update the readme accordingly.
