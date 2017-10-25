@@ -25,11 +25,7 @@ let DbDriver = class {
             let found = this.cleanWords[cleanWord];
             
             if (found !== undefined){
-                found.words.map(word => {
-                    if (word !== undefined){
-                        arr.push({ word, cleanWord, items: found.items });
-                    }
-                });
+                arr.push({ words: found.words, cleanWord, items: found.items });
             }
         });
 
@@ -66,22 +62,21 @@ let DbDriver = class {
             }
         });
 
-        for (let cleanWord in objs) {
-            objs[cleanWord].words.map(word => {
-                arr.push({ word, cleanWord, items: objs[cleanWord].items });
-            });
+        for (let k in objs) {
+            arr.push({ words: objs[k].words, cleanWord: k, items: objs[k].items });
         }
 
         return arr;
     }
 
-    updateWordItems (cleanWord, items) {
+    updateWord (cleanWord, items, words) {
         return new Promise(resolve => {
 
             let found = this.cleanWords[cleanWord];
             
             if (found !== undefined){
                 found.items = items;
+                found.words = words;
             }
             
             resolve(1);
@@ -129,53 +124,50 @@ let DbDriver = class {
 
             words.map(word => {
 
-                if (this.cleanWords[word.cleanWord] !== undefined){
-                    this.cleanWords[word.cleanWord].words.push(word.word);
-                }else{
+                //create the cleanWord key
+                this.cleanWords[word.cleanWord] = {cleanWord: word.cleanWord, soundex: word.soundex, words: word.words, items: word.items, parts: []};
+            
+                //create the soundex key
+                if (word.soundex != "0000"){
+                    if (this.soundex[word.soundex] !== undefined){
+                        this.soundex[word.soundex].push(word.cleanWord);
+                    }else{
+                        this.soundex[word.soundex] = [word.cleanWord];
+                    }    
+                }
 
-                    //create the cleanWord key
-                    this.cleanWords[word.cleanWord] = {cleanWord: word.cleanWord, soundex: word.soundex, words: [word.word], items: word.items, parts: []};
-                
-                    //create the soundex key
-                    if (word.soundex != "0000"){
-                        if (this.soundex[word.soundex] !== undefined){
-                            this.soundex[word.soundex].push(word.cleanWord);
-                        }else{
-                            this.soundex[word.soundex] = [word.cleanWord];
-                        }    
+                //create parts keys
+                for (let i = 2; i <= 4; i++) {
+                    if (word[`p${i}i`] !== undefined) {
+                        let pi = word[`p${i}i`];
+
+                        if (this.parts[`p${i}i_${pi}`] !== undefined) {
+                            this.parts[`p${i}i_${pi}`].push(word.cleanWord);
+                        } else {
+                            this.parts[`p${i}i_${pi}`] = [word.cleanWord];
+                        }
+                        
+                        this.cleanWords[word.cleanWord].parts.push(`p${i}i_${pi}`);
                     }
 
-                    //create parts keys
-                    for (let i = 2; i <= 4; i++) {
-                        if (word[`p${i}i`] !== undefined) {
-                            let pi = word[`p${i}i`];
+                    if (word[`p${i}e`] !== undefined) {
+                        let pe = word[`p${i}e`];
 
-                            if (this.parts[`p${i}i_${pi}`] !== undefined) {
-                                this.parts[`p${i}i_${pi}`].push(word.cleanWord);
-                            } else {
-                                this.parts[`p${i}i_${pi}`] = [word.cleanWord];
-                            }
-                            
-                            this.cleanWords[word.cleanWord].parts.push(`p${i}i_${pi}`);
+                        if (this.parts[`p${i}e_${pe}`] !== undefined) {
+                            this.parts[`p${i}e_${pe}`].push(word.cleanWord);
+                        } else {
+                            this.parts[`p${i}e_${pe}`] = [word.cleanWord];
                         }
 
-                        if (word[`p${i}e`] !== undefined) {
-                            let pe = word[`p${i}e`];
+                        this.cleanWords[word.cleanWord].parts.push(`p${i}e_${pe}`);
+                    }
 
-                            if (this.parts[`p${i}e_${pe}`] !== undefined) {
-                                this.parts[`p${i}e_${pe}`].push(word.cleanWord);
-                            } else {
-                                this.parts[`p${i}e_${pe}`] = [word.cleanWord];
-                            }
-
-                            this.cleanWords[word.cleanWord].parts.push(`p${i}e_${pe}`);
-                        }
-
-                    }                    
                 }
                 
             });
+
             resolve(entry);
+
         });
     }
     

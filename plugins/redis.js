@@ -82,13 +82,7 @@ let DbDriver = class {
                                     delete objWord.parts;
                                 }
 
-                                objWord.words.map(word => {
-
-                                    objWord.word = word;
-                                    arrWords.push(JSON.parse(JSON.stringify(objWord)));
-                                    
-                                });
-
+                                arrWords.push(objWord);
                             });
 
                             this._cache.insertWord(arrWords).then(() => {
@@ -115,7 +109,6 @@ let DbDriver = class {
         return this;
     }
 
-    
     _getWordsFromCleanWord (cleanWords){
 
         return new Promise((resolve, reject) => {
@@ -127,11 +120,7 @@ let DbDriver = class {
                 }
                 if (found !== null){
                     let wordObj = JSON.parse(found);
-                    wordObj.words.map(word => {
-                        if (word !== undefined){
-                            arr.push({ word, cleanWord: wordObj.cleanWord, items: wordObj.items });
-                        }
-                    });       
+                    arr.push({ words: wordObj.words, cleanWord: wordObj.cleanWord, items: wordObj.items });
                 }
                 
                 resolve(arr);
@@ -168,11 +157,7 @@ let DbDriver = class {
                     replies.map(item => {
                         if (item !== null){
                             let wordObj = JSON.parse(item);
-                            wordObj.words.map(word => {
-                                if (word !== undefined){
-                                    arr.push({ word, cleanWord: wordObj.cleanWord, items: wordObj.items });
-                                }
-                            });
+                            arr.push({ words: wordObj.words, cleanWord: wordObj.cleanWord, items: wordObj.items });
                         }
                     });
 
@@ -220,51 +205,46 @@ let DbDriver = class {
 
             words.map(word => {
 
-                if (cleanWords[word.cleanWord] !== undefined){
-                    cleanWords[word.cleanWord].words.push(word.word);
-                }else{
+                //create the cleanWord key
+                cleanWords[word.cleanWord] = {cleanWord: word.cleanWord, soundex: word.soundex, words: word.words, items: word.items, parts: []};
+            
+                //create the soundex key
+                if (word.soundex != "0000"){
+                    if (soundex[word.soundex] !== undefined){
+                        soundex[word.soundex].push(word.cleanWord);
+                    }else{
+                        soundex[word.soundex] = [word.cleanWord];
+                    }    
+                }
 
-                    //create the cleanWord key
-                    cleanWords[word.cleanWord] = {cleanWord: word.cleanWord, soundex: word.soundex, words: [word.word], items: word.items, parts: []};
-                
-                    //create the soundex key
-                    if (word.soundex != "0000"){
-                        if (soundex[word.soundex] !== undefined){
-                            soundex[word.soundex].push(word.cleanWord);
-                        }else{
-                            soundex[word.soundex] = [word.cleanWord];
-                        }    
+                //create parts keys
+                for (let i = 2; i <= 4; i++) {
+                    if (word[`p${i}i`] !== undefined) {
+                        let pi = word[`p${i}i`];
+
+                        if (parts[`p${i}i_${pi}`] !== undefined) {
+                            parts[`p${i}i_${pi}`].push(word.cleanWord);
+                        } else {
+                            parts[`p${i}i_${pi}`] = [word.cleanWord];
+                        }
+                        
+                        cleanWords[word.cleanWord].parts.push(`p${i}i_${pi}`);
                     }
 
-                    //create parts keys
-                    for (let i = 2; i <= 4; i++) {
-                        if (word[`p${i}i`] !== undefined) {
-                            let pi = word[`p${i}i`];
+                    if (word[`p${i}e`] !== undefined) {
+                        let pe = word[`p${i}e`];
 
-                            if (parts[`p${i}i_${pi}`] !== undefined) {
-                                parts[`p${i}i_${pi}`].push(word.cleanWord);
-                            } else {
-                                parts[`p${i}i_${pi}`] = [word.cleanWord];
-                            }
-                            
-                            cleanWords[word.cleanWord].parts.push(`p${i}i_${pi}`);
+                        if (parts[`p${i}e_${pe}`] !== undefined) {
+                            parts[`p${i}e_${pe}`].push(word.cleanWord);
+                        } else {
+                            parts[`p${i}e_${pe}`] = [word.cleanWord];
                         }
 
-                        if (word[`p${i}e`] !== undefined) {
-                            let pe = word[`p${i}e`];
+                        cleanWords[word.cleanWord].parts.push(`p${i}e_${pe}`);
+                    }
 
-                            if (parts[`p${i}e_${pe}`] !== undefined) {
-                                parts[`p${i}e_${pe}`].push(word.cleanWord);
-                            } else {
-                                parts[`p${i}e_${pe}`] = [word.cleanWord];
-                            }
-
-                            cleanWords[word.cleanWord].parts.push(`p${i}e_${pe}`);
-                        }
-
-                    }                    
-                }
-                
+                }                    
+            
             });
 
             let arrMulti = [];
@@ -456,7 +436,7 @@ let DbDriver = class {
         });       
     }
     
-    _updateWordItems (cleanWord, items) {
+    _updateWord (cleanWord, items, words) {
         return new Promise((resolve, reject) => {
 
             this.client.get(`${this.keysPrefixName}cleanWord:${cleanWord}`, (err, foundWord) => {
@@ -468,6 +448,7 @@ let DbDriver = class {
 
                     let wordObj = JSON.parse(foundWord);
                     wordObj.items = items;
+                    wordObj.words = words;
 
                     this.client.set(`${this.keysPrefixName}cleanWord:${cleanWord}`, JSON.stringify(wordObj), err => {
                         if (err) {
@@ -568,13 +549,13 @@ let DbDriver = class {
         }
     }
 
-    updateWordItems (cleanWord, items) {
+    updateWord (cleanWord, items, words) {
         if (this._cacheOn){
-            return this._updateWordItems(cleanWord, items).then(() => {
-                return this._cache.updateWordItems(cleanWord, items);
+            return this._updateWord(cleanWord, items, words).then(() => {
+                return this._cache.updateWord(cleanWord, items, words);
             });
         }else{
-            return this._updateWordItems(cleanWord, items);
+            return this._updateWord(cleanWord, items, words);
         }
     }
 };

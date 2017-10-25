@@ -98,9 +98,9 @@ let DbDriver = class {
         });    
     }
     
-    _updateWordItems (cleanWord, items) {
+    _updateWord (cleanWord, items, words) {
         return new Promise((resolve, reject) => {
-            this.dbWords.update({cleanWord: cleanWord}, { $set: { "items": items }}, { multi: true }, (err, numUpdated) => {
+            this.dbWords.update({cleanWord: cleanWord}, { $set: { "items": items, "words": words }}, { multi: true }, (err, numUpdated) => {
                 if (err) { return reject(err); }
     
                 resolve(numUpdated);
@@ -129,8 +129,7 @@ let DbDriver = class {
         return new Promise((resolve) => {
 
             this.dbItems.createIndex({ 'itemId': 2 }, { unique: true });
-            this.dbWords.createIndex({ 'word': 1 }, {  unique: true });
-            this.dbWords.createIndex({ 'cleanWord': 2 }, { unique: false });
+            this.dbWords.createIndex({ 'cleanWord': 2 }, { unique: true });
             this.dbWords.createIndex({ 'soundex': 1 }, { unique: false });
     
             for (let i = 2; i <= 4; i++) {
@@ -200,13 +199,13 @@ let DbDriver = class {
         }
     }
 
-    updateWordItems (cleanWord, items) {
+    updateWord (cleanWord, items, words) {
         if (this._cacheOn){
-            return this._updateWordItems(cleanWord, items).then(() => {
-                return this._cache.updateWordItems(cleanWord, items);
+            return this._updateWord(cleanWord, items, words).then(() => {
+                return this._cache.updateWord(cleanWord, items, words);
             });
         }else{
-            return this._updateWordItems(cleanWord, items);
+            return this._updateWord(cleanWord, items, words);
         }
     }
 
