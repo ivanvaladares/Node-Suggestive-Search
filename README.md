@@ -41,7 +41,16 @@ Configuration without database (in-memory):
 var nss = require('node-suggestive-search').init();
 
 ```
+Configuration using Redis: 
+```javascript
+var nss = require('node-suggestive-search').init(
+			{
+			dataBase: "redis", 
+			redisDatabase: "redis://localhost:6379",
+			cache: true
+			});
 
+```
 Configuration using MongoDB: 
 ```javascript
 var nss = require('node-suggestive-search').init(
