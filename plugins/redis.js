@@ -158,7 +158,7 @@ let DbDriver = class {
                 let arrMulti = [];
         
                 _.uniq(_.flatten(replies)).map(cleanWord => {
-                    arrMulti.push(['get', `nss-cleanWord:${cleanWord}`]);
+                    arrMulti.push(['get', `${this.keysPrefixName}cleanWord:${cleanWord}`]);
                 });
         
                 this.client.multi(arrMulti).exec((err, replies) => {
