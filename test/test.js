@@ -25,12 +25,12 @@ describe('Test test.json -', () => {
 
         //tests using nedb
         // nss = require('../index.js').init(
-        //     {
-        //         dataBase: "nedb",
-        //         neDbDataPath: "",
-        //         neDbInMemoryOnly: true,
-        //         cache: false
-        //     });
+        // {
+        //     dataBase: "nedb",
+        //     neDbDataPath: "",
+        //     neDbInMemoryOnly: true,
+        //     cache: false
+        // });
 
         //tests using mongogdb
         // nss = require('../index.js').init(
@@ -60,7 +60,7 @@ describe('Test test.json -', () => {
             });
     });
 
-    it('load json string with 11 items and 31 words', () => {
+    it('load json string with 11 items and 30 words', () => {
         return nss.loadJsonString(`[{"nm":"WHISKY RED LABEL","id":"1","kw": "fancy"},
                                     {"nm":"WHISKY BLACK LABEL","id":"2"},
                                     {"nm":"BLACK FOREST BEECHWOOD HAM L/S","id":"3"},
@@ -76,7 +76,7 @@ describe('Test test.json -', () => {
             .then(data => {
                 assert(
                     data != null &&
-                    data.words == 31 &&
+                    data.words == 30 &&
                     data.items == 11,
                     "Could not load json string."
                 );

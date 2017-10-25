@@ -47,12 +47,12 @@ describe('Test produtos.json -', () => {
         });
     });
 
-    it('load json file produtos.json with 6240 items and 4189 words', () => {
+    it('load json file produtos.json with 6240 items and 4026 words', () => {
         return nss.loadJson("test/produtos.json")
             .then(data => {
                 assert(
                     data != null &&
-                    data.words == 4189 &&
+                    data.words == 4026 &&
                     data.items == 6240,
                     "Could not load json file."
                 );

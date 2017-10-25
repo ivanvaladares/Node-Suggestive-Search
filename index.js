@@ -1,5 +1,5 @@
 /*
-node-suggestive-search v1.8.9
+node-suggestive-search v1.9.0
 https://github.com/ivanvaladares/node-suggestive-search/
 by Ivan Valadares 
 http://ivanvaladares.com 
@@ -99,18 +99,30 @@ const NodeSuggestiveSearch = class {
 		return costs[s2.length];
 	}
 
-	_similarity (s1, s2) {
-		let longer = s1;
-		let shorter = s2;
-		if (s1.length < s2.length) {
-			longer = s2;
-			shorter = s1;
-		}
-		let longerLength = longer.length;
-		if (longerLength == 0) {
-			return 1.0;
-		}
-		return (longerLength - this._editDistance(longer, shorter)) / parseFloat(longerLength);
+	_setWordAndSimilarity (wordObj, wordToCompare) {
+
+		wordObj.words.map(word => {
+			let longer = word;
+			let shorter = wordToCompare;
+			if (word.length < wordToCompare.length) {
+				longer = wordToCompare;
+				shorter = word;
+			}
+			let longerLength = longer.length;
+			if (longerLength == 0) {
+				return 1.0;
+			}
+			let similarity = (longerLength - this._editDistance(longer, shorter)) / parseFloat(longerLength);
+
+			if (word === wordToCompare){
+				similarity += 0.1;
+			}
+
+			if (wordObj.similarity === undefined || similarity > wordObj.similarity){
+				wordObj.similarity = similarity;
+				wordObj.word = word;
+			}
+		});
 	}
 
 	//https://en.wikipedia.org/wiki/Soundex
@@ -137,7 +149,7 @@ const NodeSuggestiveSearch = class {
 	_createWordObject (word) {
 
 		let cleanWord = word.toLowerCase().latinize();
-		let objWord = { word, cleanWord, soundex: this._soundex(cleanWord), items: {} };
+		let objWord = { cleanWord, words: [word], soundex: this._soundex(cleanWord), items: {} };
 
 		for (let i = 2; i <= cleanWord.length && i <= 4; i++) {
 			objWord[`p${i}i`] = cleanWord.substr(0, i).toLowerCase();
@@ -323,7 +335,7 @@ const NodeSuggestiveSearch = class {
 					//and filter top 50 most similar result 
 					resolve(
 						foundWords.map(obj => {
-							obj.similarity = this._similarity(obj.word, _word);
+							this._setWordAndSimilarity(obj, _word);
 							return obj;
 						}).sort((x, y) => {
 							return ((x.similarity > y.similarity) ? -1 : 1);
@@ -357,14 +369,13 @@ const NodeSuggestiveSearch = class {
 
 					if (!foundWords || foundWords.length <= 0) {
 
-						//instead of returning an error, lets return a null
 						resolve(null);
 
 					} else {
 
 						//sort to return the best match
 						foundWords = foundWords.map((obj) => {
-							obj.similarity = this._similarity(obj.word, word);
+							this._setWordAndSimilarity(obj, word);
 							return obj;
 						}).sort((x, y) => {
 							return ((x.similarity > y.similarity) ? -1 : 1);
@@ -392,12 +403,13 @@ const NodeSuggestiveSearch = class {
 
 			let queryCriteria = {};
 			let hasCriteria = false;
+			let cleanWord = word.latinize();
 
 			//create a search criteria from 4 to 2 letters to try to find words that starts like this one
 			for (let i = 4; i > 1; i--) {
-				if (word.length >= i) {
+				if (cleanWord.length >= i) {
 
-					queryCriteria[`p${i}i`] = word.substr(0, i).toLowerCase();
+					queryCriteria[`p${i}i`] = cleanWord.substr(0, i).toLowerCase();
 
 					hasCriteria = true;
 					//lets search with only one criteria
@@ -417,7 +429,9 @@ const NodeSuggestiveSearch = class {
 					//return item that begins with same characters, from smallest to biggest and then alphabetically
 					resolve(
 						foundWords.filter(objWord => {
-							return objWord.cleanWord.indexOf(word.toLowerCase()) == 0;
+							//todo: check this oportunity to return different accents
+							this._setWordAndSimilarity(objWord, word);
+							return objWord.cleanWord.toLowerCase().indexOf(cleanWord.toLowerCase()) == 0;
 						}).sort((x, y) => {
 							if (x.word.length > y.word.length) {
 								return 1;
@@ -442,14 +456,42 @@ const NodeSuggestiveSearch = class {
 
 	}
 
+	_acumulateWordsObjects (dictionary, word, itemId){
+
+		let strCleanWord = word.toLowerCase().latinize();
+		
+		//if there is already this word in our dictionary, associate it with this item
+		if (strCleanWord in dictionary) {
+
+			//add this new item into related items of this word
+			dictionary[strCleanWord].items[itemId] = true;
+
+			//add this word variation
+			if (dictionary[strCleanWord].words.indexOf(word) < 0){
+				dictionary[strCleanWord].words.push(word);
+			}
+
+		} else {
+			//keep the word without accent and lowercase
+
+			let objWord = this._createWordObject(word);
+
+			//add this new item into related items of this word
+			objWord.items[itemId] = true;
+
+			dictionary[strCleanWord] = objWord;
+
+		}
+	}
+
 	_populateDatabase (itemsJson, itemId, itemName, keywords) {
 
 		return new Promise((resolve, reject) => {
 
 			//create a dictionary like object
 			let itemsArray = [];
+			let wordsArray = [];			
 			let objWords = {};
-			let repeatedObjWords = {};
 
 			this._db.cleanDatabase().then(() => {		
 				
@@ -482,83 +524,28 @@ const NodeSuggestiveSearch = class {
 						//associate each word with items. ex: {word, [item1, item2, item3...]}
 						arrWords.map(word => {
 
-							let strWord = word.toLowerCase();
-
-							//if there is already this word in our dictionary, associate it with this item
-							if (strWord in objWords) {
-
-								objWords[strWord].items[itemId] = true;
-
-							} else {
-								//keep the word without accent and lowercase
-
-								let objWord = this._createWordObject(word);
-
-								//add this new item into related items of this word
-								objWord.items[itemId] = true;
-
-								objWords[strWord] = objWord;
-
-								if (repeatedObjWords[objWord.cleanWord]) {
-									repeatedObjWords[objWord.cleanWord].push(strWord);
-								} else {
-									repeatedObjWords[objWord.cleanWord] = [strWord];
-								}
-
-							}
+							this._acumulateWordsObjects(objWords, word, itemId);
 
 						});
 
 					});
 
-					
-					//lets make this module accent insensitive
-					//all the similar words will have the same itemsId
-					for (let item in repeatedObjWords) {
-						let repeatedWordsArray = repeatedObjWords[item];
-
-						if (repeatedWordsArray.length > 1) {
-
-							let itemsId = {};
-
-							//gather all itemsIds from repeated words
-							for (let index = 0; index < repeatedWordsArray.length; index++) {
-								let objWord = objWords[repeatedWordsArray[index]];
-
-								for (let idResultItem in objWord.items) {
-									if (itemsId[idResultItem] !== null) {
-										itemsId[idResultItem] = objWord.items[idResultItem];
-									}
-								}
-							}
-
-							//associate all repeated words with those itemsIds
-							for (let index = 0; index < repeatedWordsArray.length; index++) {
-								let objWord = objWords[repeatedWordsArray[index]];
-
-								objWord.items = itemsId;
-							}
-						}
-					}
-
-
 					//create a database compatible JSON array from the above dictionary
-					let wordsJson = [];
 					for (let item in objWords) {
 						//transform the key/value itemsId into an array of the keys
 						objWords[item].items = _.keys(objWords[item].items);
 
-						wordsJson.push(objWords[item]);
+						wordsArray.push(objWords[item]);
 					}
 
 					//insert all words at once in database
-					this._db.insertWord(wordsJson).then(() => {
+					this._db.insertWord(wordsArray).then(() => {
 
 						//let the database create the indexes but don't wait for it
 						this._db.createIndexes();
 
 						//return some information about this process
-						resolve({ words: wordsJson.length });
+						resolve({ words: wordsArray.length });
 
 					}).catch(err => {
 						reject(err);
@@ -623,8 +610,7 @@ const NodeSuggestiveSearch = class {
 				//remove item from items dictionary
 				this._db.removeItem({ itemId }).then(() => {
 
-					//get each word from dictionary and associate with this new item
-					//also check if is a repeating word with different accents
+
 					//make a promise for each word and create an array of promises
 					let promises = arrWords.map(word => {
 
@@ -653,10 +639,14 @@ const NodeSuggestiveSearch = class {
 
 					Promise.all(promises).then(promiseFoundWords => {
 
-						//remove this itemId from all found words 
-						promiseFoundWords.map(foundWordArr => {
+						//remove this itemId and words from all found words 
+						promiseFoundWords.map((foundWordArr, index) => {
 							foundWordArr.map(word => {
 								word.items = _.without(word.items, itemId);
+								//todo: count down words usage before remove them
+								// word.words = word.words.filter(w => {
+								// 	return w !== arrWords[index];
+								// });
 							});
 						});
 
@@ -687,7 +677,7 @@ const NodeSuggestiveSearch = class {
 									//update this word 
 									let innerPromise = new Promise((resolve)  => {
 
-										this._db.updateWordItems(word.cleanWord, word.items).then(numReplaced => {
+										this._db.updateWord(word.cleanWord, word.items, word.words).then(numReplaced => {
 												resolve(numReplaced);
 											}).catch(err => {
 												reject(err);
@@ -749,9 +739,8 @@ const NodeSuggestiveSearch = class {
 
 			let itemObject = this._createItemObject(itemJson[itemId], itemJson[itemName], itemJson[keywords]);
 
-
 			this.removeItem(itemObject.itemId).then(() => {
-	
+				
 				//insert item into items dictionary
 				this._db.insertItem([itemObject]).then(insertedItem => {
 
@@ -764,9 +753,14 @@ const NodeSuggestiveSearch = class {
 					if (itemObject[keywords] !== undefined){
 						arrWords = arrWords.concat(this._splitWords(itemObject.keywords));
 					}
+					
+					arrWords = _.uniq(arrWords);
+
+					//create new words objects to insert into the dictionary
+					let objWords = {};
+					let foundWords = [];
 
 					//get each word from dictionary and associate with this new item
-					//also check if is a repeating word with different accents
 					//make a promise for each word and create an array of promises
 					let promises = arrWords.map(word => {
 
@@ -777,12 +771,25 @@ const NodeSuggestiveSearch = class {
 
 								if (!foundWord || foundWord.length <= 0) {
 
+									this._acumulateWordsObjects(objWords, word, itemObject.itemId);
 									resolve(null);
 
 								} else {
+									foundWord.map(iWord => {
+										//add this new itemId
+										if (iWord.items.indexOf(itemObject.itemId) < 0){
+											iWord.items.push(itemObject.itemId);
+										}	
 
-									resolve(foundWord);
+										//todo: count words usage
+										//add this word variation
+										if (iWord.words.indexOf(word) < 0){
+											iWord.words.push(word);
+										}
 
+										foundWords.push(iWord);
+									});
+									resolve(true);
 								}
 
 							}).catch(err => {
@@ -794,185 +801,48 @@ const NodeSuggestiveSearch = class {
 					});
 
 					//now, lets resolve all promises from the array of promises
-					Promise.all(promises).then(promiseFoundWords => {
+					Promise.all(promises).then(() => {
 
-						let notFoundedWords = [];
-						let foundedWords = [];
-						let foundedWordsDifferentAccents = [];
+						let wordsArray = [];			
+						//create a database compatible JSON array from the above dictionary
+						for (let item in objWords) {
+							//transform the key/value itemsId into an array of the keys
+							objWords[item].items = _.keys(objWords[item].items);
 
-						//set an array with the not founded words
-						//set an array with the founded words
-						for (let index = 0; index < promiseFoundWords.length; index++) {
-							let foundItem = promiseFoundWords[index];
+							wordsArray.push(objWords[item]);
+						}						
 
-							if (foundItem === null) {
+						let insertAndUpdatePromises = [];
+						
+						insertAndUpdatePromises.push(
+							new Promise((resolve, reject) => {
+								this._db.insertWord(wordsArray).then(() => {
+									resolve();
+								}).catch(err => {
+									reject(err);
+								});
+							})
+						);
 
-								notFoundedWords.push(arrWords[index]);
+						insertAndUpdatePromises.push(
+							foundWords.map(word => {
 
-							} else {
-
-								let wordFound = false;
-
-								for (let iWord in foundItem) {
-									let objWord = foundItem[iWord];
-
-									if (objWord.word.toLowerCase() == arrWords[index].toLowerCase()) {
-										foundedWords.push(arrWords[index]);
-										wordFound = true;
-									}
-								}
-
-								if (!wordFound) {
-									foundedWordsDifferentAccents.push(arrWords[index]);
-									notFoundedWords.push(arrWords[index]);
-								}
-
-							}
-
-						}
-
-						let promises = foundedWords.map(word => {
-
-							return new Promise((resolve, reject) => {
-								
-								this._db.findWords({ cleanWord: word.toLowerCase().latinize() }).then(foundWords => {
-
-									let updatePromises = foundWords.map(word => {
-
-										//associate with this itemId
-										if (word.items.indexOf(itemObject.itemId) < 0){
-
-											word.items.push(itemObject.itemId);
-
-											//send it back to the database
-											return new Promise((resolve, reject) => {  
-												this._db.updateWordItems(word.cleanWord, word.items).then(() => {
-													resolve(true);
-												}).catch(err => {
-													reject(err);
-												});
-											});
-												
-										}
-
-									});
-
-									Promise.all(updatePromises).then(() => {
+								//send it back to the database
+								return new Promise((resolve, reject) => {  
+									this._db.updateWord(word.cleanWord, word.items, word.words).then(() => {
 										resolve(true);
 									}).catch(err => {
 										reject(err);
 									});
-
-								}).catch(err => {
-									reject(err);
 								});
 
-							});
+							})
+						);
 
-						});
-
-
-						Promise.all(promises).then(() => {
+						Promise.all(insertAndUpdatePromises).then(() => {
 							
-							//create new words objects to insert into the dictionary
-							let objWords = {};
-
-							notFoundedWords.map(word => {
-								let objWord = this._createWordObject(word);
-
-								//add this new item into related items of this word
-								objWord.items = [itemObject.itemId];
-
-								//mount the array to bulk insert later 
-								objWords[word] = objWord;
-							});
-
-							//create a database compatible JSON array from the above dictionary
-							let wordsJson = [];
-							for (let item in objWords) {
-								wordsJson.push(objWords[item]);
-							}
-
-							//insert all the new words in a bulk insert
-							if (wordsJson.length > 0) {
-
-								this._db.insertWord(wordsJson).then(() => {
-
-									//lets treat all similar words with different accents
-									if (foundedWordsDifferentAccents.length > 0) {
-				
-										//associate the words with this new item
-										let promises = foundedWordsDifferentAccents.map(word => {
-
-											return new Promise((resolve, reject) => {
-
-												this._db.findWords({ cleanWord: word.toLowerCase().latinize() }).then(existingWords => {
-													
-													let itemsId = [];
-													let updatePromises = [];
-
-													for (let index = 0; index < existingWords.length; index++) {
-
-														existingWords[index].items.map(idItem => {
-															if (itemsId.indexOf(idItem) < 0) {
-																itemsId.push(idItem);
-															}
-														});
-													}
-
-													if (existingWords.length > 0) {
-
-														itemsId.push(itemObject.itemId);
-
-														//send it back to the database
-														updatePromises.push(  
-															new Promise((resolve, reject) => {  
-																this._db.updateWordItems(word.toLowerCase().latinize(), itemsId).then(() => {
-																	resolve(true);
-																}).catch(err => {
-																	reject(err);
-																});
-															})
-														);
-
-														Promise.all(updatePromises).then(() => {
-															resolve(true);
-														}).catch(err => {
-															reject(err);
-														});
-														
-													}else{
-														resolve(true);
-													}
-
-												}).catch(err => {
-													reject(err);
-												});
-
-											});
-
-										});
-
-										Promise.all(promises).then(() => {
-											//return some information about this process
-											resolve({ timeElapsed: this._clock(time) });
-										}).catch(err => {
-											reject(err);
-										});
-
-									}else{
-										//return some information about this process
-										resolve({ timeElapsed: this._clock(time)});
-									}
-
-								}).catch(err => {
-									reject(err);
-								});
-
-							}else{
-								//return some information about this process
-								resolve({ timeElapsed: this._clock(time) });
-							}
+							//return some information about this process
+							resolve({ timeElapsed: this._clock(time) });
 
 						});
 
@@ -1129,7 +999,7 @@ const NodeSuggestiveSearch = class {
 
 							//sort to return top 10 most similar result 
 							foundWords = foundWords.map(obj => {
-								obj.similarity = this._similarity(obj.word, word);
+								this._setWordAndSimilarity(obj, word);
 								return obj;
 							}).sort((x, y) => {
 								return ((x.similarity > y.similarity) ? -1 : 1);
@@ -1258,7 +1128,7 @@ const NodeSuggestiveSearch = class {
 			if (arrWords.length == 1 && words.indexOf(" ") == -1) {
 
 				//try to get more words like this one. Limit 5
-				this._getWordsStartingWith(arrWords[0].latinize(), 5).then(queryResponse => {
+				this._getWordsStartingWith(arrWords[0], 5).then(queryResponse => {
 
 					let arrResponse = [];
 
@@ -1452,7 +1322,7 @@ const NodeSuggestiveSearch = class {
 			if (arrWords.length == 1) {
 
 				//try to get more words like this one. Limit 5
-				this._getWordsStartingWith(arrWords[0].latinize(), 5).then(queryResponse => {
+				this._getWordsStartingWith(arrWords[0], 5).then(queryResponse => {
 
 					let arrItemsIds = [];
 
