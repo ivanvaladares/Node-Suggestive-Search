@@ -3,15 +3,16 @@ A node module to help type-ahead and dropdown search boxes and also correct miss
 
 
 This module is compatible with:
-- NeDB 1.8.0, The JavaScript Database from Louis Chatriot https://github.com/louischatriot/nedb
+- Redis Node.JS Client 2.8.0, Client to connect with Redis https://www.npmjs.com/package/redis
 - MongoDB Node.JS Driver 2.2.19, Driver to connect with MongoDB 3.2 http://mongodb.github.io/node-mongodb-native/
+- NeDB 1.8.0, The JavaScript Database from Louis Chatriot https://github.com/louischatriot/nedb
 
 
 ## Installation, tests
 Module name on npm is "node-suggestive-search".
 
 ```
-npm install node-suggestive-search --save   # Put latest version in your package.json
+npm install node-suggestive-search --save   # Install the latest version in project
 ```
 
 

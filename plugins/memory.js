@@ -134,7 +134,7 @@ let DbDriver = class {
                 }else{
 
                     //create the cleanWord key
-                    this.cleanWords[word.cleanWord] = {cleanWord: word.cleanWord, soundex: word.soundex, words: [word.word], items: word.items};
+                    this.cleanWords[word.cleanWord] = {cleanWord: word.cleanWord, soundex: word.soundex, words: [word.word], items: word.items, parts: []};
                 
                     //create the soundex key
                     if (word.soundex != "0000"){
@@ -156,7 +156,7 @@ let DbDriver = class {
                                 this.parts[`p${i}i_${pi}`] = [word.cleanWord];
                             }
                             
-                            //this.cleanWords[word.cleanWord].parts.push(`p${i}i_${pi}`);
+                            this.cleanWords[word.cleanWord].parts.push(`p${i}i_${pi}`);
                         }
 
                         if (word[`p${i}e`] !== undefined) {
@@ -168,7 +168,7 @@ let DbDriver = class {
                                 this.parts[`p${i}e_${pe}`] = [word.cleanWord];
                             }
 
-                            //this.cleanWords[word.cleanWord].parts.push(`p${i}e_${pe}`);
+                            this.cleanWords[word.cleanWord].parts.push(`p${i}e_${pe}`);
                         }
 
                     }                    
@@ -268,9 +268,19 @@ let DbDriver = class {
                     }
                 }
 
+                if (cleanWord.parts !== undefined && cleanWord.parts.length > 0){
+                    cleanWord.parts.map(part => {
+                        if (this.parts[part] !== undefined){
+                            if (this.parts[part].length > 1){
+                                this.parts[part] = _.without(this.parts[part], cleanWord.cleanWord);  
+                            }else{
+                                delete this.parts[part];
+                            }
+                        }
+                    });
+                }
+            
                 delete this.cleanWords[cleanWord.cleanWord];
-
-                //todo: cleanup orphans parts
 
                 resolve(1);
 

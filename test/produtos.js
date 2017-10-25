@@ -11,16 +11,16 @@ describe('Test produtos.json -', () => {
     before(done => {
 
         //tests using memory
-        //nss = require('../index.js').init();    
+        nss = require('../index.js').init();    
 
         //tests using redis
-        nss = require("../index.js").init(
-        {
-            dataBase: "redis",  
-            keysPrefixName: "nss-",
-            redisDatabase: "redis://localhost:6379",
-            cache: true
-        });
+        // nss = require("../index.js").init(
+        // {
+        //     dataBase: "redis",  
+        //     keysPrefixName: "nss-",
+        //     redisDatabase: "redis://localhost:6379",
+        //     cache: false
+        // });
 
         //tests using nedb
         // nss = require('../index.js').init(
@@ -28,7 +28,7 @@ describe('Test produtos.json -', () => {
         //     dataBase: "nedb",
         //     neDbDataPath: "",
         //     neDbInMemoryOnly: true,
-        //     cache: true
+        //     cache: false
         // });
 
         //tests using mongogdb
@@ -38,7 +38,7 @@ describe('Test produtos.json -', () => {
         //     itemsCollectionName: "nss-produtos-items",
         //     wordsCollectionName: "nss-produtos-words",
         //     mongoDatabase: "mongodb://localhost:27017/nodeSugestiveSearchTest",
-        //     cache: true
+        //     cache: false
         // });
 
         //wait for the initialization process
