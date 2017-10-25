@@ -5,53 +5,42 @@ const describe = mocha.describe;
 const before = mocha.before;
 const it = mocha.it;
 
-let nss, nss2;
+let nss;
 
 describe('Test test.json -', () => {
 
     before(done => {
-
+            
         //tests using memory
-        nss2 = require('../index.js').init();      
+        nss = require('../index.js').init();       
         
-
         //tests using redis
         // nss = require("../index.js").init(
-        //     {
-        //         dataBase: "redis",  
-        //         keysPrefixName: "nss-",
-        //         redisDatabase: "redis://localhost:6379",
-        //         cache: true
-        //     });
-            
-
-        //tests using nedb
-        // nss2 = require('../index.js').init(
-        //     {
-        //         dataBase: "nedb",
-        //         neDbDataPath: "",
-        //         neDbInMemoryOnly: true
-        //     });
-            
-        //tests using memory
-        nss = require('../index.js').init();            
+        // {
+        //     dataBase: "redis",  
+        //     keysPrefixName: "nss-",
+        //     redisDatabase: "redis://localhost:6379",
+        //     cache: false
+        // });        
 
         //tests using nedb
         // nss = require('../index.js').init(
         //     {
         //         dataBase: "nedb",
         //         neDbDataPath: "",
-        //         neDbInMemoryOnly: true
+        //         neDbInMemoryOnly: true,
+        //         cache: false
         //     });
 
         //tests using mongogdb
         // nss = require('../index.js').init(
-        //         {
-        //             dataBase: "mongodb", 
-        //             itemsCollectionName: "nss-test-items",
-        //             wordsCollectionName: "nss-test-words",
-        //             mongoDatabase: "mongodb://localhost:27017/nodeSugestiveSearchTest"
-        //         });
+        // {
+        //     dataBase: "mongodb", 
+        //     itemsCollectionName: "nss-test-items",
+        //     wordsCollectionName: "nss-test-words",
+        //     mongoDatabase: "mongodb://localhost:27017/nodeSugestiveSearchTest",
+        //     cache: false
+        // });
 
         //wait for the initialization process
         nss.on("initialized", () => {
@@ -61,18 +50,6 @@ describe('Test test.json -', () => {
 
     it('load json file test.json with 6 items and 18 words', () => {
         return nss.loadJson("test/test.json")
-            .then(data => {
-                assert(
-                    data != null &&
-                    data.words == 18 &&
-                    data.items == 6,
-                    "Could not load json file."
-                );
-            });
-    });
-
-    it('load json file test.json with 6 items and 18 words into second instance', () => {
-        return nss2.loadJson("test/test.json")
             .then(data => {
                 assert(
                     data != null &&
@@ -120,20 +97,6 @@ describe('Test test.json -', () => {
                     data.expressions.length == 0 &&
                     data.missingExpressions.length == 0,
                     "Error on query for: whisky red label"
-                );
-            });
-    });
-
-    it('query for: coffee on nss2', () => {
-        return nss2.query("coffee")
-            .then(data => {
-                assert(
-                    data != null &&
-                    data.words.length == 0 &&
-                    data.itemsId.length == 0 &&
-                    data.expressions.length == 0 &&
-                    data.missingExpressions.length == 0,
-                    "Error on query for: coffee"
                 );
             });
     });
@@ -413,7 +376,7 @@ describe('Test test.json -', () => {
 
     it('query for: absolut', () => {
         return nss.query("absolut")
-            .then(data => {  
+            .then(data => {
                 assert(
                     data != null &&
                     data.words.length == 0 &&

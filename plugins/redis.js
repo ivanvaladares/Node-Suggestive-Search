@@ -21,9 +21,95 @@ let DbDriver = class {
         
         this.client.on('connect', () => {
 
-            //todo: read all items and words from redis and fill the cache
+            //if is cached and the database is not empty, lets fill the cache
+            if (this._cacheOn){
 
-            this.emit('initialized');
+                let pCountItems = new Promise((resolve, reject) => { 
+
+                    this.client.keys(`${this.keysPrefixName}item:*`, (err, keys) => {
+                        if (err) {
+                            return reject(err);
+                        }
+
+                        let multi = keys.map(k => {
+                            return ["get", k];
+                        });
+
+                        this.client.multi(multi).exec((err, replies) => {
+                            if (err) {
+                                return reject(err);
+                            }
+
+                            let arrItems = [];
+                    
+                            _.flatten(replies).map(itemStr => {
+                                arrItems.push(JSON.parse(itemStr));
+                            });
+
+                            this._cache.insertItem(arrItems).then(() => {
+                                resolve(1);
+                            });
+                            
+                        });
+                    });
+                });
+
+                let pCountWords = new Promise((resolve, reject) => { 
+
+                    this.client.keys(`${this.keysPrefixName}cleanWord:*`, (err, keys) => {
+                        if (err) {
+                            return reject(err);
+                        }
+
+                        let multi = keys.map(k => {
+                            return ["get", k];
+                        });
+
+                        this.client.multi(multi).exec((err, replies) => {
+                            if (err) {
+                                return reject(err);
+                            }
+
+                            let arrWords = [];
+                    
+                            _.flatten(replies).map(wordStr => {
+                                let objWord = JSON.parse(wordStr);
+
+                                if (objWord.parts !== undefined && objWord.parts.length > 0){
+                                    objWord.parts.map(part => {
+                                        objWord[part.substring(0, 3)] = part.substring(4);
+                                    });
+                                    delete objWord.parts;
+                                }
+
+                                objWord.words.map(word => {
+
+                                    objWord.word = word;
+                                    arrWords.push(JSON.parse(JSON.stringify(objWord)));
+                                    
+                                });
+
+                            });
+
+                            this._cache.insertWord(arrWords).then(() => {
+                                resolve(1);
+                            });
+                            
+                        });
+                    });
+
+                });                
+
+                Promise.all([pCountItems, pCountWords]).then(() => {
+
+                    this.emit('initialized');
+
+                });
+
+            }else{
+                this.emit('initialized');
+            }
+
         });
 
         return this;
@@ -112,6 +198,7 @@ let DbDriver = class {
                 if (err) {
                     return reject(err);
                 }
+
                 resolve(entry);
             }); 
 
@@ -228,9 +315,13 @@ let DbDriver = class {
                 if (err) {
                     return reject(err);
                 }
+
                 resolve(_.flatten(replies).map(item => {
                     return JSON.parse(item);
+                }).filter(item => {
+                    return item !== null;
                 }));
+
             }); 
         });    
     }
@@ -282,23 +373,117 @@ let DbDriver = class {
         });    
     }
 
-    _remove (collection, criteria1, criteria2) {
+    _removeItem (criteria) {
         return new Promise((resolve, reject) => {
-            collection.remove(criteria1, criteria2, (err, numRemoved) => {
-                if (err) { return reject(err); }
-    
-                resolve(numRemoved);
+
+            this.client.del(`${this.keysPrefixName}item:${criteria.itemId}`, err => {
+                if (err) {
+                    return reject(err);
+                }
+                resolve(1);
             });
-        });    
+        });   
+    }
+    
+    _removeWord (criteria) {
+        return new Promise((resolve, reject) => {
+
+            let innerPromises = [];
+
+            this.client.get(`${this.keysPrefixName}cleanWord:${criteria.cleanWord}`, (err, foundWord) => {
+                if (err) {
+                    return reject(err);
+                }
+
+                if (foundWord !== null){
+
+                    let wordObj = JSON.parse(foundWord);
+
+                    innerPromises.push(
+                        new Promise((resolve, reject)  => {
+                            this.client.srem(`${this.keysPrefixName}soundex:${wordObj.soundex}`, criteria.cleanWord, err => {
+                                if (err) {
+                                    return reject(err);
+                                }
+                                resolve(1);
+                            });
+                        })
+                    );
+
+                    if (wordObj.parts !== undefined && wordObj.parts.length > 0){
+                        wordObj.parts.map(part => {
+                            innerPromises.push(
+                                new Promise((resolve, reject)  => {
+                                    this.client.srem(`${this.keysPrefixName}parts:${part}`, criteria.cleanWord, err => {
+                                        if (err) {
+                                            return reject(err);
+                                        }
+                                        resolve(1);
+                                    });
+                                })
+                            );
+                        });
+                    }
+
+                    innerPromises.push(
+                        new Promise((resolve, reject)  => {
+                            this.client.del(`${this.keysPrefixName}cleanWord:${criteria.cleanWord}`, err => {
+                                if (err) {
+                                    return reject(err);
+                                }
+                                resolve(1);
+                            });
+                        })
+                    );
+
+                    Promise.all(innerPromises).then(() => {
+
+                        return resolve(1);
+
+                    }).catch(err => {
+
+                        reject(err);
+
+                    });
+
+                }else{
+
+                    resolve(0);
+                }
+
+            });
+                
+        });       
     }
     
     _updateWordItems (cleanWord, items) {
         return new Promise((resolve, reject) => {
-            this.dbWords.update({cleanWord: cleanWord}, { $set: { "items": items }}, { multi: true }, (err, numUpdated) => {
-                if (err) { return reject(err); }
-    
-                resolve(numUpdated);
+
+            this.client.get(`${this.keysPrefixName}cleanWord:${cleanWord}`, (err, foundWord) => {
+                if (err) {
+                    return reject(err);
+                }
+
+                if (foundWord !== null){
+
+                    let wordObj = JSON.parse(foundWord);
+                    wordObj.items = items;
+
+                    this.client.set(`${this.keysPrefixName}cleanWord:${cleanWord}`, JSON.stringify(wordObj), err => {
+                        if (err) {
+                            return reject(err);
+                        }
+
+                        return resolve(1);
+
+                    });
+
+                }else{
+                    resolve(0);                    
+                }
+
             });
+
         });    
     }
         
@@ -364,33 +549,33 @@ let DbDriver = class {
     }
     
     removeItem (criteria) {
-        // if (this._cacheOn){
-        //     return this._remove(this.dbItems, criteria, { multi: false }).then(() => {
-        //         return this._cache.removeItem(criteria);
-        //     });
-        // }else{
-        //     return this._remove(this.dbItems, criteria, { multi: false });
-        // }
+        if (this._cacheOn){
+            return this._removeItem(criteria).then(() => {
+                return this._cache.removeItem(criteria);
+            });
+        }else{
+            return this._removeItem(criteria);
+        }
     }
     
     removeWord (criteria) {
-        // if (this._cacheOn){
-        //     return this._remove(this.dbWords, criteria, { multi: false }).then(() => {
-        //         return this._cache.removeWord(criteria);
-        //     });
-        // }else{
-        //     return this._remove(this.dbWords, criteria, { multi: false });
-        // }
+        if (this._cacheOn){
+            return this._removeWord(criteria).then(() => {
+                return this._cache.removeWord(criteria);
+            });
+        }else{
+            return this._removeWord(criteria);
+        }
     }
 
     updateWordItems (cleanWord, items) {
-        // if (this._cacheOn){
-        //     return this._updateWordItems(cleanWord, items).then(() => {
-        //         return this._cache.updateWordItems(cleanWord, items);
-        //     });
-        // }else{
-        //     return this._updateWordItems(cleanWord, items);
-        // }
+        if (this._cacheOn){
+            return this._updateWordItems(cleanWord, items).then(() => {
+                return this._cache.updateWordItems(cleanWord, items);
+            });
+        }else{
+            return this._updateWordItems(cleanWord, items);
+        }
     }
 };
 

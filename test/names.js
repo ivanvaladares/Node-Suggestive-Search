@@ -28,7 +28,7 @@ describe('Test names.json -', () => {
         //     dataBase: "nedb",
         //     neDbDataPath: "",
         //     neDbInMemoryOnly: true,
-        //     cache: true
+        //     cache: false
         // });
 
         //tests using mongogdb
@@ -38,7 +38,7 @@ describe('Test names.json -', () => {
         //     itemsCollectionName: "nss-names-items",
         //     wordsCollectionName: "nss-names-words",
         //     mongoDatabase: "mongodb://localhost:27017/nodeSugestiveSearchTest",
-        //     cache: true
+        //     cache: false
         // });
         
         //wait for the initialization process

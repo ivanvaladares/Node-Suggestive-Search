@@ -612,7 +612,7 @@ const NodeSuggestiveSearch = class {
 
 			let time = this._clock();
 
-			this._db.findItems({ itemId: itemId }).then(existingItem => {
+			this._db.findItems({ itemId }).then(existingItem => {
 
 				if (!existingItem || existingItem.length <= 0) {
 					return resolve({ timeElapsed: this._clock(time) });
@@ -621,7 +621,7 @@ const NodeSuggestiveSearch = class {
 				let arrWords = this._splitWords(existingItem[0].itemName);
 
 				//remove item from items dictionary
-				this._db.removeItem({ itemId: itemId }).then(() => {
+				this._db.removeItem({ itemId }).then(() => {
 
 					//get each word from dictionary and associate with this new item
 					//also check if is a repeating word with different accents
@@ -749,8 +749,9 @@ const NodeSuggestiveSearch = class {
 
 			let itemObject = this._createItemObject(itemJson[itemId], itemJson[itemName], itemJson[keywords]);
 
-			this.removeItem(itemObject.itemId).then(() => {
 
+			this.removeItem(itemObject.itemId).then(() => {
+	
 				//insert item into items dictionary
 				this._db.insertItem([itemObject]).then(insertedItem => {
 
