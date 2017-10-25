@@ -639,35 +639,26 @@ const NodeSuggestiveSearch = class {
 
 					Promise.all(promises).then(promiseFoundWords => {
 
-						//remove this itemId and words from all found words 
-						promiseFoundWords.map((foundWordArr, index) => {
-							foundWordArr.map(word => {
-								word.items = _.without(word.items, itemId);
-								//todo: count down words usage before remove them
-								// word.words = word.words.filter(w => {
-								// 	return w !== arrWords[index];
-								// });
-							});
-						});
-
 						let innerPromises = [];
 
+						//remove this itemId and words from all found words 
 						//delete words with empty itemId 
-						promiseFoundWords.map(foundWordArr => {
-
+						//update words array and itemsIds
+						promiseFoundWords.map((foundWordArr, index) => {
+							
 							foundWordArr.map(word => {
 
+								word.items = _.without(word.items, itemId);
+
 								if (word.items === undefined || word.items.length <= 0) {
+
 									//remove this word from the database because it does not have any more items associated with it
-
 									let innerPromise = new Promise((resolve, reject) => {
-
 										this._db.removeWord({ cleanWord: word.cleanWord }).then(numRemoved => {
 											resolve(numRemoved);
 										}).catch(err => {
 											reject(err);
 										});
-
 									});
 
 									innerPromises.push(innerPromise);
@@ -676,23 +667,53 @@ const NodeSuggestiveSearch = class {
 
 									//update this word 
 									let innerPromise = new Promise((resolve)  => {
+										this._db.findItems({ itemId: { $in: word.items } }).then(foundItems => {
+										
+											let wordStillInUse = false;
 
-										this._db.updateWord(word.cleanWord, word.items, word.words).then(numReplaced => {
+											if (foundItems !== null) {
+												for (let i = 0; i < foundItems.length; i++){
+													let item = foundItems[i];
+													let arrItemWords = [];
+
+													if (item.keywords !== null && item.keywords !== undefined){
+														arrItemWords = this._splitWords(item.itemName + " " + item.keywords);
+													} else {
+														arrItemWords = this._splitWords(item.itemName);
+													}
+											
+													if (arrItemWords.indexOf(arrWords[index]) > -1) {
+														wordStillInUse = true;
+														break;
+													}
+												}
+											}
+
+											if (!wordStillInUse){
+												//remove the word from the array
+												word.words = word.words.filter(w => {
+													return w !== arrWords[index];
+												});
+											}
+
+											this._db.updateWord(word.cleanWord, word.items, word.words).then(numReplaced => {
 												resolve(numReplaced);
 											}).catch(err => {
 												reject(err);
 											});
-
+					
+										}).catch(err => {
+											reject(err);
+										});
 									});
 
 									innerPromises.push(innerPromise);
 								}
-							});
 
+							});
 						});
 
 						Promise.all(innerPromises).then(() => {
-
 							//todo: test if any operation had failed 
 
 							//return some information about this process
@@ -779,9 +800,7 @@ const NodeSuggestiveSearch = class {
 										//add this new itemId
 										if (iWord.items.indexOf(itemObject.itemId) < 0){
 											iWord.items.push(itemObject.itemId);
-										}	
-
-										//todo: count words usage
+										}
 										//add this word variation
 										if (iWord.words.indexOf(word) < 0){
 											iWord.words.push(word);
