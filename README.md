@@ -459,6 +459,26 @@ nss.insertItem(newItem).then(
 
 ```
 
+Insert an item with your properties names.
+```javascript
+
+let newItem = {  
+	"id": "VODKA ABSOLUT",
+	"nm": "6",
+	"kw": "Keyword1, keyword2..."
+	};
+
+nss.insertItem(newItem, "id", "nm", "kw").then(
+	data => {
+		//response: { timeElapsed: '2ms' }
+	},
+	err => {
+		//...
+	}
+);
+
+```
+
 Insert an item with additional fields (price, popularity and thumbImg). You can insert any additional field excluding itemId, itemName and keywords.
 ```javascript
 
