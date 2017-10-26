@@ -104,7 +104,7 @@ Example of a JSON to be imported (Items.json):
       "keywords":"EXPENSIVE"
    },
    {  
-      "itemName":"BLACK FOREST BEECHWOOD HAM L/S",
+      "itemName":"BLACK FOREST LABELY HAM L/S",
       "itemId":"3"
    },
    {  
@@ -154,6 +154,23 @@ let jSonString = `[{"itemName":"WHISKY RED LABEL", "itemId":"1", "keywords": "fa
 
 nss.loadJsonString(jSonString).then(
 	data => {
+		// response: { "words": 5, "items": 2, "timeElapsed": 1 }
+	},
+	err => {
+		//...
+	}
+);
+
+```
+
+Load the JSON from string with additional fields (price, popularity and thumbImg). You can insert any additional field excluding itemId, itemName and keywords.
+```javascript
+
+let jSonString = `[{"itemName":"WHISKY RED LABEL", "itemId":"1", "keywords":"fancy", "price":25.57, "popularity":1, "thumbImg":"whisky-red-label.png"},{  
+					"itemName":"WHISKY BLACK LABEL", "itemId":"2", "price":19.99, "popularity":0.9, "thumbImg":"whisky-black-label.png"}]`;
+
+nss.loadJsonString(jSonString).then(
+	data => {
 		// response: { "words": 5, "items": 2, "timeElapsed": 2 }
 	},
 	err => {
@@ -162,6 +179,7 @@ nss.loadJsonString(jSonString).then(
 );
 
 ```
+
 
 Load the JSON from string with your properties names
 ```javascript
@@ -179,6 +197,26 @@ nss.loadJsonString(jSonString, "id", "nm", "kw").then(
 );
 
 ```
+
+Load the JSON from string with your properties names and additional fields (price, popularity and thumbImg). You can insert any additional field excluding itemId, itemName and keywords.
+```javascript
+
+let jSonString = `[{"nm":"WHISKY RED LABEL", "id":"1", "kw":"fancy", "price":25.57, "popularity":1, "thumbImg":"whisky-red-label.png"},{  
+					"nm":"WHISKY BLACK LABEL", "id":"2", "price":19.99, "popularity":0.9, "thumbImg":"whisky-black-label.png"}]`;
+
+nss.loadJsonString(jSonString, "id", "nm", "kw").then(
+	data => {
+		// response: { "words": 5, "items": 2, "timeElapsed": 2 }
+	},
+	err => {
+		//...
+	}
+);
+
+```
+
+
+
 
 ### Searching for items
 Getting itemsId from searched words.
@@ -209,6 +247,40 @@ nss.query("wisk").then( //misspelled search criteria
 nss.query("wisk read lbel").then( //misspelled search criteria
 	data => {
 		//response: { query: 'wisk read labl', words: [ 'WHISKY', 'RED', 'LABEL' ], missingWords: [], expressions: [], missingExpressions: [], itemsId: [ '1' ], timeElapsed: 2 }
+	},
+	err => {
+		//...
+	}
+);
+
+//query with paramenter returnItemsJson = true  
+nss.query("whisky", true).then(
+	data => {
+		/*response:  { query: 'whisky', words: [ 'WHISKY' ], missingWords: [], expressions: [], missingExpressions: [], 
+			[ 
+				{ itemName: 'WHISKY RED LABEL', itemId: '1', keywords: 'fancy' },
+				{ itemName: 'WHISKY BLACK LABEL', itemId: '2' } 
+			], 
+			timeElapsed: 1 }
+			*/
+	},
+	err => {
+		//...
+	}
+);
+
+//query with paramenter returnItemsJson = true and ordering function (popularity desc) on a database loaded with additional fields
+let orderFunc = ((x, y) => { return x.popularity < y.popularity; });
+
+nss.query("whisky", true, orderFunc).then(
+	data => {
+		/*response:  { query: 'whisky', words: [ 'WHISKY' ], missingWords: [], expressions: [], missingExpressions: [], 
+			[ 
+				{ itemName: 'WHISKY RED LABEL', itemId: '1', keywords: 'fancy', price: 25.57, popularity: 1, thumbImg: 'whisky-red-label.png' },
+				{ itemName: 'WHISKY BLACK LABEL', itemId: '2', price: 19.99, popularity: 0.9, thumbImg: 'whisky-black-label.png' } 
+			], 
+			timeElapsed: 1 }
+			*/
 	},
 	err => {
 		//...
@@ -275,18 +347,18 @@ Getting words suggestions to fill dropdown boxes or type-ahead text fields.
 Examples of how to call the api and responses:
 ```javascript
 
-nss.getSuggestedWords("whi").then(
+nss.getSuggestedWords("la").then(
 	data => {
-		//response: { "suggestions": [ "WHISKY" ], "timeElapsed": 1 }
+		//response: { "suggestions": [ "LABEL", "LABELY" ], "timeElapsed": 1 }
 	},
 	err => {
 		//...
 	}
 )
 
-nss.getSuggestedWords("whisky ").then(
+nss.getSuggestedWords("whi").then(
 	data => {
-		//response: { "suggestions": [ "WHISKY", "WHISKY LABEL", "WHISKY RED", "WHISKY BLACK" ], "timeElapsed": 1 }
+		//response: { "suggestions": [ "WHISKY LABEL", "WHISKY RED", "WHISKY BLACK" ], "timeElapsed": 1 }
 	},
 	err => {
 		//...
@@ -295,7 +367,7 @@ nss.getSuggestedWords("whisky ").then(
 
 nss.getSuggestedWords("whisky re").then(
 	data => {
-		//response: { "suggestions": [ "WHISKY", "WHISKY RED" ], "timeElapsed": 2 }
+		//response: { "suggestions": [ "WHISKY RED" ], "timeElapsed": 2 }
 	},
 	err => {
 		//...
@@ -347,6 +419,19 @@ nss.getSuggestedItems("whisky label").then(
 		//...
 	}
 )
+
+//get one item suggestions ordering by price (asc).
+let orderFunc = ((x, y) => { return x.price > y.price; });
+
+nss.getSuggestedItems("whisky label", 1, orderFunc).then(
+	data => {
+		//response: { "items": [ { itemName: 'WHISKY BLACK LABEL', itemId: '2', price: 19.99, popularity: 0.9, thumbImg: 'whisky-black-label.png' } ], "timeElapsed": 2 }
+	},
+	err => {
+		//...
+	}
+)
+  
   
 ```
 
@@ -361,6 +446,29 @@ let newItem = {
 	"itemId": "VODKA ABSOLUT",
 	"itemName": "6",
 	"keywords": "Keyword1, keyword2..."
+	};
+
+nss.insertItem(newItem).then(
+	data => {
+		//response: { "timeElapsed": 2 }
+	},
+	err => {
+		//...
+	}
+);
+
+```
+
+Insert an item with additional fields (price, popularity and thumbImg). You can insert any additional field excluding itemId, itemName and keywords.
+```javascript
+
+let newItem = {  
+	"itemId": "VODKA ABSOLUT",
+	"itemName": "6",
+	"keywords": "Keyword1, keyword2...",
+	"price": 25.57,
+	"popularity": 1,
+	"thumbImg": "vodka-absolute.png"
 	};
 
 nss.insertItem(newItem).then(
@@ -397,9 +505,8 @@ nss.removetItem(itemId).then(
 
 ## Roadmap
 * catalog (several dictionaries)
-* Microsoft SQL Server and MySQL support
+* More databases support
 * Inject your database plugin
-* Personalized items fields and ordering functions
 * filter stopwords
 * Browser version.
 

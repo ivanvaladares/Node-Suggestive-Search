@@ -1,5 +1,5 @@
 /*
-node-suggestive-search v1.9.0
+node-suggestive-search v1.9.1
 https://github.com/ivanvaladares/node-suggestive-search/
 by Ivan Valadares 
 http://ivanvaladares.com 
@@ -159,13 +159,31 @@ const NodeSuggestiveSearch = class {
 		return objWord;
 	}
 
-	_createItemObject (itemId, itemName, keywords) {
+	_createItemObject (itemJson, itemId, itemName, keywords) {
 
-		let objItem = { itemId, itemName };
-
-		if (keywords !== undefined) {
-			objItem.keywords = keywords;
+		//validate json object
+		if (itemJson[itemId] === undefined || itemJson[itemName] === undefined){
+			throw new Error('Item must have itemId and itemName!');
 		}
+
+		let objItem = {};
+		let arrKeys = Object.keys(itemJson);
+
+		arrKeys.map(key => {
+			switch (key){
+				case itemId:
+					objItem.itemId = itemJson[key];
+					break;
+				case itemName:
+					objItem.itemName = itemJson[key];
+					break;
+				case keywords:
+					objItem.keywords = itemJson[key];
+					break;
+				default:
+					objItem[key] = itemJson[key];
+			}
+		});
 
 		return objItem;
 	}
@@ -495,11 +513,13 @@ const NodeSuggestiveSearch = class {
 
 			this._db.cleanDatabase().then(() => {		
 				
+
 				itemsJson.map(item => {
 
-					//validate json object
-					if (item[itemId] !== undefined && item[itemName] !== undefined){
-						itemsArray.push(this._createItemObject(item[itemId], item[itemName], item[keywords]));
+					try {
+						itemsArray.push(this._createItemObject(item, itemId, itemName, keywords));
+					} catch (err) {
+						return reject(err);
 					}
 
 				});
@@ -567,15 +587,15 @@ const NodeSuggestiveSearch = class {
 		let arrItemWords = [];
 
 		if (item.keywords !== null && item.keywords !== undefined){
-			arrItemWords = this._splitWords(item.itemName.toLowerCase() + " " + item.keywords.toLowerCase());
+			arrItemWords = this._splitWords(item.itemName + " " + item.keywords);
 		} else {
-			arrItemWords = this._splitWords(item.itemName.toLowerCase());
+			arrItemWords = this._splitWords(item.itemName);
 		}
 
 		//filter out the words from this item using words from the query
 		for (let x = 0; x < arrWords.length; x++) {
 			for (let y = 0; y < arrItemWords.length; y++) {
-				if (arrWords[x].toLowerCase().latinize() === arrItemWords[y].latinize()){
+				if (arrWords[x].toLowerCase().latinize() === arrItemWords[y].toLowerCase().latinize()){
 					arrItemWords.splice(y, 1);
 					break;
 				}
@@ -740,9 +760,9 @@ const NodeSuggestiveSearch = class {
 	/**
 	 * Insert a new item into the dictionary database from json object.
 	 * @param {JSON} itemJson - jSon object {itemId: 0 , itemName: "item name", keywords: "keyword1, keyword2..."}.
-	 * @param {String} [itemId="itemID"] - Name of the property that contains the ID.
-	 * @param {String} [itemName="itemName"] - Name of the property that contains the Name.
-	 * @param {String} [keywords="keywords"] - Name of the property that contains the Keywords.
+	 * @param {String} [itemId="itemID"] - Optional name of the property that contains the ID.
+	 * @param {String} [itemName="itemName"] - Optional name of the property that contains the Name.
+	 * @param {String} [keywords="keywords"] - Optional name of the property that contains the Keywords.
 	 * @returns {Promise(JSON)}
 	 */
 	insertItem (itemJson, itemId = "itemId", itemName = "itemName", keywords = "keywords") {
@@ -752,14 +772,14 @@ const NodeSuggestiveSearch = class {
 		return new Promise((resolve, reject) => {
 
 			let time = this._clock();
+			let itemObject;
 
-			//validate json object
-			if (itemJson[itemId] === undefined || itemJson[itemName] === undefined){
-				return reject(new Error('Item must have itemId and itemName!'));
+			try {
+				itemObject = this._createItemObject(itemJson, itemId, itemName, keywords);
+			} catch (err) {
+				return reject(err);
 			}
-
-			let itemObject = this._createItemObject(itemJson[itemId], itemJson[itemName], itemJson[keywords]);
-
+			
 			this.removeItem(itemObject.itemId).then(() => {
 				
 				//insert item into items dictionary
@@ -883,11 +903,11 @@ const NodeSuggestiveSearch = class {
 
 	/**
 	 * Load the dictionary database from json file.
-	 * @param {String} jSonFilePath - path to jSon file.
+	 * @param {String} jSonFilePath - Path to jSon file.
 	 * @param {String} charset - Charset used in file.
-	 * @param {String} [itemId="itemID"] - Name of the property that contains the ID.
-	 * @param {String} [itemName="itemName"] - Name of the property that contains the Name.
-	 * @param {String} [keywords="keywords"] - Name of the property that contains the Keywords.
+	 * @param {String} [itemId="itemID"] - Optional name of the property that contains the ID.
+	 * @param {String} [itemName="itemName"] - Optional name of the property that contains the Name.
+	 * @param {String} [keywords="keywords"] - Optional name of the property that contains the Keywords.
 	 * @returns {Promise(JSON)}
 	 */
 	loadJson (jSonFilePath, charset = "utf8", itemId = "itemId", itemName = "itemName", keywords = "keywords") {
@@ -932,9 +952,9 @@ const NodeSuggestiveSearch = class {
 	/**
 	 * Load the dictionary database from json string.
 	 * @param {String} jSonString - String with items.
-	 * @param {String} [itemId="itemID"] - Name of the property that contains the ID.
-	 * @param {String} [itemName="itemName"] - Name of the property that contains the Name.
-	 * @param {String} [keywords="keywords"] - Name of the property that contains the Keywords.
+	 * @param {String} [itemId="itemID"] - Optional name of the property that contains the ID.
+	 * @param {String} [itemName="itemName"] - Optional name of the property that contains the Name.
+	 * @param {String} [keywords="keywords"] - Optional name of the property that contains the Keywords.
 	 * @returns {Promise(JSON)}
 	 */
 	loadJsonString (jSonString, itemId = "itemId", itemName = "itemName", keywords = "keywords") {
@@ -974,17 +994,18 @@ const NodeSuggestiveSearch = class {
 
 	/**
 	 * Return itemsId array and words used in the query.
-	 * @param {String} words - word(s) used in the search.
+	 * @param {String} words - Word(s) used in the search.
+	 * @param {boolean} [returnItemsJson] - Optional flag to set the return as item's json intead of their ids.
+	 * @param {function} [orderingFunction] - Optional function that will order the response. You can set the order based on your additional fields. This function will be applied if returnItemsJson is set to true
 	 * @returns {Promise(JSON)}
 	 */
-	query (words) {
+	query (words, returnItemsJson, orderingFunction) {
 
 		this._checkInitialized();
 
 		return new Promise((resolve, reject) => {
 
 			let time = this._clock();
-
 			let arrWords = this._splitWords(words);
 
 			if (arrWords.length <= 0) {
@@ -1025,15 +1046,12 @@ const NodeSuggestiveSearch = class {
 							}).slice(0, 10);
 
 							resolve({ word, correct: true, results: foundWords });
-
 						}
 
 					}).catch(err => {
 						reject(err);
 					});
-
 				});
-
 			});
 
 			//now, lets resolve all promises from the array of promises
@@ -1044,66 +1062,95 @@ const NodeSuggestiveSearch = class {
 				//if there is any incorrect word, lets choose the best match between the results 
 				let objFinal = this._matchWordsByItemsIds(items);
 				let arrItemsIds = objFinal.itemsIds;
-				let finalWords = objFinal.finalWords;
-				let missingWords = objFinal.missingWords;
+
+				//contruct the response object
+				let response = {};
+				response.query = words;
+				response.words = objFinal.finalWords;
+				response.missingWords = objFinal.missingWords;
+				response.expressions = [];
+				response.missingExpressions = [];	
 
 				//pos search - match quoted expressions, hyphenated words and separated by slashes
 				let quotedStrings = words.match(/"(.*?)"|'(.*?)'|((?:\w+-)+\w+)|((?:\w+\/|\\)+\w+)/g, "$1");
 
-				let expressions = [];
-				let missingExpressions = [];
+				if ((quotedStrings !== null && quotedStrings.length > 0) || returnItemsJson === true){
 
+					this._db.findItems({ itemId: { $in: arrItemsIds } }).then(foundItems => {
 
-				//todo: create a better way to check the expressions and repetitions
+						let filteredItems = [];
 
-
-				if (quotedStrings !== null && quotedStrings.length > 0){
-
-					//remove quotes from expressions
-					quotedStrings = quotedStrings.map(item => {
-						return item.replace(/^"(.+(?="$))"$/, '$1').replace(/^'(.+(?='$))'$/, '$1'); //remove quotes
-					});
-
-					this._db.findItems({ itemId: { $in: arrItemsIds.slice(0, 100) } }).then(foundItems => {
+						//todo: create a better way to check the expressions and repetitions
 						
-						//get the expressions from the item name and keywords
-						foundItems = foundItems.filter(item => {
-							for (let quotedString in quotedStrings){
-								if (item.itemName.search(new RegExp(quotedStrings[quotedString], "ig")) >= 0 ||
-									(item.keywords !== null && item.keywords !== undefined && item.keywords.search(new RegExp(quotedStrings[quotedString], "ig")) >= 0)) {
-									if (expressions.indexOf(quotedStrings[quotedString]) < 0){
-										expressions.push(quotedStrings[quotedString]);
+						if (quotedStrings !== null && quotedStrings.length > 0) {
+							//remove quotes from expressions
+							quotedStrings = quotedStrings.map(item => {
+								return item.replace(/^"(.+(?="$))"$/, '$1').replace(/^'(.+(?='$))'$/, '$1'); //remove quotes
+							});
+
+							//get the expressions from the item name and keywords
+							filteredItems = foundItems.filter(item => {
+								for (let quotedString in quotedStrings){
+									if (item.itemName.search(new RegExp(quotedStrings[quotedString], "ig")) >= 0 ||
+										(item.keywords !== null && item.keywords !== undefined && item.keywords.search(new RegExp(quotedStrings[quotedString], "ig")) >= 0)) {
+										if (response.expressions.indexOf(quotedStrings[quotedString]) < 0){
+											response.expressions.push(quotedStrings[quotedString]);
+										}
+										return item;
 									}
-									return item;
 								}
-							}
-						});
+							});
 
-						//get the missing expressions
-						quotedStrings.map(quotedString => {
-							if (expressions.indexOf(quotedString) < 0){
-								missingExpressions.push(quotedString);
-							}
-						});
+							//get the missing expressions
+							quotedStrings.map(quotedString => {
+								if (response.expressions.indexOf(quotedString) < 0){
+									response.missingExpressions.push(quotedString);
+								}
+							});
+						}
 
-						if (foundItems.length > 0){
-							//tranform filtered object items to array of itemsId
-							arrItemsIds = [];
-							for (let item in foundItems) {
-								arrItemsIds.push(foundItems[item].itemId);
+						//apply the ordering function
+						if (_.isFunction(orderingFunction)){
+							if (filteredItems.length > 0){
+								filteredItems.sort(orderingFunction);
+							} else {
+								foundItems.sort(orderingFunction);
 							}
 						}
 
-						resolve({ query: words, words: finalWords, missingWords, expressions, missingExpressions, itemsId: arrItemsIds, timeElapsed: this._clock(time) });
-										
+						if (returnItemsJson === true){
+
+							if (filteredItems.length > 0){
+								response.items = filteredItems;
+							} else {
+								response.items = foundItems;
+							}
+	
+						}else{
+
+							if (filteredItems.length > 0){
+								//tranform filtered object items to array of itemsId
+								arrItemsIds = [];
+								for (let item in filteredItems) {
+									arrItemsIds.push(filteredItems[item].itemId);
+								}
+							}
+
+							response.itemsId = arrItemsIds;
+						}
+
+						response.timeElapsed = this._clock(time);
+						resolve(response);
+								
 					}).catch(err => {
 						reject(err);
 					});
 
 				}else{
 
-					resolve({ query: words, words: finalWords, missingWords, expressions, missingExpressions, itemsId: arrItemsIds, timeElapsed: this._clock(time) });
-
+					response.itemsId = arrItemsIds;
+					response.timeElapsed = this._clock(time);
+					resolve(response);
 				}
 
 			}).catch(err => {
@@ -1116,7 +1163,7 @@ const NodeSuggestiveSearch = class {
 
 	/**
 	 * Return words suggestions.
-	 * @param {String} words - word(s) to search.
+	 * @param {String} words - Word(s) to search.
 	 * @returns {Promise(JSON)}
 	 */
 	getSuggestedWords (words) {
@@ -1268,7 +1315,7 @@ const NodeSuggestiveSearch = class {
 						if (relatedWords.length > 0) {
 
 							// And then sort it by popularity and alphabetically
-							relatedWords = relatedWords.sort((x, y) => {
+							relatedWords.sort((x, y) => {
 
 								if (x.value > y.value) {
 									return -1;
@@ -1320,10 +1367,12 @@ const NodeSuggestiveSearch = class {
 
 	/**
 	 * Return items suggestions.
-	 * @param {String} words - word(s) to search.
+	 * @param {String} words - Word(s) to search.
+	 * @param {number} [limit=10] - Optional number of items to return.
+	 * @param {function} [orderingFunction] - Optional function that will order the response. You can set the order based on your additional fields. 
 	 * @returns {Promise(JSON)}
 	 */
-	getSuggestedItems (words) {
+	getSuggestedItems (words, limit = 10, orderingFunction) {
 
 		this._checkInitialized();
 
@@ -1341,7 +1390,7 @@ const NodeSuggestiveSearch = class {
 			if (arrWords.length == 1) {
 
 				//try to get more words like this one. Limit 5
-				this._getWordsStartingWith(arrWords[0], 5).then(queryResponse => {
+				this._getWordsStartingWith(arrWords[0], 10).then(queryResponse => {
 
 					let arrItemsIds = [];
 
@@ -1354,17 +1403,20 @@ const NodeSuggestiveSearch = class {
 					//remove duplications
 					arrItemsIds = _.uniq(arrItemsIds);					
 
-					this._db.findItems({ itemId: { $in: arrItemsIds.slice(0, 10) } }).then(foundItems => {
+					this._db.findItems({ itemId: { $in: arrItemsIds } }).then(foundItems => {
 
 						let arrResponse = [];
-
 						if (foundItems !== null) {
-							foundItems.map(item => {
-								arrResponse.push({itemId: item.itemId, itemName: item.itemName });
-							});
+
+							//apply the ordering function
+							if (_.isFunction(orderingFunction)){
+								foundItems.sort(orderingFunction);
+							}
+
+							arrResponse = foundItems.slice(0, limit);
 						}
 
-						resolve({ items: arrResponse, timeElapsed: this._clock(time) });
+						return resolve({ items: arrResponse, timeElapsed: this._clock(time) });
 
 					}).catch(err => {
 						reject(err);
@@ -1402,12 +1454,17 @@ const NodeSuggestiveSearch = class {
 						return resolve({ items: [], timeElapsed: this._clock(time) });
 					}
 
-					this._db.findItems({ itemId: { $in: arrItemsIds.slice(0, 1000) } }).then(foundItems => {
+					this._db.findItems({ itemId: { $in: arrItemsIds } }).then(foundItems => {
 
 						let arrResponse = [];
 						let lastWord = arrWords[arrWords.length - 1].toLowerCase().latinize();
 
 						if (foundItems !== null) {
+
+							//apply the ordering function
+							if (_.isFunction(orderingFunction)){
+								foundItems.sort(orderingFunction);
+							}
 
 							for (let i = 0; i < foundItems.length; i++){
 								let item = foundItems[i];
@@ -1418,17 +1475,17 @@ const NodeSuggestiveSearch = class {
 								//the rest of the words will be compared with the last words from the query
 								let foundLast = false;
 								for (let y = 0; y < arrItemWords.length; y++){
-									if (arrItemWords[y].indexOf(lastWord.toLowerCase().latinize()) == 0){
+									if (arrItemWords[y].toLowerCase().latinize().indexOf(lastWord) == 0){
 										foundLast = true;
 										break;
 									}
 								}
 
 								if (foundLast){
-									arrResponse.push({itemId: item.itemId, itemName: item.itemName });
+									arrResponse.push(item);
 								}
 
-								if (arrResponse.length > 9){
+								if (arrResponse.length > (limit - 1)){
 									break;
 								}
 							}

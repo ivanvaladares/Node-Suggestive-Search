@@ -60,18 +60,18 @@ describe('Test test.json -', () => {
             });
     });
 
-    it('load json string with 11 items and 30 words', () => {
-        return nss.loadJsonString(`[{"nm":"WHISKY RED LABEL","id":"1","kw": "fancy"},
-                                    {"nm":"WHISKY BLACK LABEL","id":"2"},
-                                    {"nm":"BLACK FOREST BEECHWOOD HAM L/S","id":"3"},
-                                    {"nm":"PESTO PARMESAN HAM","id":"4"},
-                                    {"nm":"DELI SWEET SLICE SMOKED HAM","id":"5"},
-                                    {"nm":"LABELY BUTTER","id":"7"},
-                                    {"nm":"WINE D'VINE","id":"8"},
-                                    {"nm":"WINE RÉD OLD LABEL","id":"9"},
-                                    {"nm":"BLOOD-RED WINE","id":"10"},
-                                    {"nm":"COFFE MEU CAFÉ BRASILEIRO","id":"11"},
-                                    {"nm":"X-14 ULTRA CLEANER","id":"12"}]`, 
+    it('load json string with 11 items and 30 words and personalized fields (price, popularity and thumbImg)', () => {
+        return nss.loadJsonString(`[{"nm":"WHISKY RED LABEL","id":"1","kw": "fancy", "price": 25.57, "popularity": 1, "thumbImg": "whisky-red-label.png"},
+                                    {"nm":"WHISKY BLACK LABEL","id":"2", "price": 19.99, "popularity": 0.9, "thumbImg": "whisky-black-label.png"},
+                                    {"nm":"BLACK FOREST BEECHWOOD HAM L/S","id":"3", "price": 19.99, "popularity": 1, "thumbImg": "black-forest-beechwood-ham-l-s.png"},
+                                    {"nm":"PESTO PARMESAN HAM","id":"4", "price": 19.99, "popularity": 1, "thumbImg": "pesto-parmesan-ham.png"},
+                                    {"nm":"DELI SWEET SLICE SMOKED HAM","id":"5", "price": 19.99, "popularity": 1, "thumbImg": "deli-sweet-slice-smoked-ham.png"},
+                                    {"nm":"LABELY BUTTER","id":"7", "price": 19.99, "popularity": 1, "thumbImg": "labely-butter.png"},
+                                    {"nm":"WINE D'VINE","id":"8", "price": 19.99, "popularity": 1, "thumbImg": "wine-dvine.png"},
+                                    {"nm":"WINE RÉD OLD LABEL","id":"9", "price": 19.99, "popularity": 1, "thumbImg": "wine-red-old-label.png"},
+                                    {"nm":"BLOOD-RED WINE","id":"10", "price": 19.99, "popularity": 1, "thumbImg": "blood-red-wine.png"},
+                                    {"nm":"COFFE MEU CAFÉ BRASILEIRO","id":"11", "price": 19.99, "popularity": 1, "thumbImg": "coffe-meu-cafe-brasileiro.png"},
+                                    {"nm":"X-14 ULTRA CLEANER","id":"12", "price": 19.99, "popularity": 1, "thumbImg": "x-14-ultra-cleaner.png"}]`, 
                                     "id", "nm", "kw")
             .then(data => {
                 assert(
@@ -84,8 +84,8 @@ describe('Test test.json -', () => {
     });
 
     it('query for: whisky red label', () => {
-        return nss.query("whisky red label")
-            .then(data => {
+        return nss.query("whisky red label", null, true)
+            .then(data => { 
                 assert(
                     data != null &&
                     data.words.length == 3 &&
@@ -101,21 +101,61 @@ describe('Test test.json -', () => {
             });
     });
 
-    it('query for: coffee on nss', () => {
-        return nss.query("coffee")
+    it('query for: wisk read labl', () => {
+        return nss.query("wisk read labl")
+            .then(data => {
+                assert(
+                    data != null &&
+                    data.words.length == 3 &&
+                    data.words[0] == "WHISKY" &&
+                    data.words[1] == "RED" &&
+                    data.words[2] == "LABEL" &&
+                    data.itemsId.length == 1 &&
+                    data.itemsId[0] == "1",
+                    "Error on query for: wisk read labl"
+                );
+            });
+    });
+
+    it('query for: whisky ordering by popularity (desc) and getting item\'s json', () => {
+
+        let orderFunc = ((x, y) => { return x.popularity < y.popularity; });
+
+        return nss.query("whisky", true, orderFunc)
             .then(data => {
                 assert(
                     data != null &&
                     data.words.length == 1 &&
-                    data.words[0] == "COFFE" &&
-                    data.itemsId.length == 1 &&
-                    data.itemsId[0] == "11" &&
+                    data.words[0] == "WHISKY" &&
+                    data.items.length == 2 &&
+                    data.items[0].itemId == "1" &&
+                    data.items[1].itemId == "2" &&
                     data.expressions.length == 0 &&
                     data.missingExpressions.length == 0,
-                    "Error on query for: coffee"
+                    "Error on query for: whisky"
                 );
             });
-    });
+    });    
+
+    it('query for: whisky ordering by price (asc) and getting item\'s json', () => {
+
+        let orderFunc = ((x, y) => { return x.price > y.price; });
+
+        return nss.query("whisky", true, orderFunc)
+            .then(data => { 
+                assert(
+                    data != null &&
+                    data.words.length == 1 &&
+                    data.words[0] == "WHISKY" &&
+                    data.items.length == 2 &&
+                    data.items[0].itemId == "2" &&
+                    data.items[1].itemId == "1" &&
+                    data.expressions.length == 0 &&
+                    data.missingExpressions.length == 0,
+                    "Error on query for: whisky"
+                );
+            });
+    });        
 
     it('query for: \'whisky red label\'', () => {
         return nss.query("'whisky red label'")
@@ -266,22 +306,6 @@ describe('Test test.json -', () => {
             });
     });       
 
-    it('query for: wisk read labl', () => {
-        return nss.query("wisk read labl")
-            .then(data => {
-                assert(
-                    data != null &&
-                    data.words.length == 3 &&
-                    data.words[0] == "WHISKY" &&
-                    data.words[1] == "RED" &&
-                    data.words[2] == "LABEL" &&
-                    data.itemsId.length == 1 &&
-                    data.itemsId[0] == "1",
-                    "Error on query for: wisk read labl"
-                );
-            });
-    });
-
     it('query for: X-14', () => {
         return nss.query("X-14")
             .then(data => {
@@ -300,6 +324,24 @@ describe('Test test.json -', () => {
             });
     });  
 
+    it('query for: L/S', () => {
+        return nss.query("L/S")
+            .then(data => {
+                assert(
+                    data != null &&
+                    data.words.length == 2 &&
+                    data.words[0] == "L" &&
+                    data.words[1] == "S" &&
+                    data.itemsId.length == 1 &&
+                    data.itemsId[0] == "3" &&
+                    data.expressions.length == 1 &&
+                    data.expressions[0] == "L/S" &&
+                    data.missingExpressions.length == 0,
+                    "Error on query for: HAM L/S"
+                );
+            });
+    });  
+    
     it('query for: HAM L/S', () => {
         return nss.query("HAM L/S")
             .then(data => {
@@ -318,7 +360,6 @@ describe('Test test.json -', () => {
                 );
             });
     });  
-
 
     it('query for: "HAM L/S"', () => {
         return nss.query("\"HAM L/S\"")
@@ -340,7 +381,7 @@ describe('Test test.json -', () => {
     });  
 
     it('insert item: 13 - VODKA ABSOLUTE', () => {
-        return nss.insertItem({ "itemName": "VODKA ABSOLUTE", "itemId": "13" })
+        return nss.insertItem({ "itemName": "VODKA ABSOLUTE", "itemId": "13", "price": 23.10, "popularity": 1, "thumbImg": "vodka-absolute.png" })
             .then(data => {
                 assert(
                     data != null &&
@@ -388,7 +429,6 @@ describe('Test test.json -', () => {
             });
     });
 
-
     it('get words suggestions for: lab', () => {
         return nss.getSuggestedWords("lab")
             .then(data => {                            
@@ -402,6 +442,20 @@ describe('Test test.json -', () => {
             });
     });
     
+    it('get words suggestions for: wh', () => {
+        return nss.getSuggestedWords("wh")
+            .then(data => {    
+                assert(
+                    data != null &&
+                    data.suggestions.length == 4 &&
+                    data.suggestions[0] == "WHISKY LABEL" &&
+                    data.suggestions[1] == "WHISKY fancy" &&
+                    data.suggestions[2] == "WHISKY RED" &&
+                    data.suggestions[3] == "WHISKY BLACK",
+                    "Error on get words suggestions for: lab"
+                );
+            });
+    });    
 
     it('get words suggestions for: fanc', () => {
         return nss.getSuggestedWords("fanc")
@@ -414,18 +468,17 @@ describe('Test test.json -', () => {
             });
     });
 
-    it('get items suggestions for: L/S', () => {
-        return nss.getSuggestedItems("L/S")
+    it('get items suggestions for: l/s', () => {
+        return nss.getSuggestedItems("l/s")
             .then(data => {
                 assert(
                     data != null &&
                     data.items.length == 1 &&
                     data.items[0].itemName == "BLACK FOREST BEECHWOOD HAM L/S",
-                    "Error on get items suggestions for: L/S"
+                    "Error on get items suggestions for: l/s"
                 );
             });
     });
-
 
     it('get items suggestions for: FANC', () => {
         return nss.getSuggestedItems("FANC")
@@ -455,5 +508,36 @@ describe('Test test.json -', () => {
                 );
             });
     });
+
+    it('get up to 10 item suggestions for whisky ordering by price (asc)', () => {
+
+        let orderFunc = ((x, y) => { return x.price > y.price; });
+
+        return nss.getSuggestedItems("whisky", 10, orderFunc)
+            .then(data => {
+                assert(
+                    data != null &&
+                    data.items.length ==  2 &&
+                    data.items[0].itemName == "WHISKY BLACK LABEL" &&
+                    data.items[1].itemName == "WHISKY RED LABEL",
+                    "get all item suggestions for whisky ordering by popularity (desc)"
+                );
+            });
+    });   
+
+    it('get one item suggestions for whisky ordering by popularity (desc)', () => {
+
+        let orderFunc = ((x, y) => { return x.popularity < y.popularity; });
+
+        return nss.getSuggestedItems("whisky", 1, orderFunc)
+            .then(data => {
+                assert(
+                    data != null &&
+                    data.items.length == 1 &&
+                    data.items[0].itemName == "WHISKY RED LABEL",
+                    "get one item suggestions for whisky ordering by popularity (desc)"
+                );
+            });
+    });    
 
 });
