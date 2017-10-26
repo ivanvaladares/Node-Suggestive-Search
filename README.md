@@ -20,7 +20,7 @@ npm install node-suggestive-search --save   # Install the latest version in your
 https://ivanvaladares.herokuapp.com
 
 ## Playground on Runkit
-https://runkit.com/ivanvaladares/node-suggestive-search-1.9.0
+https://runkit.com/ivanvaladares/node-suggestive-search-1.9.1
 
 
 ## API
