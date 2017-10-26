@@ -123,7 +123,7 @@ Load the JSON from file
 
 nss.loadJson("Items.json", "utf8").then( //you can change the charset to match your file
 	data => {
-		// response: { "words": 17, "items": 5, "timeElapsed": 4 }
+		// response: { "words": 17, "items": 5, "timeElapsed": "4ms" }
 	},
 	err => {
 		//...
@@ -137,7 +137,7 @@ Load the JSON from file with your properties names
 
 nss.loadJson("Items.json", "utf8", "itemId", "itemName", "keywords").then(
 	data => {
-		// response: { "words": 17, "items": 5, "timeElapsed": 3 }
+		// response: { "words": 17, "items": 5, "timeElapsed": "3ms" }
 	},
 	err => {
 		//...
@@ -154,7 +154,7 @@ let jSonString = `[{"itemName":"WHISKY RED LABEL", "itemId":"1", "keywords": "fa
 
 nss.loadJsonString(jSonString).then(
 	data => {
-		// response: { "words": 5, "items": 2, "timeElapsed": 1 }
+		// response: { "words": 5, "items": 2, "timeElapsed": "1ms" }
 	},
 	err => {
 		//...
@@ -171,7 +171,7 @@ let jSonString = `[{"itemName":"WHISKY RED LABEL", "itemId":"1", "keywords":"fan
 
 nss.loadJsonString(jSonString).then(
 	data => {
-		// response: { "words": 5, "items": 2, "timeElapsed": 2 }
+		// response: { "words": 5, "items": 2, "timeElapsed": "2ms" }
 	},
 	err => {
 		//...
@@ -189,7 +189,7 @@ let jSonString = `[{"nm":"WHISKY RED LABEL", "id":"1", "kw": "fancy"},{
 
 nss.loadJsonString(jSonString, "id", "nm", "kw").then(
 	data => {
-		// response: { "words": 5, "items": 2, "timeElapsed": 2 }
+		// response: { "words": 5, "items": 2, "timeElapsed": "2ms" }
 	},
 	err => {
 		//...
@@ -206,7 +206,7 @@ let jSonString = `[{"nm":"WHISKY RED LABEL", "id":"1", "kw":"fancy", "price":25.
 
 nss.loadJsonString(jSonString, "id", "nm", "kw").then(
 	data => {
-		// response: { "words": 5, "items": 2, "timeElapsed": 2 }
+		// response: { "words": 5, "items": 2, "timeElapsed": "2ms" }
 	},
 	err => {
 		//...
@@ -226,7 +226,7 @@ Examples of how to call the api and responses:
 
 nss.query("whisky").then(
 	data => {
-		//response:  { query: 'whisky', words: [ 'WHISKY' ], missingWords: [], expressions: [], missingExpressions: [], itemsId: [ '1', '2' ], timeElapsed: 1 }
+		//response:  { query: 'whisky', words: [ 'WHISKY' ], missingWords: [], expressions: [], missingExpressions: [], itemsId: [ '1', '2' ], timeElapsed: "1ms" }
 	},
 	err => {
 		//...
@@ -236,7 +236,7 @@ nss.query("whisky").then(
 //did you mean search result
 nss.query("wisk").then( //misspelled search criteria
 	data => {
-		//response: { query: 'wisk', words: [ 'WHISKY' ], missingWords: [], expressions: [], missingExpressions: [], itemsId: [ '1', '2' ], timeElapsed: 1 }
+		//response: { query: 'wisk', words: [ 'WHISKY' ], missingWords: [], expressions: [], missingExpressions: [], itemsId: [ '1', '2' ], timeElapsed: "1ms" }
 	},
 	err => {
 		//...
@@ -246,7 +246,7 @@ nss.query("wisk").then( //misspelled search criteria
 //did you mean search result
 nss.query("wisk read lbel").then( //misspelled search criteria
 	data => {
-		//response: { query: 'wisk read labl', words: [ 'WHISKY', 'RED', 'LABEL' ], missingWords: [], expressions: [], missingExpressions: [], itemsId: [ '1' ], timeElapsed: 2 }
+		//response: { query: 'wisk read labl', words: [ 'WHISKY', 'RED', 'LABEL' ], missingWords: [], expressions: [], missingExpressions: [], itemsId: [ '1' ], timeElapsed: "2ms" }
 	},
 	err => {
 		//...
@@ -261,7 +261,7 @@ nss.query("whisky", true).then(
 				{ itemName: 'WHISKY RED LABEL', itemId: '1', keywords: 'fancy' },
 				{ itemName: 'WHISKY BLACK LABEL', itemId: '2' } 
 			], 
-			timeElapsed: 1 }
+			timeElapsed: "1ms" }
 			*/
 	},
 	err => {
@@ -279,7 +279,7 @@ nss.query("whisky", true, orderFunc).then(
 				{ itemName: 'WHISKY RED LABEL', itemId: '1', keywords: 'fancy', price: 25.57, popularity: 1, thumbImg: 'whisky-red-label.png' },
 				{ itemName: 'WHISKY BLACK LABEL', itemId: '2', price: 19.99, popularity: 0.9, thumbImg: 'whisky-black-label.png' } 
 			], 
-			timeElapsed: 1 }
+			timeElapsed: "1ms" }
 			*/
 	},
 	err => {
@@ -290,7 +290,7 @@ nss.query("whisky", true, orderFunc).then(
 //quoted search criteria
 nss.query("'red label'").then(
 	data => {
-		//response: { query: '\'red label\'', words: [ 'RED', 'LABEL' ], missingWords: [], expressions: [ 'red label' ], missingExpressions: [], itemsId: [ '1' ], timeElapsed: 1 }
+		//response: { query: '\'red label\'', words: [ 'RED', 'LABEL' ], missingWords: [], expressions: [ 'red label' ], missingExpressions: [], itemsId: [ '1' ], timeElapsed: "1ms" }
 	},
 	err => {
 		//...
@@ -300,7 +300,7 @@ nss.query("'red label'").then(
 //quoted search criteria
 nss.query("'label red'").then(
 	data => {
-		//response: { query: '\'label red\'', words: [ 'LABEL', 'RED' ], missingWords: [], expressions: [], missingExpressions: [ 'label red' ], itemsId: [ '1' ], timeElapsed: 2 }
+		//response: { query: '\'label red\'', words: [ 'LABEL', 'RED' ], missingWords: [], expressions: [], missingExpressions: [ 'label red' ], itemsId: [ '1' ], timeElapsed: "2ms" }
 	},
 	err => {
 		//...
@@ -310,7 +310,7 @@ nss.query("'label red'").then(
 //dashed search criteria
 nss.query("Red-Blood").then(
 	data => {
-		//response: { query: 'Red-Blood', words: [ 'RED' ], missingWords: [ 'Blood' ], expressions: [], missingExpressions: [ 'Red-Blood' ], itemsId: [ '1' ], timeElapsed: 2 }
+		//response: { query: 'Red-Blood', words: [ 'RED' ], missingWords: [ 'Blood' ], expressions: [], missingExpressions: [ 'Red-Blood' ], itemsId: [ '1' ], timeElapsed: "2ms" }
 	},
 	err => {
 		//...
@@ -320,7 +320,7 @@ nss.query("Red-Blood").then(
 //slashed search criteria
 nss.query("HAM L/S").then(
 	data => {
-		//response: { query: 'HAM L/S', words: [ 'HAM', 'L', 'S' ], missingWords: [], expressions: [ 'L/S' ], missingExpressions: [], itemsId: [ '3' ], timeElapsed: 2 }
+		//response: { query: 'HAM L/S', words: [ 'HAM', 'L', 'S' ], missingWords: [], expressions: [ 'L/S' ], missingExpressions: [], itemsId: [ '3' ], timeElapsed: "2ms" }
 	},
 	err => {
 		//...
@@ -330,7 +330,7 @@ nss.query("HAM L/S").then(
 //double quoted search criteria
 nss.query("\"HAM L/S\"").then(
 	data => {
-		//response: { query: '"HAM L/S"', words: [ 'HAM', 'L', 'S' ], missingWords: [], expressions: [ 'HAM L/S' ], missingExpressions: [], itemsId: [ '3' ], timeElapsed: 2 }
+		//response: { query: '"HAM L/S"', words: [ 'HAM', 'L', 'S' ], missingWords: [], expressions: [ 'HAM L/S' ], missingExpressions: [], itemsId: [ '3' ], timeElapsed: "2ms" }
 	},
 	err => {
 		//...
@@ -349,7 +349,7 @@ Examples of how to call the api and responses:
 
 nss.getSuggestedWords("la").then(
 	data => {
-		//response: { "suggestions": [ "LABEL", "LABELY" ], "timeElapsed": 1 }
+		//response: { "suggestions": [ "LABEL", "LABELY" ], "timeElapsed": "1ms" }
 	},
 	err => {
 		//...
@@ -358,7 +358,7 @@ nss.getSuggestedWords("la").then(
 
 nss.getSuggestedWords("whi").then(
 	data => {
-		//response: { "suggestions": [ "WHISKY LABEL", "WHISKY RED", "WHISKY BLACK" ], "timeElapsed": 1 }
+		//response: { "suggestions": [ "WHISKY LABEL", "WHISKY RED", "WHISKY BLACK" ], "timeElapsed": "1ms" }
 	},
 	err => {
 		//...
@@ -367,7 +367,7 @@ nss.getSuggestedWords("whi").then(
 
 nss.getSuggestedWords("whisky re").then(
 	data => {
-		//response: { "suggestions": [ "WHISKY RED" ], "timeElapsed": 2 }
+		//response: { "suggestions": [ "WHISKY RED" ], "timeElapsed": "2ms" }
 	},
 	err => {
 		//...
@@ -386,7 +386,7 @@ Examples of how to call the api and responses:
 
 nss.getSuggestedItems("parme").then(
 	data => {
-		//response: { "items": [ { "itemId": "4", "itemName": "PESTO PARMESAN HAM" } ], "timeElapsed": 2 }
+		//response: { "items": [ { "itemId": "4", "itemName": "PESTO PARMESAN HAM" } ], "timeElapsed": "2ms" }
 	},
 	err => {
 		//...
@@ -395,7 +395,7 @@ nss.getSuggestedItems("parme").then(
 
 nss.getSuggestedItems("whisky fancy").then(
 	data => {
-		//response: { "items": [ { "itemId": "1", "itemName":"WHISKY RED LABEL" } ], "timeElapsed": 1 }
+		//response: { "items": [ { "itemId": "1", "itemName":"WHISKY RED LABEL" } ], "timeElapsed": "1ms" }
 	},
 	err => {
 		//...
@@ -404,7 +404,7 @@ nss.getSuggestedItems("whisky fancy").then(
 
 nss.getSuggestedItems("whisky re").then(
 	data => {
-		//response: { "items":[ { "itemId": "1", "itemName": "WHISKY RED LABEL" } ], "timeElapsed": 1 }
+		//response: { "items":[ { "itemId": "1", "itemName": "WHISKY RED LABEL" } ], "timeElapsed": "1ms" }
 	},
 	err => {
 		//...
@@ -413,7 +413,7 @@ nss.getSuggestedItems("whisky re").then(
 
 nss.getSuggestedItems("whisky label").then(
 	data => {
-		//response: { "items": [ {"itemId": "1", "itemName": "WHISKY RED LABEL" }, { "itemId": "2", "itemName": "WHISKY BLACK LABEL" } ], "timeElapsed": 2 }
+		//response: { "items": [ {"itemId": "1", "itemName": "WHISKY RED LABEL" }, { "itemId": "2", "itemName": "WHISKY BLACK LABEL" } ], "timeElapsed": "2ms" }
 	},
 	err => {
 		//...
@@ -425,7 +425,7 @@ let orderFunc = ((x, y) => { return x.price > y.price; });
 
 nss.getSuggestedItems("whisky label", 1, orderFunc).then(
 	data => {
-		//response: { "items": [ { itemName: 'WHISKY BLACK LABEL', itemId: '2', price: 19.99, popularity: 0.9, thumbImg: 'whisky-black-label.png' } ], "timeElapsed": 2 }
+		//response: { "items": [ { itemName: 'WHISKY BLACK LABEL', itemId: '2', price: 19.99, popularity: 0.9, thumbImg: 'whisky-black-label.png' } ], "timeElapsed": "2ms" }
 	},
 	err => {
 		//...
@@ -450,7 +450,7 @@ let newItem = {
 
 nss.insertItem(newItem).then(
 	data => {
-		//response: { "timeElapsed": 2 }
+		//response: { "timeElapsed": "2ms" }
 	},
 	err => {
 		//...
@@ -473,7 +473,7 @@ let newItem = {
 
 nss.insertItem(newItem).then(
 	data => {
-		//response: { "timeElapsed": 2 }
+		//response: { "timeElapsed": "2ms" }
 	},
 	err => {
 		//...
@@ -493,7 +493,7 @@ let itemId = "6";
 
 nss.removetItem(itemId).then(
 	data => {
-		//response: { "timeElapsed": 2 }
+		//response: { "timeElapsed": "2ms" }
 	},
 	err => {
 		//...
