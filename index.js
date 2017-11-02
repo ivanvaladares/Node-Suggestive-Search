@@ -1,5 +1,5 @@
 /*
-node-suggestive-search v1.9.1
+node-suggestive-search v1.9.2
 https://github.com/ivanvaladares/node-suggestive-search/
 by Ivan Valadares 
 http://ivanvaladares.com 
@@ -996,10 +996,10 @@ const NodeSuggestiveSearch = class {
 	 * Return itemsId array and words used in the query.
 	 * @param {String} words - Word(s) used in the search.
 	 * @param {boolean} [returnItemsJson] - Optional flag to set the return as item's json intead of their ids.
-	 * @param {function} [orderingFunction] - Optional function that will order the response. You can set the order based on your additional fields. This function will be applied if returnItemsJson is set to true
+	 * @param {object|function} [orderBy] - Optional object or function that will order the response. You can set the order based on your additional fields. This parameter will be applied if returnItemsJson is set to true
 	 * @returns {Promise(JSON)}
 	 */
-	query (words, returnItemsJson, orderingFunction) {
+	query (words, returnItemsJson, orderBy) {
 
 		this._checkInitialized();
 
@@ -1110,11 +1110,27 @@ const NodeSuggestiveSearch = class {
 						}
 
 						//apply the ordering function
-						if (_.isFunction(orderingFunction)){
+						if (orderBy !== undefined){
+							let orderFunc;
+
+							if (!_.isFunction(orderBy) && orderBy.field !== undefined){
+								orderFunc = ((x, y) => { 
+									if (orderBy.direction === "desc"){
+										return x[orderBy.field] < y[orderBy.field]; 
+									} else {
+										return x[orderBy.field] > y[orderBy.field]; 
+									}
+								});
+							}
+
+							if (_.isFunction(orderBy)){
+								orderFunc = orderBy;
+							}
+
 							if (filteredItems.length > 0){
-								filteredItems.sort(orderingFunction);
+								filteredItems.sort(orderFunc);
 							} else {
-								foundItems.sort(orderingFunction);
+								foundItems.sort(orderFunc);
 							}
 						}
 
@@ -1369,10 +1385,10 @@ const NodeSuggestiveSearch = class {
 	 * Return items suggestions.
 	 * @param {String} words - Word(s) to search.
 	 * @param {number} [limit=10] - Optional number of items to return.
-	 * @param {function} [orderingFunction] - Optional function that will order the response. You can set the order based on your additional fields. 
+	 * @param {order|function} [orderBy] - Optional object or function that will order the response. You can set the order based on your additional fields. 
 	 * @returns {Promise(JSON)}
 	 */
-	getSuggestedItems (words, limit = 10, orderingFunction) {
+	getSuggestedItems (words, limit = 10, orderBy) {
 
 		this._checkInitialized();
 
@@ -1385,6 +1401,26 @@ const NodeSuggestiveSearch = class {
 			if (arrWords.length <= 0) {
 				return reject(new Error("No word was given to search!"));
 			}
+
+			//apply the ordering function
+			let orderFunc;
+			if (orderBy !== undefined){
+
+				if (!_.isFunction(orderBy) && orderBy.field !== undefined){
+					orderFunc = ((x, y) => { 
+						if (orderBy.direction === "desc"){
+							return x[orderBy.field] < y[orderBy.field]; 
+						} else {
+							return x[orderBy.field] > y[orderBy.field]; 
+						}
+					});
+				}
+
+				if (_.isFunction(orderBy)){
+					orderFunc = orderBy;
+				}
+			}
+
 
 			//only one word came from query
 			if (arrWords.length == 1) {
@@ -1409,8 +1445,8 @@ const NodeSuggestiveSearch = class {
 						if (foundItems !== null) {
 
 							//apply the ordering function
-							if (_.isFunction(orderingFunction)){
-								foundItems.sort(orderingFunction);
+							if (orderFunc !== undefined){
+								foundItems.sort(orderFunc);
 							}
 
 							arrResponse = foundItems.slice(0, limit);
@@ -1462,9 +1498,9 @@ const NodeSuggestiveSearch = class {
 						if (foundItems !== null) {
 
 							//apply the ordering function
-							if (_.isFunction(orderingFunction)){
-								foundItems.sort(orderingFunction);
-							}
+							if (orderFunc !== undefined){
+								foundItems.sort(orderFunc);
+							}							
 
 							for (let i = 0; i < foundItems.length; i++){
 								let item = foundItems[i];

@@ -117,7 +117,7 @@ describe('Test test.json -', () => {
             });
     });
 
-    it('query for: whisky ordering by popularity (desc) and getting item\'s json', () => {
+    it('query for: whisky ordering by popularity (desc) using a function and getting item\'s json', () => {
 
         let orderFunc = ((x, y) => { return x.popularity < y.popularity; });
 
@@ -137,7 +137,27 @@ describe('Test test.json -', () => {
             });
     });    
 
-    it('query for: whisky ordering by price (asc) and getting item\'s json', () => {
+    it('query for: whisky ordering by price (asc) using an object and getting item\'s json', () => {
+        
+        let orderObject = {field: "price", direction: "asc"};
+
+        return nss.query("whisky", true, orderObject)
+            .then(data => { 
+                assert(
+                    data != null &&
+                    data.words.length == 1 &&
+                    data.words[0] == "WHISKY" &&
+                    data.items.length == 2 &&
+                    data.items[0].itemId == "2" &&
+                    data.items[1].itemId == "1" &&
+                    data.expressions.length == 0 &&
+                    data.missingExpressions.length == 0,
+                    "Error on query for: whisky"
+                );
+            });
+    });   
+
+    it('query for: whisky ordering by price (asc) using a function and getting item\'s json', () => {
 
         let orderFunc = ((x, y) => { return x.price > y.price; });
 
@@ -509,11 +529,11 @@ describe('Test test.json -', () => {
             });
     });
 
-    it('get up to 10 item suggestions for whisky ordering by price (asc)', () => {
+    it('get up to 10 item suggestions for whisky ordering by price (asc) using an object and omitting the direction ', () => {
 
-        let orderFunc = ((x, y) => { return x.price > y.price; });
+        let orderObject = {field: "price"};
 
-        return nss.getSuggestedItems("whisky", 10, orderFunc)
+        return nss.getSuggestedItems("whisky", 10, orderObject)
             .then(data => {
                 assert(
                     data != null &&

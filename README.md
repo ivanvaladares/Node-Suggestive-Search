@@ -20,7 +20,7 @@ npm install node-suggestive-search --save   # Install the latest version in your
 https://ivanvaladares.herokuapp.com
 
 ## Playground on Runkit
-https://runkit.com/ivanvaladares/node-suggestive-search-1.9.1
+https://runkit.com/ivanvaladares/node-suggestive-search-1.9.2
 
 
 ## API
@@ -269,10 +269,27 @@ nss.query("whisky", true).then(
 	}
 );
 
-//query with paramenter returnItemsJson = true and ordering function (popularity desc) on a database loaded with additional fields
-let orderFunc = ((x, y) => { return x.popularity < y.popularity; });
+//query with paramenter returnItemsJson = true and ordering by popularity, desc using an object on a database loaded with additional fields
+let orderByObject = {field: "popularity", direction: "desc"};
 
-nss.query("whisky", true, orderFunc).then(
+nss.query("whisky", true, orderByObject).then(
+	data => {
+		/*response:  { query: 'whisky', words: [ 'WHISKY' ], missingWords: [], expressions: [], missingExpressions: [], 
+			[ 
+				{ itemName: 'WHISKY RED LABEL', itemId: '1', keywords: 'fancy', price: 25.57, popularity: 1, thumbImg: 'whisky-red-label.png' },
+				{ itemName: 'WHISKY BLACK LABEL', itemId: '2', price: 19.99, popularity: 0.9, thumbImg: 'whisky-black-label.png' } 
+			], 
+			timeElapsed: '1ms' }
+			*/
+	},
+	err => {
+		//...
+	}
+
+//query with paramenter returnItemsJson = true and ordering by popularity, desc using a function on a database loaded with additional fields
+let orderByFunc = ((x, y) => { return x.popularity < y.popularity; });
+
+nss.query("whisky", true, orderByFunc).then(
 	data => {
 		/*response:  { query: 'whisky', words: [ 'WHISKY' ], missingWords: [], expressions: [], missingExpressions: [], 
 			[ 
@@ -420,10 +437,22 @@ nss.getSuggestedItems("whisky label").then(
 	}
 )
 
-//get one item suggestions ordering by price (asc).
-let orderFunc = ((x, y) => { return x.price > y.price; });
+//get one item suggestions ordering by price, asc using a function and omitting the direction.
+let orderByObject = {field: "price"};
 
-nss.getSuggestedItems("whisky label", 1, orderFunc).then(
+nss.getSuggestedItems("whisky label", 1, orderByObject).then(
+	data => {
+		//response: { items: [ { itemName: 'WHISKY BLACK LABEL', itemId: '2', price: 19.99, popularity: 0.9, thumbImg: 'whisky-black-label.png' } ], timeElapsed: '2ms' }
+	},
+	err => {
+		//...
+	}
+)
+  
+//get one item suggestions ordering by price, asc using a function.
+let orderByFunc = ((x, y) => { return x.price > y.price; });
+
+nss.getSuggestedItems("whisky label", 1, orderByFunc).then(
 	data => {
 		//response: { items: [ { itemName: 'WHISKY BLACK LABEL', itemId: '2', price: 19.99, popularity: 0.9, thumbImg: 'whisky-black-label.png' } ], timeElapsed: '2ms' }
 	},
