@@ -1385,7 +1385,7 @@ const NodeSuggestiveSearch = class {
 	 * Return items suggestions.
 	 * @param {String} words - Word(s) to search.
 	 * @param {number} [limit=10] - Optional number of items to return.
-	 * @param {order|function} [orderBy] - Optional object or function that will order the response. You can set the order based on your additional fields. 
+	 * @param {object|function} [orderBy] - Optional object or function that will order the response. You can set the order based on your additional fields. 
 	 * @returns {Promise(JSON)}
 	 */
 	getSuggestedItems (words, limit = 10, orderBy) {
