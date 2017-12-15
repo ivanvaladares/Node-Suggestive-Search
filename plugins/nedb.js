@@ -30,50 +30,58 @@ let DbDriver = class {
         });
 
         this.dbWords.loadDatabase(err => {
-            if (err) { throw err; }
+            if (err) { 
+                throw err; 
+            }
+            
+            if (!this._cacheOn){
+                this.emit('initialized');
+                return;
+            }
 
             //if is cached and the database is not empty, lets fill the cache
-            if (this._cacheOn){
+            let pItems = new Promise((resolve, reject) => { 
 
-                let pCountItems = new Promise(resolve => { 
-                    this.dbItems.count({}, (err, count) => {
-                        resolve(count);
-                    });
-                });
-
-                let pCountWords = new Promise(resolve => { 
-                    this.dbWords.count({}, (err, count) => {
-                        resolve(count);
-                    });
-                });
-
-                Promise.all([pCountItems, pCountWords]).then(results => {
-                    
-                    if (results[0] > 0 || results[1] > 0) {
-
-                        this.dbItems.find({}, (err, items) => {
-
-                            this._cache.insertItem(items).then(() => {
-                                
-                                this.dbWords.find({}, (err, words) => {
-        
-                                    this._cache.insertWord(words).then(() => {
-
-                                        this.emit('initialized');
-
-                                    });
-                                });
-                            });
-                        });
-                        
-                    }else{
-                        this.emit('initialized');
+                this.dbItems.find({}, (err, items) => {
+                    if (err) {
+                        return reject(err);
                     }
-                });
 
-            }else{
+                    this._cache.insertItem(items).then(() => {
+                        resolve(true);
+                    }).catch(err => {
+                        reject(err);
+                    });
+
+                });                        
+                
+            });
+
+            let pWords = new Promise((resolve, reject) => { 
+                this.dbWords.find({}, (err, words) => {
+                    if (err) {
+                        return reject(err);
+                    }
+
+                    this._cache.insertWord(words).then(() => {
+                        resolve(true);
+                    }).catch(err => {
+                        reject(err);
+                    });
+
+                });
+                
+            });
+
+            Promise.all([pItems, pWords]).then(() => {
+
                 this.emit('initialized');
-            }
+
+            }).catch(err => {
+
+                this.emit('error', err);
+
+            });
 
         });
         

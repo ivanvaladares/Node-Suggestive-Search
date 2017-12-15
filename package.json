@@ -1,6 +1,6 @@
 {
   "name": "node-suggestive-search",
-  "version": "1.9.2",
+  "version": "1.9.3",
   "author": {
     "name": "Ivan Valadares",
     "email": "ivanvaladares@hotmail.com"
@@ -11,7 +11,11 @@
     "search",
     "dictionary",
     "suggestive",
-    "misspell"
+    "suggestion",
+    "suggestions",
+    "misspell",
+    "misspelled",
+    "type-ahead"
   ],
   "license": "MIT",
   "licenses": [
@@ -36,11 +40,11 @@
   },
   "devDependencies": {
     "eslint": "^4.7.2",
-    "eslint-config-standard": "^10.2.1",
-    "eslint-plugin-import": "^2.7.0",
-    "eslint-plugin-node": "^5.2.0",
     "eslint-plugin-promise": "^3.5.0",
-    "eslint-plugin-standard": "^3.0.1",
+    "eslint-plugin-node": "^5.2.0",
     "mocha": "^3.5.3"
+  },
+  "engines": {
+    "node": ">=6.0.0"
   }
 }

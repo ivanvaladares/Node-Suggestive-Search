@@ -1,5 +1,5 @@
 /*
-node-suggestive-search v1.9.2
+node-suggestive-search v1.9.3
 https://github.com/ivanvaladares/node-suggestive-search/
 by Ivan Valadares 
 http://ivanvaladares.com 
@@ -46,8 +46,11 @@ const NodeSuggestiveSearch = class {
 
 		this._db.on("initialized", () => {
 			this._initialized = true;
-			
 			this.emit('initialized');
+		});
+
+		this._db.on("error", (err) => {
+			this.emit("error", err);
 		});
 
 		return this;
@@ -66,7 +69,7 @@ const NodeSuggestiveSearch = class {
 
 	_checkInitialized () {
 		if (!this._initialized) {
-			throw new Error("Module not initialized!!");
+			throw new Error("Module not initialized!");
 		}
 	}
 
@@ -347,7 +350,13 @@ const NodeSuggestiveSearch = class {
 
 			this._db.findWords({ $or: queryCriteria }).then(foundWords => {
 
-				if (foundWords.length > 0) {
+				if (!foundWords || foundWords.length <= 0) {
+
+					//nothing was found... should we try another method?
+					//todo: research for another method					
+					resolve(null);
+
+				} else {
 
 					//before return the result, lets give a similarity rank for each result	
 					//and filter top 50 most similar result 
@@ -359,12 +368,6 @@ const NodeSuggestiveSearch = class {
 							return ((x.similarity > y.similarity) ? -1 : 1);
 						}).slice(0, 50)
 					);
-
-				} else {
-
-					//nothing was found... should we try another method?
-					//todo: research for another method
-					resolve(null);
 
 				}
 
@@ -739,6 +742,8 @@ const NodeSuggestiveSearch = class {
 							//return some information about this process
 							resolve({ timeElapsed: this._clock(time) });
 
+						}).catch(err => {
+							reject(err);
 						});
 
 					}).catch(err => {
@@ -883,6 +888,8 @@ const NodeSuggestiveSearch = class {
 							//return some information about this process
 							resolve({ timeElapsed: this._clock(time) });
 
+						}).catch(err => {
+							reject(err);
 						});
 
 					}).catch(err => {
@@ -1244,16 +1251,16 @@ const NodeSuggestiveSearch = class {
 					if (arrResponse.length == 1 &&  arguments.length == 1){
 						this.getSuggestedWords(arrResponse[0] + " ", time).then(moreResults => {
 							resolve(moreResults);
+						}).catch(err => {
+							reject(err);
 						});
 					}else{
 						resolve({ suggestions: arrResponse, timeElapsed: this._clock(time) });
 					}					
 
-				},
-				err => {
+				}).catch(err => {
 					reject(err);
 				});
-
 
 			} else { //one word with space at the end or more words came from the query.
 
@@ -1365,6 +1372,8 @@ const NodeSuggestiveSearch = class {
 						if (arrResponse.length == 1 &&  arguments.length == 1){
 							this.getSuggestedWords(arrResponse[0] + " ", time).then(moreResults => {
 								resolve(moreResults);
+							}).catch(err => {
+								reject(err);
 							});
 						}else{
 							resolve({ suggestions: arrResponse, timeElapsed: this._clock(time) });
@@ -1374,6 +1383,8 @@ const NodeSuggestiveSearch = class {
 						reject(err);
 					});
 
+				}).catch(err => {
+					reject(err);
 				});
 			}
 
@@ -1458,8 +1469,7 @@ const NodeSuggestiveSearch = class {
 						reject(err);
 					});
 
-				},
-				err => {
+				}).catch(err => {
 					reject(err);
 				});
 
@@ -1534,6 +1544,8 @@ const NodeSuggestiveSearch = class {
 						reject(err);
 					});
 
+				}).catch(err => {
+					reject(err);
 				});
 
 			}

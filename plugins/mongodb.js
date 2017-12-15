@@ -15,54 +15,66 @@ let DbDriver = class {
         }
 
         mongo.connect(options.mongoDatabase).then((database) => {
+
             let itemsCollectionName = (options.itemsCollectionName !== undefined) ? options.itemsCollectionName : 'node-suggestive-search-items'; 
             let wordsCollectionName = (options.wordsCollectionName !== undefined) ? options.wordsCollectionName : 'node-suggestive-search-words';         
 
             this.dbItems = database.collection(itemsCollectionName);
             this.dbWords = database.collection(wordsCollectionName);
 
-            //if is cached and the database is not empty, lets fill the cache
-            if (this._cacheOn){
-
-                let pCountItems = new Promise(resolve => { 
-                    this.dbItems.count({}, (err, count) => {
-                        resolve(count);
-                    });
-                });
-
-                let pCountWords = new Promise(resolve => { 
-                    this.dbWords.count({}, (err, count) => {
-                        resolve(count);
-                    });
-                });                
-
-                Promise.all([pCountItems, pCountWords]).then(results => {
-
-                    if (results[0] > 0 || results[1] > 0) {
-                        
-                        this.dbItems.find({}).toArray((err, items) => {
-
-                            this._cache.insertItem(items).then(() => {
-                                
-                                this.dbWords.find({}).toArray((err, words) => {
-        
-                                    this._cache.insertWord(words).then(() => {
-
-                                        this.emit('initialized');
-
-                                    });
-                                });
-                            });
-                        });
-                        
-                    }else{
-                        this.emit('initialized');
-                    }
-                });
-
-            }else{
+            if (!this._cacheOn){
                 this.emit('initialized');
+                return;
             }
+
+            //if is cached and the database is not empty, lets fill the cache
+            let pItems = new Promise((resolve, reject) => { 
+
+                this.dbItems.find({}).toArray().then(items => {
+
+                    this._cache.insertItem(items).then(() => {
+
+                        resolve(true);
+
+                    }).catch(err => {
+                        reject(err);
+                    }); 
+
+                }).catch(err => {
+                    reject(err);
+                });
+
+            });
+
+            let pWords = new Promise((resolve, reject) => { 
+
+                this.dbWords.find({}).toArray().then(words => {
+
+                    this._cache.insertWord(words).then(() => {
+
+                        resolve(true);
+
+                    }).catch(err => {
+                        reject(err);
+                    }); 
+
+                }).catch(err => {
+                    reject(err);
+                });
+
+            });                                
+
+            Promise.all([pItems, pWords]).then(() => {
+
+                this.emit('initialized');
+
+            }).catch(err => {
+                this.emit('error', err);
+            });
+
+        }).catch(err => {
+               
+            this.emit('error', err);
 
         });
 

@@ -3,11 +3,25 @@ module.exports = {
         "es6": true,
         "node": true
     },
-    "extends": "eslint:recommended",
+    "extends": ["eslint:recommended", "plugin:node/recommended"],
     "parserOptions": {
         "sourceType": "module"
     },
+    "plugins": [
+        "promise",
+        "node"
+    ],
     "rules": {
+        "promise/always-return": "off",
+        "promise/no-return-wrap": "error",
+        "promise/param-names": "error",
+        "promise/catch-or-return": "error",
+        "promise/no-native": "off",
+        "promise/no-nesting": "off",
+        "promise/no-promise-in-callback": "warn",
+        "promise/no-callback-in-promise": "warn",
+        "promise/avoid-new": "off",
+        "promise/no-return-in-finally": "warn",
         "accessor-pairs": "error",
         "array-bracket-newline": "off",
         "array-bracket-spacing": [

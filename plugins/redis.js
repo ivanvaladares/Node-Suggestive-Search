@@ -21,88 +21,95 @@ let DbDriver = class {
         
         this.client.on('connect', () => {
 
-            //if is cached and the database is not empty, lets fill the cache
-            if (this._cacheOn){
-
-                let pCountItems = new Promise((resolve, reject) => { 
-
-                    this.client.keys(`${this.keysPrefixName}item:*`, (err, keys) => {
-                        if (err) {
-                            return reject(err);
-                        }
-
-                        let multi = keys.map(k => {
-                            return ["get", k];
-                        });
-
-                        this.client.multi(multi).exec((err, replies) => {
-                            if (err) {
-                                return reject(err);
-                            }
-
-                            let arrItems = [];
-                    
-                            _.flatten(replies).map(itemStr => {
-                                arrItems.push(JSON.parse(itemStr));
-                            });
-
-                            this._cache.insertItem(arrItems).then(() => {
-                                resolve(1);
-                            });
-                            
-                        });
-                    });
-                });
-
-                let pCountWords = new Promise((resolve, reject) => { 
-
-                    this.client.keys(`${this.keysPrefixName}cleanWord:*`, (err, keys) => {
-                        if (err) {
-                            return reject(err);
-                        }
-
-                        let multi = keys.map(k => {
-                            return ["get", k];
-                        });
-
-                        this.client.multi(multi).exec((err, replies) => {
-                            if (err) {
-                                return reject(err);
-                            }
-
-                            let arrWords = [];
-                    
-                            _.flatten(replies).map(wordStr => {
-                                let objWord = JSON.parse(wordStr);
-
-                                if (objWord.parts !== undefined && objWord.parts.length > 0){
-                                    objWord.parts.map(part => {
-                                        objWord[part.substring(0, 3)] = part.substring(4);
-                                    });
-                                    delete objWord.parts;
-                                }
-
-                                arrWords.push(objWord);
-                            });
-
-                            this._cache.insertWord(arrWords).then(() => {
-                                resolve(1);
-                            });
-                            
-                        });
-                    });
-
-                });                
-
-                Promise.all([pCountItems, pCountWords]).then(() => {
-
-                    this.emit('initialized');
-
-                });
-
-            }else{
+            if (!this._cacheOn){
                 this.emit('initialized');
+                return;
             }
+
+            //if is cached and the database is not empty, lets fill the cache
+            let pItems = new Promise((resolve, reject) => { 
+
+                this.client.keys(`${this.keysPrefixName}item:*`, (err, keys) => {
+                    if (err) {
+                        return reject(err);
+                    }
+
+                    let multi = keys.map(k => {
+                        return ["get", k];
+                    });
+
+                    this.client.multi(multi).exec((err, replies) => {
+                        if (err) {
+                            return reject(err);
+                        }
+
+                        let arrItems = [];
+                
+                        _.flatten(replies).map(itemStr => {
+                            arrItems.push(JSON.parse(itemStr));
+                        });
+
+                        this._cache.insertItem(arrItems).then(() => {
+                            resolve(true);
+                        }).catch(err => {
+                            reject(err);
+                        });
+                        
+                    });
+                });
+            });
+
+            let pWords = new Promise((resolve, reject) => { 
+
+                this.client.keys(`${this.keysPrefixName}cleanWord:*`, (err, keys) => {
+                    if (err) {
+                        return reject(err);
+                    }
+
+                    let multi = keys.map(k => {
+                        return ["get", k];
+                    });
+
+                    this.client.multi(multi).exec((err, replies) => {
+                        if (err) {
+                            return reject(err);
+                        }
+
+                        let arrWords = [];
+                
+                        _.flatten(replies).map(wordStr => {
+                            let objWord = JSON.parse(wordStr);
+
+                            if (objWord.parts !== undefined && objWord.parts.length > 0){
+                                objWord.parts.map(part => {
+                                    objWord[part.substring(0, 3)] = part.substring(4);
+                                });
+                                delete objWord.parts;
+                            }
+
+                            arrWords.push(objWord);
+                        });
+
+                        this._cache.insertWord(arrWords).then(() => {
+                            resolve(true);
+                        }).catch(err => {
+                            reject(err);
+                        });
+                        
+                    });
+                });
+
+            });                
+
+            Promise.all([pItems, pWords]).then(() => {
+
+                this.emit('initialized');
+
+            }).catch(err => {
+
+                this.emit('error', err);
+
+            });
 
         });
 
