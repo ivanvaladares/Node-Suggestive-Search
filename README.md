@@ -1,5 +1,6 @@
 # Node suggestive search
-A node module to help type-ahead and dropdown search boxes and also correct misspelled searches (did you mean?).
+Don't let spelling mistakes prevent your users from finding what they were looking for! 
+This node module was built to help type-ahead and dropdown search boxes and also correct misspelled searches (did you mean?).
 
 
 This module is compatible with:
