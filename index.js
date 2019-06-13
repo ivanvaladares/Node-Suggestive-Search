@@ -1,5 +1,5 @@
 /*
-node-suggestive-search v1.9.3
+node-suggestive-search v1.9.4
 https://github.com/ivanvaladares/node-suggestive-search/
 by Ivan Valadares 
 http://ivanvaladares.com 
@@ -233,6 +233,32 @@ const NodeSuggestiveSearch = class {
 		}).filter(item => {
 			return (item.length > 0);
 		});
+	}
+
+	_intersection(arrays) {
+		let output = [];
+		let cntObj = {};
+		let array, item, cnt;
+		for (let i = 0; i < arrays.length; i++) {
+			array = arrays[i];
+			for (let j = 0; j < array.length; j++) {
+				item = array[j];
+				cnt = cntObj[item] || 0;
+				// if cnt is exactly the number of previous arrays, 
+				// then increment by one so we count only one per array
+				if (cnt == i) {
+					cntObj[item] = cnt + 1;
+				}
+			}
+		}
+
+		// now collect all results that are in all arrays
+		for (item in cntObj) {
+			if (cntObj[item] === arrays.length) {
+				output.push(item);
+			}
+		}
+		return(output);
 	}
 
 	_matchWordsByItemsIds (wordItems, finalWordItems) {
@@ -480,9 +506,9 @@ const NodeSuggestiveSearch = class {
 	_acumulateWordsObjects (dictionary, word, itemId){
 
 		let strCleanWord = word.toLowerCase().latinize();
-		
+
 		//if there is already this word in our dictionary, associate it with this item
-		if (strCleanWord in dictionary) {
+		if (strCleanWord in dictionary && dictionary[strCleanWord].items !== undefined) {
 
 			//add this new item into related items of this word
 			dictionary[strCleanWord].items[itemId] = true;
@@ -491,7 +517,7 @@ const NodeSuggestiveSearch = class {
 			if (dictionary[strCleanWord].words.indexOf(word) < 0){
 				dictionary[strCleanWord].words.push(word);
 			}
-
+				
 		} else {
 			//keep the word without accent and lowercase
 
@@ -1006,11 +1032,11 @@ const NodeSuggestiveSearch = class {
 	 * @param {object|function} [orderBy] - Optional object or function that will order the response. You can set the order based on your additional fields. This parameter will be applied if returnItemsJson is set to true
 	 * @returns {Promise(JSON)}
 	 */
-	query (words, returnItemsJson, orderBy) {
+	async query (words, returnItemsJson, orderBy) {
 
 		this._checkInitialized();
 
-		return new Promise((resolve, reject) => {
+		return new Promise(async (resolve, reject) => {
 
 			let time = this._clock();
 			let arrWords = this._splitWords(words);
@@ -1019,64 +1045,160 @@ const NodeSuggestiveSearch = class {
 				return reject(new Error("No word was given to search!"));
 			}
 
-			//create a promise for each word from query and create an array of promises
-			let promises = arrWords.map(word => {
+			let response = {};
+			response.query = words;
+			response.words = [];
+			response.missingWords = [];
+			response.expressions = [];
+			response.missingExpressions = [];	
+
+			//first, lets try to find the exact words in our dictionary
+			var promises = arrWords.map(word => {
 
 				return new Promise((resolve, reject) => {
 
-					//first, lets try to find the exact word in our dictionary
-					this._db.findWords({ cleanWord: word.toLowerCase().latinize() }).then(foundWords => {
+					this._db.findWords({ cleanWord: word.toLowerCase().latinize() }).then(foundWord => {
 
-						//no results :(, lets try with soundex and parts
-						if (!foundWords || foundWords.length <= 0) {
-
-							//this function will try to get words in our dictionary that is similar to the word from the query
-							this._getWordsFromSoundexAndParts(word).then(soudexFoundItems  => {
-								if (soudexFoundItems !== null) {
-									resolve({ word: word, results: soudexFoundItems });
-								} else {
-									resolve({ word: word, results: [] });
-								}
-							}).catch(() => {
-								//instead of returning an error, lets return an empty result
-								resolve({ word, results: [] });
-							});
-
-						} else {
-
-							//sort to return top 10 most similar result 
-							foundWords = foundWords.map(obj => {
-								this._setWordAndSimilarity(obj, word);
-								return obj;
-							}).sort((x, y) => {
-								return ((x.similarity > y.similarity) ? -1 : 1);
-							}).slice(0, 10);
-
-							resolve({ word, correct: true, results: foundWords });
-						}
+						resolve({ word, items : foundWord.length > 0 ? foundWord[0].items : [] });
 
 					}).catch(err => {
+
 						reject(err);
+
 					});
+
 				});
 			});
 
+			//check if all words have intersect items
+			let arrItemsIds = await Promise.all(promises).then(items => {
+
+				let arrItems = items.map(w => {
+					if (w.items && w.items.length === 0) {
+						return [];
+					}
+
+					response.words.push(w.word);
+
+					return w.items;
+				});
+
+				return this._intersection(arrItems);
+			});
+
+			// if arrItemsIds is empty, means there is no intersection or some word is wrong
+			// let's execute a wide search
+			if (arrItemsIds.length === 0) {
+				response.words = [];
+
+				promises = arrWords.map(word => {
+
+					return new Promise((resolve, reject) => {
+	
+						//this function will try to get words in our dictionary that is similar to the word from the query
+						this._getWordsFromSoundexAndParts(word).then(foundItems  => {
+							if (foundItems !== null) {
+								resolve({ word: word.toLowerCase().latinize(), results: foundItems });
+							} else {
+								resolve({ word: word, results: [] });
+							}
+						}).catch(() => {
+							//instead of returning an error, lets return an empty result
+							resolve({ word, results: [] });
+						});
+						
+					});
+	
+				});
+
+				//check if all words have intersect items
+				arrItemsIds = await Promise.all(promises).then(items => {
+
+					let arrItems = items.map(w => {
+						if (w.results && w.results.length === 0) {
+							return [];
+						}
+
+						return _.flatten(w.results.map(i => {
+
+							if (w.word === i.cleanWord.toLowerCase()) {
+								response.words.push(w.word);
+							}
+
+							return i.items;
+						}));
+						
+					});
+
+					return this._intersection(arrItems);
+				});
+
+			}
+			
+
+
+			//console.log(arrItemsIds);
+
+			//create a promise for each word from query and create an array of promises
+			// let promises = arrWords.map(word => {
+
+			// 	return new Promise((resolve, reject) => {
+
+			// 		//first, lets try to find the exact word in our dictionary
+			// 		this._db.findWords({ cleanWord: word.toLowerCase().latinize() }).then(foundWords => {
+
+			// 			//no results :(, lets try with soundex and parts
+			// 			if (!foundWords || foundWords.length <= 0) {
+
+			// 				//this function will try to get words in our dictionary that is similar to the word from the query
+			// 				this._getWordsFromSoundexAndParts(word).then(soudexFoundItems  => {
+			// 					if (soudexFoundItems !== null) {
+			// 						resolve({ word: word, results: soudexFoundItems });
+			// 					} else {
+			// 						resolve({ word: word, results: [] });
+			// 					}
+			// 				}).catch(() => {
+			// 					//instead of returning an error, lets return an empty result
+			// 					resolve({ word, results: [] });
+			// 				});
+
+			// 			} else {
+
+			// 				//sort to return top 10 most similar result 
+			// 				foundWords = foundWords.map(obj => {
+			// 					this._setWordAndSimilarity(obj, word);
+			// 					return obj;
+			// 				}).sort((x, y) => {
+			// 					return ((x.similarity > y.similarity) ? -1 : 1);
+			// 				}).slice(0, 10);
+
+			// 				resolve({ word, correct: true, results: foundWords });
+			// 			}
+
+			// 		}).catch(err => {
+			// 			reject(err);
+			// 		});
+			// 	});
+			// });
+
 			//now, lets resolve all promises from the array of promises
-			Promise.all(promises).then(items => {
+			//Promise.all(promises).then(arrItemsIds => {
+
+				//console.log("end");
+
+				//console.log(JSON.stringify(items));
+
+				//contruct the response object
+	
 
 				//items variable contains an array of words objects and results for each word from the query
 				// {word: word, results: db.words[]} 
 				//if there is any incorrect word, lets choose the best match between the results 
-				let objFinal = this._matchWordsByItemsIds(items);
-				let arrItemsIds = objFinal.itemsIds;
 
-				//contruct the response object
-				let response = {};
-				response.query = words;
-				response.words = objFinal.finalWords;
-				response.missingWords = objFinal.missingWords;
-				response.expressions = [];
-				response.missingExpressions = [];	
+
+
+				//response.timeElapsed = this._clock(time);	
+
 
 				//pos search - match quoted expressions, hyphenated words and separated by slashes
 				let quotedStrings = words.match(/"(.*?)"|'(.*?)'|((?:\w+-)+\w+)|((?:\w+\/|\\)+\w+)/g, "$1");
@@ -1172,18 +1294,19 @@ const NodeSuggestiveSearch = class {
 				}else{
 
 					response.itemsId = arrItemsIds;
+
 					response.timeElapsed = this._clock(time);
 					resolve(response);
 				}
 
-			}).catch(err => {
-				reject(err);
-			});
+			//}).catch(err => {
+			//	reject(err);
+			//});
 
 		});
 
 	}
-
+	
 	/**
 	 * Return words suggestions.
 	 * @param {String} words - Word(s) to search.
@@ -1319,7 +1442,7 @@ const NodeSuggestiveSearch = class {
 								let word = arrItemWords[y];
 
 								if (lastWord === "" || word.toLowerCase().latinize().indexOf(lastWord) == 0){
-									if (word in objRelatedWords) {
+									if (objRelatedWords[word] !== undefined && typeof objRelatedWords[word] === "string") {
 										objRelatedWords[word]++;
 									} else {
 										objRelatedWords[word] = 1;
@@ -1543,7 +1666,7 @@ const NodeSuggestiveSearch = class {
 					}).catch(err => {
 						reject(err);
 					});
-
+					
 				}).catch(err => {
 					reject(err);
 				});
