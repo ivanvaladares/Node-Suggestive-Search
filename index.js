@@ -1137,7 +1137,7 @@ const NodeSuggestiveSearch = class {
 						response.words = [];
 						response.missingWords = [];
 
-						commonItemsIds = this._intersection(arrItems, mustMatch)
+						commonItemsIds = this._intersection(arrItems, mustMatch);
 
 						if (commonItemsIds.length > 0) {
 							items.map(w => {
