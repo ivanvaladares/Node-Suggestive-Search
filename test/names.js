@@ -65,8 +65,8 @@ describe('Test names.json -', () => {
                 assert(
                     data != null &&
                     data.words.length == 2 &&
-                    data.words[0] == "Ivan" &&
-                    data.words[1] == "Valadares" &&
+                    data.words[0] == "ivan" &&
+                    data.words[1] == "valadares" &&
                     data.itemsId.length == 1 &&
                     data.itemsId[0] == "49999" &&
                     data.expressions.length == 0 &&
@@ -79,6 +79,7 @@ describe('Test names.json -', () => {
     it('query for: VICHI', () => {
         return nss.query("VICHI")
             .then(data => {
+                console.log(data);
                 assert(
                     data != null &&
                     data.words[0] == "Vickie" &&
@@ -105,6 +106,8 @@ describe('Test names.json -', () => {
     it('query for: VICHI', () => {
         return nss.query("VICHI")
             .then(data => {
+                console.log(data);
+
                 assert(
                     data != null &&
                     data.words.length == 1 &&
@@ -147,6 +150,8 @@ describe('Test names.json -', () => {
     it('query for: VICHI', () => {
         return nss.query("VICHI")
             .then(data => {
+                console.log(data);
+
                 assert(
                     data != null &&
                     data.words[0] == "Vickie" &&
@@ -163,6 +168,8 @@ describe('Test names.json -', () => {
     it('query for: absolut', () => {
         return nss.query("absolut")
             .then(data => {
+                console.log(data);
+
                 assert(
                     data != null &&
                     data.words.length == 1 &&
@@ -178,6 +185,8 @@ describe('Test names.json -', () => {
     it('query for: ivan consentino valadares', () => {
         return nss.query("ivan consentino valadares")
             .then(data => {
+                console.log(data);
+
                 assert(
                     data != null &&
                     data.words.length == 2 &&
