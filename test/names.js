@@ -79,7 +79,7 @@ describe('Test names.json -', () => {
     it('query for: VICHI', () => {
         return nss.query("VICHI")
             .then(data => {
-                console.log(data);
+                //console.log(data);
                 assert(
                     data != null &&
                     data.words[0] == "Vickie" &&
@@ -106,7 +106,7 @@ describe('Test names.json -', () => {
     it('query for: VICHI', () => {
         return nss.query("VICHI")
             .then(data => {
-                console.log(data);
+                //console.log(data);
 
                 assert(
                     data != null &&
@@ -150,7 +150,7 @@ describe('Test names.json -', () => {
     it('query for: VICHI', () => {
         return nss.query("VICHI")
             .then(data => {
-                console.log(data);
+                //console.log(data);
 
                 assert(
                     data != null &&
@@ -168,7 +168,7 @@ describe('Test names.json -', () => {
     it('query for: absolut', () => {
         return nss.query("absolut")
             .then(data => {
-                console.log(data);
+                //console.log(data);
 
                 assert(
                     data != null &&

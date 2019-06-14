@@ -236,7 +236,7 @@ const NodeSuggestiveSearch = class {
 		});
 	}
 
-	_intersection (arrays) {
+	_intersection (arrays, mustMatchLength) {
 		let output = [];
 		let cntObj = {};
 		let array, cnt, item;
@@ -253,9 +253,8 @@ const NodeSuggestiveSearch = class {
 			}
 		}
 
-		// now collect all results that are in all arrays
 		for (item in cntObj) {
-			if (cntObj[item] === arrays.length) {
+			if (cntObj[item] === mustMatchLength) {
 				output.push(item);
 			}
 		}
@@ -1078,7 +1077,7 @@ const NodeSuggestiveSearch = class {
 					return w.items;
 				});
 
-				return this._intersection(arrItems);
+				return this._intersection(arrItems, arrItems.length);
 			});
 
 			// if arrItemsIds is empty, means there is no intersection or some word is wrong
@@ -1099,7 +1098,7 @@ const NodeSuggestiveSearch = class {
 									return obj;
 								}).sort((x, y) => {
 									return ((x.similarity > y.similarity) ? -1 : 1);
-								}).slice(0, 5);
+								}).slice(0, arrWords.length > 1 ? 50 : 1);
 
 								resolve({ word: word.toLowerCase().latinize(), results });
 
@@ -1120,20 +1119,61 @@ const NodeSuggestiveSearch = class {
 
 					let arrItems = items.map(w => {
 						if (w.results && w.results.length === 0) {
-							response.missingWords.push(w.word);
 							return [];
 						}
 
 						return _.flatten(w.results.map(i => {
-							if (w.word === i.cleanWord.toLowerCase()) {
-								response.words.push(w.word);
-							}
 							return i.items;
 						}));
 						
 					});
 
-					return this._intersection(arrItems);
+
+					let mustMatch = arrItems.length;
+					let commonItemsIds;
+
+					do {
+
+						response.words = [];
+						response.missingWords = [];
+
+						commonItemsIds = this._intersection(arrItems, mustMatch)
+
+						if (commonItemsIds.length > 0) {
+							items.map(w => {
+
+								let foundWord = false;
+
+								for (let i = 0; i < w.results.length; i++) {
+									const item = w.results[i];
+//console.log(item.word)
+									if (this._intersection([item.items, commonItemsIds], 2).length === commonItemsIds.length){
+										foundWord = true;
+										if (response.words.indexOf(item.word) < 0) {
+											response.words.push(item.word);
+										}
+										break;
+									}
+								}
+
+								if (!foundWord) {
+									if (response.missingWords.indexOf(w.word) < 0) {
+										response.missingWords.push(w.word);
+									}									
+								}
+
+							});
+
+//console.log("PASSOU")							
+
+							break;
+						}
+
+						mustMatch--;
+
+					} while (mustMatch > 0);
+
+					return commonItemsIds;
 				});
 
 			}
