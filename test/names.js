@@ -185,13 +185,11 @@ describe('Test names.json -', () => {
     it('query for: ivan consentino valadares', () => {
         return nss.query("ivan consentino valadares")
             .then(data => {
-                console.log(data);
-
                 assert(
                     data != null &&
                     data.words.length == 2 &&
-                    data.words[0] == "Ivan" &&
-                    data.words[1] == "Valadares" &&
+                    data.words[0] == "ivan" &&
+                    data.words[1] == "valadares" &&
                     data.itemsId.length == 1 &&
                     data.itemsId[0] == "49999" &&
                     data.missingWords.length == 1 &&
@@ -231,6 +229,7 @@ describe('Test names.json -', () => {
     it('query for: ivam valadar', () => {
         return nss.query("ivam valadar")
             .then(data => {
+                console.log(data)
                 assert(
                     data != null &&
                     data.words.length == 2 &&

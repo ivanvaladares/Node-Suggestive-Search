@@ -76,18 +76,15 @@ describe('Test produtos.json -', () => {
             .then(data => {
                 assert(
                     data != null &&
-                    data.words.length == 7 &&
+                    data.words.length == 6 &&
                     data.words[0] == "REFRIGERANTE" &&
-                    data.words[1] == "COCA" &&
-                    data.words[2] == "COLA" &&
-                    data.words[3] == "EMBALAGEM" &&
-                    data.words[4] == "COM" &&
-                    data.words[5] == "6" &&
-                    data.words[6] == "UNIDADES" &&
+                    data.words[1] == "coca" &&
+                    data.words[2] == "EMBALAGEM" &&
+                    data.words[3] == "COM" &&
+                    data.words[4] == "6" &&
+                    data.words[5] == "UNIDADES" &&
                     data.itemsId.length == 2 &&
-                    ["25", "26"].indexOf(data.itemsId[0]) >= 0 &&
-                    ["25", "26"].indexOf(data.itemsId[1]) >= 0 &&
-                    data.missingWords.length == 0 &&
+                    data.missingWords.length == 1 &&
                     data.expressions.length == 1 &&
                     data.missingExpressions.length == 1 &&
                     data.missingExpressions[0] == "coca-cora",
@@ -102,7 +99,7 @@ describe('Test produtos.json -', () => {
                 assert(
                     data != null &&
                     data.words.length == 1 &&
-                    data.words[0] == "COCA" &&
+                    data.words[0] == "coca" &&
                     data.itemsId.length == 27 &&
                     data.missingWords.length == 1 &&
                     data.missingWords[0] == "abjabajbajba" &&
@@ -119,8 +116,8 @@ describe('Test produtos.json -', () => {
                 assert(
                     data != null &&
                     data.words.length == 2 &&
-                    data.words[0] == "COCA" &&
-                    data.words[1] == "COLA" &&
+                    data.words[0] == "coca" &&
+                    data.words[1] == "cola" &&
                     data.itemsId.length == 27 &&
                     data.missingWords.length == 1 &&
                     data.missingWords[0] == "abjabajbajba" &&
@@ -137,8 +134,8 @@ describe('Test produtos.json -', () => {
                 assert(
                     data != null &&
                     data.words.length == 2 &&
-                    data.words[0] == "COCA" &&
-                    data.words[1] == "COLA" &&
+                    data.words[0] == "coca" &&
+                    data.words[1] == "cola" &&
                     data.itemsId.length == 27 &&
                     data.missingWords.length == 1 &&
                     data.missingWords[0] == "abjabajbajba" &&
@@ -154,13 +151,13 @@ describe('Test produtos.json -', () => {
             .then(data => {
                 assert(
                     data != null &&
-                    data.words.length == 3 &&
-                    data.words[0] == "COCA" &&
-                    data.words[1] == "COLA" &&
-                    data.words[2] == "REFRIGERANTE" &&
+                    data.words.length == 2 &&
+                    data.words[0] == "coca" &&
+                    data.words[1] == "cola" &&
                     data.itemsId.length == 27 &&
-                    data.missingWords.length == 1 &&
+                    data.missingWords.length == 2 &&
                     data.missingWords[0] == "abjabajbajba" &&
+                    data.missingWords[1] == "refri" &&
                     data.expressions.length == 0 &&
                     data.missingExpressions.length == 0,
                     "Error on: coca cola abjabajbajba refri"
@@ -173,13 +170,13 @@ describe('Test produtos.json -', () => {
             .then(data => {
                 assert(
                     data != null &&
-                    data.words.length == 3 &&
-                    data.words[0] == "COCA" &&
-                    data.words[1] == "COLA" &&
-                    data.words[2] == "REFRIGERANTE" &&
+                    data.words.length == 2 &&
+                    data.words[0] == "coca" &&
+                    data.words[1] == "cola" &&
                     data.itemsId.length == 27 &&
-                    data.missingWords.length == 1 &&
+                    data.missingWords.length == 2 &&
                     data.missingWords[0] == "abjabajbajba" &&
+                    data.missingWords[1] == "refri" &&
                     data.expressions.length == 0 &&
                     data.missingExpressions.length == 0,
                     "Error on: abjabajbajba coca cola refri"
@@ -211,9 +208,9 @@ describe('Test produtos.json -', () => {
                 assert(
                     data != null &&
                     data.words.length == 3 &&
-                    data.words[0] == "WHISKY" &&
-                    data.words[1] == "RED" &&
-                    data.words[2] == "LABEL" &&
+                    data.words[0] == "whisky" &&
+                    data.words[1] == "red" &&
+                    data.words[2] == "label" &&
                     data.itemsId.length == 1 &&
                     data.itemsId[0] == "11896" &&
                     data.missingWords.length == 0 &&
@@ -246,8 +243,8 @@ describe('Test produtos.json -', () => {
                 assert(
                     data != null &&
                     data.words.length == 2 &&
-                    data.words[0] == "RED" &&
-                    data.words[1] == "LABEL" &&
+                    data.words[0] == "red" &&
+                    data.words[1] == "label" &&
                     data.itemsId.length == 1 &&
                     data.itemsId[0] == "11896" &&
                     data.missingWords.length == 0 &&
@@ -265,8 +262,8 @@ describe('Test produtos.json -', () => {
                 assert(
                     data != null &&
                     data.words.length == 2 &&
-                    data.words[0] == "LABEL" &&
-                    data.words[1] == "RED" &&
+                    data.words[0] == "label" &&
+                    data.words[1] == "red" &&
                     data.itemsId.length == 1 &&
                     data.itemsId[0] == "11896" &&
                     data.missingWords.length == 0 &&
@@ -310,10 +307,11 @@ describe('Test produtos.json -', () => {
     it('query for: wisky read labl', () => {
         return nss.query("wisky read labl")
             .then(data => {
+                console.log(data)
                 assert(
                     data != null &&
                     data.words.length == 3 &&
-                    data.words[0] == "WHISKY" &&
+                    data.words[0] == "wisky" &&
                     data.words[1] == "RED" &&
                     data.words[2] == "LABEL" &&
                     data.itemsId.length == 1 &&

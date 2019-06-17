@@ -89,9 +89,9 @@ describe('Test test.json -', () => {
                 assert(
                     data != null &&
                     data.words.length == 3 &&
-                    data.words[0] == "WHISKY" &&
-                    data.words[1] == "RED" &&
-                    data.words[2] == "LABEL" &&
+                    data.words[0] == "whisky" &&
+                    data.words[1] == "red" &&
+                    data.words[2] == "label" &&
                     data.itemsId.length == 1 &&
                     data.itemsId[0] == "1" &&
                     data.expressions.length == 0 &&
@@ -106,12 +106,12 @@ describe('Test test.json -', () => {
             .then(data => {
                 assert(
                     data != null &&
-                    data.words.length == 3 &&
-                    data.words[0] == "WHISKY" &&
-                    data.words[1] == "RED" &&
-                    data.words[2] == "LABEL" &&
-                    data.itemsId.length == 1 &&
-                    data.itemsId[0] == "1",
+                    data.words.length == 2 &&
+                    data.words[0] == "RED" &&
+                    data.words[1] == "LABEL" &&
+                    data.missingWords.length == 1 &&
+                    data.missingWords[0] == "wisk" && 
+                    data.itemsId.length == 2,
                     "Error on query for: wisk read labl"
                 );
             });
@@ -126,7 +126,7 @@ describe('Test test.json -', () => {
                 assert(
                     data != null &&
                     data.words.length == 1 &&
-                    data.words[0] == "WHISKY" &&
+                    data.words[0] == "whisky" &&
                     data.items.length == 2 &&
                     data.items[0].itemId == "1" &&
                     data.items[1].itemId == "2" &&
@@ -146,7 +146,7 @@ describe('Test test.json -', () => {
                 assert(
                     data != null &&
                     data.words.length == 1 &&
-                    data.words[0] == "WHISKY" &&
+                    data.words[0] == "whisky" &&
                     data.items.length == 2 &&
                     data.items[0].itemId == "2" &&
                     data.items[1].itemId == "1" &&
@@ -166,7 +166,7 @@ describe('Test test.json -', () => {
                 assert(
                     data != null &&
                     data.words.length == 1 &&
-                    data.words[0] == "WHISKY" &&
+                    data.words[0] == "whisky" &&
                     data.items.length == 2 &&
                     data.items[0].itemId == "2" &&
                     data.items[1].itemId == "1" &&
@@ -183,9 +183,9 @@ describe('Test test.json -', () => {
                 assert(
                     data != null &&
                     data.words.length == 3 &&
-                    data.words[0] == "WHISKY" &&
-                    data.words[1] == "RED" &&
-                    data.words[2] == "LABEL" &&
+                    data.words[0] == "whisky" &&
+                    data.words[1] == "red" &&
+                    data.words[2] == "label" &&
                     data.itemsId.length == 1 &&
                     data.itemsId[0] == "1" &&
                     data.expressions.length == 1 &&
@@ -216,8 +216,8 @@ describe('Test test.json -', () => {
                 assert(
                     data != null &&
                     data.words.length == 2 &&
-                    data.words[0] == "RED" &&
-                    data.words[1] == "LABEL" &&
+                    data.words[0] == "red" &&
+                    data.words[1] == "label" &&
                     data.itemsId.length == 1 &&
                     data.itemsId[0] == "1" &&
                     data.expressions.length == 1  &&
@@ -234,8 +234,8 @@ describe('Test test.json -', () => {
                 assert(
                     data != null &&
                     data.words.length == 2 &&
-                    data.words[0] == "LABEL" &&
-                    data.words[1] == "RED" &&
+                    data.words[0] == "label" &&
+                    data.words[1] == "red" &&
                     data.itemsId.length == 2  &&
                     data.expressions.length == 0 &&
                     data.missingExpressions.length == 1 &&
@@ -265,8 +265,8 @@ describe('Test test.json -', () => {
                 assert(
                     data != null &&
                     data.words.length == 2 &&
-                    data.words[0] == "RED" &&
-                    data.words[1] == "BLOOD" &&
+                    data.words[0] == "Red" &&
+                    data.words[1] == "Blood" &&
                     data.itemsId.length == 1 &&
                     data.itemsId[0] == "10" &&
                     data.expressions.length == 0 &&
@@ -283,8 +283,8 @@ describe('Test test.json -', () => {
                 assert(
                     data != null &&
                     data.words.length == 2 &&
-                    data.words[0] == "BLOOD" &&
-                    data.words[1] == "RED" &&
+                    data.words[0] == "Blood" &&
+                    data.words[1] == "Red" &&
                     data.itemsId.length == 1 &&
                     data.itemsId[0] == "10" &&
                     data.expressions.length == 1  &&
@@ -302,8 +302,8 @@ describe('Test test.json -', () => {
                 assert(
                     data != null &&
                     data.words.length == 2 &&
-                    data.words[0] == "MEU" &&
-                    data.words[1] == "CAFÉ" &&
+                    data.words[0] == "Meu" &&
+                    data.words[1] == "Cafe" &&
                     data.itemsId.length == 1 &&
                     data.itemsId[0] == "11",
                     "Error on query for: Meu Cafe"
@@ -317,8 +317,8 @@ describe('Test test.json -', () => {
                 assert(
                     data != null &&
                     data.words.length == 2 &&
-                    data.words[0] == "MEU" &&
-                    data.words[1] == "CAFÉ" &&
+                    data.words[0] == "Mêú" &&
+                    data.words[1] == "Cãfé" &&
                     data.itemsId.length == 1 &&
                     data.itemsId[0] == "11",
                     "Error on query for: Mêú Cãfé"
@@ -455,8 +455,8 @@ describe('Test test.json -', () => {
                 assert(
                     data != null &&
                     data.suggestions.length == 2 &&
-                    data.suggestions[0] == "LABEL" &&
-                    data.suggestions[1] == "LABELY",
+                    data.suggestions.indexOf("LABEL") >= 0  &&
+                    data.suggestions.indexOf("LABELY") >= 0,
                     "Error on get words suggestions for: lab"
                 );
             });
@@ -468,10 +468,10 @@ describe('Test test.json -', () => {
                 assert(
                     data != null &&
                     data.suggestions.length == 4 &&
-                    data.suggestions[0] == "WHISKY LABEL" &&
-                    data.suggestions[1] == "WHISKY fancy" &&
-                    data.suggestions[2] == "WHISKY RED" &&
-                    data.suggestions[3] == "WHISKY BLACK",
+                    data.suggestions.indexOf("WHISKY fancy") >= 0 &&
+                    data.suggestions.indexOf("WHISKY LABEL")  >= 0 &&
+                    data.suggestions.indexOf("WHISKY RED")  >= 0 &&
+                    data.suggestions.indexOf("WHISKY BLACK") >= 0,
                     "Error on get words suggestions for: lab"
                 );
             });

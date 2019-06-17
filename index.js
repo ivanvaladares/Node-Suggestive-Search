@@ -261,6 +261,21 @@ const NodeSuggestiveSearch = class {
 		return(output);
 	}
 
+	_powerSet (array) {
+		const results = [[]];
+		for (const value of array) {
+			const copy = [...results];
+			for (const prefix of copy) {
+				results.push(prefix.concat(value));
+			}
+		}
+		return results.filter(w => { 
+							return w.length > 0; 
+						}).sort((x, y) => {
+							return ((x.length > y.length) ? -1 : 1);
+						});
+	}
+
 	_matchWordsByItemsIds (wordItems, finalWordItems) {
 	
 		let maxSimilarity = -1;
@@ -1067,18 +1082,52 @@ const NodeSuggestiveSearch = class {
 			});
 
 			//check if all words have intersect items
-			let arrItemsIds = await Promise.all(promises).then(items => {
+			let arrItemsIds = [];
+			let items = await Promise.all(promises).then(items => {
 
 				let arrItems = items.map(w => {
 					if (w.items && w.items.length === 0) {
+						response.missingWords.push(w.word);
 						return [];
 					}
 					response.words.push(w.word);
 					return w.items;
 				});
 
-				return this._intersection(arrItems, arrItems.length);
+				arrItemsIds = this._intersection(arrItems, arrItems.length);
+
+				return arrItems;
 			});
+
+			// if arrItemsIds is empty, means there is no intersection or some word is wrong
+			if (arrItemsIds.length === 0) {
+
+				let correctIndexes = [];
+				items.map((w, i) => {
+					if (w.length > 0) {
+						correctIndexes.push(i);
+					}
+				});
+				
+				correctIndexes = this._powerSet(correctIndexes);
+				
+				for (let i = 0; i < correctIndexes.length; i++) {
+					const indexes = correctIndexes[i];
+
+					let arrItems = [];
+				
+					indexes.forEach(index => {
+						arrItems.push(items[index]);
+					});
+				
+					arrItemsIds = this._intersection(arrItems, arrItems.length);
+					
+					if (arrItemsIds.length > 0){
+						break;
+					} 
+				}
+			}
+
 
 			// if arrItemsIds is empty, means there is no intersection or some word is wrong
 			// let's execute a wide search
@@ -1128,18 +1177,18 @@ const NodeSuggestiveSearch = class {
 						
 					});
 
-
 					let mustMatch = arrItems.length;
 					let commonItemsIds;
 
 					do {
 
-						response.words = [];
-						response.missingWords = [];
-
 						commonItemsIds = this._intersection(arrItems, mustMatch);
 
 						if (commonItemsIds.length > 0) {
+
+							response.words = [];
+							response.missingWords = [];
+	
 							items.map(w => {
 
 								let foundWord = false;
