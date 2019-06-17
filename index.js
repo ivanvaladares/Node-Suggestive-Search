@@ -1,3 +1,4 @@
+/* eslint-disable no-await-in-loop */
 /* eslint-disable node/no-unsupported-features */
 /*
 node-suggestive-search v1.9.4
@@ -1093,7 +1094,10 @@ const NodeSuggestiveSearch = class {
 
 			//check if all words have intersect items
 			let arrItemsIds = [];
+			let tempResult = [];
 			let items = await Promise.all(promises).then(items => {
+
+				tempResult = items;
 
 				let arrItems = items.map(w => {
 					if (w.items && w.items.length === 0) {
@@ -1112,36 +1116,183 @@ const NodeSuggestiveSearch = class {
 			// if arrItemsIds is empty, means there is no intersection or some word is wrong
 			if (arrItemsIds.length === 0) {
 
-				let correctIndexes = [];
-				items.map((w, i) => {
-					if (w.length > 0) {
-						correctIndexes.push(i);
-					}
+				let arrItems = tempResult.filter(o => { 
+					return o.items && o.items.length > 0; 
+				}).map(w => {
+					return w.items;
 				});
-				
-				correctIndexes = this._powerSet(correctIndexes);
-				
-				for (let i = 0; i < correctIndexes.length; i++) {
-					const indexes = correctIndexes[i];
 
-					let arrItems = [];
-				
-					indexes.forEach(index => {
-						arrItems.push(items[index]);
-					});
-				
-					arrItemsIds = this._intersection(arrItems, arrItems.length);
+				arrItemsIds = this._intersection(arrItems, arrItems.length);
+				let sair = false;
+
+				for (let i = 0; i < tempResult.length; i++) {
+					const w = tempResult[i];
 					
-					if (arrItemsIds.length > 0){
+					if (w.items.length > 0) {
+						continue;
+					}
+
+					//ivan -atencao
+					//todo: salvar esses resultados para usar na proxima etapa e nao ter que voltar ao dicionario
+
+					await this._getWordsFromSoundexAndParts(arrWords[i]).then(foundItems  => {
+						if (foundItems !== null) {
+
+							let results = foundItems.map(obj => {
+								this._setWordAndSimilarity(obj, arrWords[i]);
+								return obj;
+							}).sort((x, y) => {
+								return ((x.similarity > y.similarity) ? -1 : 1);
+							}).slice(0, arrWords.length > 1 ? 10 : 1)
+							.filter(o => {
+								return this._intersection([arrItemsIds, o.items], 2).length > 0;
+							});
+
+							if (results.length > 0) {
+								tempResult[i].word = results[0].word;
+								tempResult[i].items = results[0].items;
+							}
+						}
+					});
+
+					if (tempResult[i].items.length === 0){
+						sair = true;
 						break;
-					} 
+					}
 				}
+
+				if (!sair) {
+					response.words = [];
+	
+					arrItems = tempResult.map(w => {
+						response.words.push(w.word);
+						return w.items;
+					});
+	
+					arrItemsIds = this._intersection(arrItems, arrItems.length);	
+				}
+
+
+				//console.log(JSON.stringify(tempResult));
+
+				// correctIndexes = this._powerSet(correctIndexes);
+
+				// let arrItems = items.map(w => {
+				// 	if (w.results && w.results.length === 0) {
+				// 		return [];
+				// 	}
+				// 	return _.flatten(w.results.map(i => {
+				// 		return i.items;
+				// 	}));				
+				// });
+
+				// let commonItemsIds = this._intersection(arrItems, arrItems.length);
+
+				
+				// console.log(correctIndexes);
+
+
+				// if (commonItemsIds.length > 0) {
+
+				// 	let arr = [];
+				// 	let index = 0;
+				// 	items.map(w => {
+				// 		arr.push([]);
+				// 		for (let i = 0; i < w.results.length; i++) {
+				// 			const item = w.results[i];
+				// 			if (this._intersection([item.items, commonItemsIds], 2).length > 0){
+				// 				arr[index].push(item.word);
+				// 			}
+				// 		}
+				// 		index++; 
+				// 	});
+
+				// 	let cp = this._cartesianProductOf(arr);
+
+				// 	for (let index = 0; index < cp.length; index++) {
+				// 		const element = cp[index];
+						
+				// 		response.words = [];
+				// 		arrItems = [];
+					
+				// 		for (let j = 0; j < element.length; j++) {
+				// 			const word = element[j];
+				// 			response.words.push(word);
+				// 			let arr = _.find(items[j].results, { 'word': word });
+				// 			arrItems.push(arr.items);
+				// 		}
+
+				// 		commonItemsIds = this._intersection(arrItems, arrItems.length);
+				// 		if (commonItemsIds.length > 0){
+				// 			break;
+				// 		} 
+				// 	}
+
+				//}				
+
+
+				// for (let i = 0; i < correctIndexes.length; i++) {
+				// 	const indexes = correctIndexes[i];
+
+				// 	let arrItems = [];
+				
+				// 	indexes.forEach(index => {
+				// 		arrItems.push(items[index]);
+				// 	});
+				
+				// 	arrItemsIds = this._intersection(arrItems, arrItems.length);
+					
+				// 	if (arrItemsIds.length > 0){
+				// 		break;
+				// 	} 
+				// }
 			}
 
 
 			// if arrItemsIds is empty, means there is no intersection or some word is wrong
+			// if (arrItemsIds.length === 0) {
+
+			// 	console.log("########## last chance ############ ");
+
+			// 	for (let index = 0; index < tempResult.length; index++) {
+			// 		const element = tempResult[index];
+			// 		if (element.length > 0) {
+			// 			continue;
+			// 		}				
+			// 	}
+
+			// 	let correctIndexes = [];
+			// 	items.map((w, i) => {
+			// 		if (w.length > 0) {
+			// 			correctIndexes.push(i);
+			// 		}
+			// 	});
+				
+			// 	correctIndexes = this._powerSet(correctIndexes);
+				
+			// 	for (let i = 0; i < correctIndexes.length; i++) {
+			// 		const indexes = correctIndexes[i];
+
+			// 		let arrItems = [];
+				
+			// 		indexes.forEach(index => {
+			// 			arrItems.push(items[index]);
+			// 		});
+				
+			// 		arrItemsIds = this._intersection(arrItems, arrItems.length);
+					
+			// 		if (arrItemsIds.length > 0){
+			// 			break;
+			// 		} 
+			// 	}
+			// }
+			
+
+			// if arrItemsIds is empty, means there is no intersection or some word is wrong
 			// let's execute a wide search
 			if (arrItemsIds.length === 0) {
+
+				//console.log("########## last chance ############ ");
 				response.words = [];
 
 				promises = arrWords.map(word => {
@@ -1180,47 +1331,48 @@ const NodeSuggestiveSearch = class {
 						if (w.results && w.results.length === 0) {
 							return [];
 						}
-
 						return _.flatten(w.results.map(i => {
 							return i.items;
-						}));
-						
+						}));				
 					});
 
 					let commonItemsIds = this._intersection(arrItems, arrItems.length);
 
-					let arr = [];
-					let index = 0;
-					items.map(w => {
-						arr.push([]);
-						for (let i = 0; i < w.results.length; i++) {
-							const item = w.results[i];
-							if (this._intersection([item.items, commonItemsIds], 2).length > 0){
-								arr[index].push(item.word);
+					if (commonItemsIds.length > 0) {
+
+						let arr = [];
+						let index = 0;
+						items.map(w => {
+							arr.push([]);
+							for (let i = 0; i < w.results.length; i++) {
+								const item = w.results[i];
+								if (this._intersection([item.items, commonItemsIds], 2).length > 0){
+									arr[index].push(item.word);
+								}
 							}
-						}
-						index++; 
-					});
+							index++; 
+						});
 
-					let cp = this._cartesianProductOf(arr);
+						let cp = this._cartesianProductOf(arr);
 
-					for (let index = 0; index < cp.length; index++) {
-						const element = cp[index];
+						for (let index = 0; index < cp.length; index++) {
+							const element = cp[index];
+							
+							response.words = [];
+							arrItems = [];
 						
-						response.words = [];
-						arrItems = [];
-					
-						for (let j = 0; j < element.length; j++) {
-							const word = element[j];
-							response.words.push(word);
-							let arr = _.find(items[j].results, { 'word': word });
-							arrItems.push(arr.items);
-						}
+							for (let j = 0; j < element.length; j++) {
+								const word = element[j];
+								response.words.push(word);
+								let arr = _.find(items[j].results, { 'word': word });
+								arrItems.push(arr.items);
+							}
 
-						commonItemsIds = this._intersection(arrItems, arrItems.length);
-						if (commonItemsIds.length > 0){
-							break;
-						} 
+							commonItemsIds = this._intersection(arrItems, arrItems.length);
+							if (commonItemsIds.length > 0){
+								break;
+							} 
+						}
 
 					}
 

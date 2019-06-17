@@ -76,16 +76,18 @@ describe('Test produtos.json -', () => {
             .then(data => {
                 assert(
                     data != null &&
-                    data.words.length == 6 &&
+                    data.words.length == 7 &&
                     data.words[0] == "REFRIGERANTE" &&
                     data.words[1] == "coca" &&
-                    data.words[2] == "EMBALAGEM" &&
-                    data.words[3] == "COM" &&
-                    data.words[4] == "6" &&
-                    data.words[5] == "UNIDADES" &&
+                    data.words[2] == "COLA" &&
+                    data.words[3] == "EMBALAGEM" &&
+                    data.words[4] == "COM" &&
+                    data.words[5] == "6" &&
+                    data.words[6] == "UNIDADES" &&
                     data.itemsId.length == 2 &&
                     data.missingWords.length == 1 &&
                     data.expressions.length == 1 &&
+                    data.expressions[0] == "EMBALAGEM COM 6 UNIDADES" &&
                     data.missingExpressions.length == 1 &&
                     data.missingExpressions[0] == "coca-cora",
                     "Error on: REFRIGERANTE coca-cora 'EMBALAGEM COM 6 UNIDADES'"

@@ -204,102 +204,107 @@ let items = [
 //     }
 // ];
 
-const _intersection = (arrays, mustMatchLength) => {
-    let output = [];
-    let cntObj = {};
-    let array, cnt, item;
-    for (let i = 0; i < arrays.length; i++) {
-        array = arrays[i];
-        for (let j = 0; j < array.length; j++) {
-            item = array[j];
-            cnt = cntObj[item] || 0;
-            // if cnt is exactly the number of previous arrays, 
-            // then increment by one so we count only one per array
-            if (cnt == i) {
-                cntObj[item] = cnt + 1;
-            }
-        }
-    }
+// const _intersection = (arrays, mustMatchLength) => {
+//     let output = [];
+//     let cntObj = {};
+//     let array, cnt, item;
+//     for (let i = 0; i < arrays.length; i++) {
+//         array = arrays[i];
+//         for (let j = 0; j < array.length; j++) {
+//             item = array[j];
+//             cnt = cntObj[item] || 0;
+//             // if cnt is exactly the number of previous arrays, 
+//             // then increment by one so we count only one per array
+//             if (cnt == i) {
+//                 cntObj[item] = cnt + 1;
+//             }
+//         }
+//     }
 
-    for (item in cntObj) {
-        if (cntObj[item] === mustMatchLength) {
-            output.push(item);
-        }
-    }
-    return (output);
-};
+//     for (item in cntObj) {
+//         if (cntObj[item] === mustMatchLength) {
+//             output.push(item);
+//         }
+//     }
+//     return (output);
+// };
 
-const cartesianProductOf = (array) => {
-    return _.reduce(array, (a, b) => {
-        return _.flatten(_.map(a, x => {
-            return _.map(b, y => {
-                return x.concat([y]);
-            });
-        }), true);
-    }, [[]]);
-};
+// const cartesianProductOf = (array) => {
+//     return _.reduce(array, (a, b) => {
+//         return _.flatten(_.map(a, x => {
+//             return _.map(b, y => {
+//                 return x.concat([y]);
+//             });
+//         }), true);
+//     }, [[]]);
+// };
 
-let arrItems = items.map(w => {
-    if (w.results && w.results.length === 0) {
-        return [];
-    }
-    return _.flatten(w.results.map(i => {
-        return i.items;
-    }));
-});
+// let arrItems = items.map(w => {
+//     if (w.results && w.results.length === 0) {
+//         return [];
+//     }
+//     return _.flatten(w.results.map(i => {
+//         return i.items;
+//     }));
+// });
 
-let commonItemsIds = _intersection(arrItems, arrItems.length);
+//let commonItemsIds = _intersection(arrItems, arrItems.length);
 
 //console.log(commonItemsIds);
 
-let arr = [];
-let index = 0;
-items.map(w => {
-    arr.push([]);
-    for (let i = 0; i < w.results.length; i++) {
-        const item = w.results[i];
-        if (_intersection([item.items, commonItemsIds], 2).length > 0){
-            arr[index].push(item.word);
-        }
-    }
-    index++; 
-});
-
-
-let cp = cartesianProductOf(arr);
-
-//console.log(cp);
-
-for (let index = 0; index < cp.length; index++) {
-    const element = cp[index];
-
-    arrItems = [];
-
-    for (let j = 0; j < element.length; j++) {
-        const word = element[j];
-
-        let arr = _.find(items[j].results, { 'word': word });
-        
-        arrItems.push(arr.items);
-    }
-
-    let arrItemsIds = _intersection(arrItems, arrItems.length);
-					
-    if (arrItemsIds.length > 0){
-        console.log(arrItemsIds)
-        break;
-    } 
-}
-
-// nss.on("initialized", async () => {
-
-//     await nss.loadJson("./test/produtos.json");
-
-//     let q = await nss.query("wisky read labl");
-
-//     console.log(q);
-
+// let arr = [];
+// let index = 0;
+// items.map(w => {
+//     arr.push([]);
+//     for (let i = 0; i < w.results.length; i++) {
+//         const item = w.results[i];
+//         if (_intersection([item.items, commonItemsIds], 2).length > 0){
+//             arr[index].push(item.word);
+//         }
+//     }
+//     index++; 
 // });
+
+
+// let cp = cartesianProductOf(arr);
+
+// //console.log(cp);
+
+// for (let index = 0; index < cp.length; index++) {
+//     const element = cp[index];
+
+//     arrItems = [];
+
+//     for (let j = 0; j < element.length; j++) {
+//         const word = element[j];
+
+//         let arr = _.find(items[j].results, { 'word': word });
+        
+//         arrItems.push(arr.items);
+//     }
+
+//     let arrItemsIds = _intersection(arrItems, arrItems.length);
+					
+//     if (arrItemsIds.length > 0){
+//         console.log(arrItemsIds)
+//         break;
+//     } 
+// }
+
+nss.on("initialized", async () => {
+
+    await nss.loadJson("./test/produtos.json");
+
+    let q = await nss.query("wisk red label");
+    console.log(q);
+
+    q = await nss.query("ivan red label");
+    console.log(q);
+
+    q = await nss.query("abjabajbajba coca cola refri");
+    console.log(q);
+
+});
 
 
 // nss.on("initialized", async () => {
