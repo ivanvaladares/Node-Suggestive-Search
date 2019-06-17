@@ -150,14 +150,13 @@ describe('Test names.json -', () => {
     it('query for: VICHI', () => {
         return nss.query("VICHI")
             .then(data => {
-                //console.log(data);
-
                 assert(
                     data != null &&
                     data.words[0] == "Vickie" &&
                     data.words.length == 1 &&
                     data.itemsId.length == 20 &&
-                    data.missingWords.length == 0 &&
+                    data.missingWords.length == 1 &&
+                    data.missingWords[0] == "VICHI" &&
                     data.expressions.length == 0 &&
                     data.missingExpressions.length == 0,
                     "Error on query for: VICHI"
@@ -168,13 +167,12 @@ describe('Test names.json -', () => {
     it('query for: absolut', () => {
         return nss.query("absolut")
             .then(data => {
-                //console.log(data);
-
                 assert(
                     data != null &&
                     data.words.length == 1 &&
                     data.words[0] == "Abbott" &&
-                    data.missingWords.length == 0 &&
+                    data.missingWords.length == 1 &&
+                    data.missingWords[0] == "absolut" &&
                     data.expressions.length == 0 &&
                     data.missingExpressions.length == 0,
                     "Error on query for: absolut"
@@ -229,7 +227,6 @@ describe('Test names.json -', () => {
     it('query for: ivam valadar', () => {
         return nss.query("ivam valadar")
             .then(data => {
-                console.log(data)
                 assert(
                     data != null &&
                     data.words.length == 2 &&
@@ -237,7 +234,7 @@ describe('Test names.json -', () => {
                     data.words[1] == "Valadares" &&
                     data.itemsId.length == 1 &&
                     data.itemsId[0] == "49999" &&
-                    data.missingWords.length == 0 &&
+                    data.missingWords.length == 2 &&
                     data.expressions.length == 0 &&
                     data.missingExpressions.length == 0,
                     "Error on query for: ivam valadar"

@@ -5,7 +5,8 @@ const _ = require('lodash');
 
 let items = [
     {
-        "word": "ivam", "results": [
+        "word": "ivam", 
+        "results": [
             { "words": ["Ivah"], "cleanWord": "ivah", "items": ["3290", "4583", "18998", "31253", "39429", "39490", "42515", "43955", "44462", "45277", "45673", "47441", "48049", "49901"], "similarity": 0.75, "word": "Ivah" },
             { "words": ["Ivan"], "cleanWord": "ivan", "items": ["49999", "50000", "50001", "50002"], "similarity": 0.75, "word": "Ivan" },
             { "words": ["Iva"], "cleanWord": "iva", "items": ["1210", "1402", "10313", "16822", "17040", "20731", "27193", "28511", "29395", "33363", "34856", "38236", "40173", "40734", "40976", "42481", "49383", "49837"], "similarity": 0.75, "word": "Iva" },
@@ -27,7 +28,8 @@ let items = [
         ]
     },
     {
-        "word": "valadar", "results": [
+        "word": "valadar", 
+        "results": [
             { "words": ["Valadares"], "cleanWord": "valadares", "items": ["49999"], "similarity": 0.7777777777777778, "word": "Valadares" },
             { "words": ["Vada"], "cleanWord": "vada", "items": ["4025", "6404", "10230", "16110", "17061", "18464", "19623", "20277", "21881", "24339", "26316", "27583", "31752", "32048", "32938", "33386", "34274", "37277", "39436", "39745", "41252"], "similarity": 0.5714285714285714, "word": "Vada" },
             { "words": ["Lamar"], "cleanWord": "lamar", "items": ["5930", "9825", "10511", "10658", "11956", "12884", "13193", "13559", "18969", "21926", "27175", "36145", "36486", "40908", "41532", "42056", "42257", "44609", "46119", "49059", "49396", "49831"], "similarity": 0.5714285714285714, "word": "Lamar" },
@@ -63,139 +65,144 @@ let items = [
     }
 ];
 
-items = [
-    {
-        "word": "wisky", "results": [
-            { "words": ["WHISKY"], "cleanWord": "whisky", "items": ["10159", "10183", "11564", "11893", "11895", "11896", "11903", "13705", "19109", "22194", "26311", "40485", "101301", "101740", "101953", "104144", "109830", "110451", "113920"], "similarity": 0.8333333333333334, "word": "WHISKY" },
-            { "words": ["WICK"], "cleanWord": "wick", "items": ["18465", "19304", "20276", "21092", "33686", "38077", "39814"], "similarity": 0.6, "word": "WICK" },
-            { "words": ["WEISSE"], "cleanWord": "weisse", "items": ["132641"], "similarity": 0.5, "word": "WEISSE" },
-            { "words": ["WILSON"], "cleanWord": "wilson", "items": ["31961"], "similarity": 0.5, "word": "WILSON" },
-            { "words": ["WII"], "cleanWord": "wii", "items": ["108756"], "similarity": 0.4, "word": "WII" },
-            { "words": ["WEISS"], "cleanWord": "weiss", "items": ["111027", "112474", "120390"], "similarity": 0.4, "word": "WEISS" },
-            { "words": ["WITTE"], "cleanWord": "witte", "items": ["112690"], "similarity": 0.4, "word": "WITTE" },
-            { "words": ["WHEY"], "cleanWord": "whey", "items": ["127868", "127869", "128734", "132263", "132429", "132430", "132431"], "similarity": 0.4, "word": "WHEY" },
-            { "words": ["WINE"], "cleanWord": "wine", "items": ["11788", "14325", "14328", "26337"], "similarity": 0.4, "word": "WINE" },
-            { "words": ["WICKBOLD"], "cleanWord": "wickbold", "items": ["23780", "23781", "23782", "23783", "23784", "23785", "23786", "23787", "23792", "25046", "25047", "25050", "25051", "25053", "25056", "27643", "30400", "30440", "31719", "32727", "33640", "33641", "36364", "36365", "36538", "36715", "37244", "38078", "38092", "38093", "38095", "38096", "39043", "39082", "101025", "101026", "110756", "110757", "110759", "110760", "110761", "110762", "113807", "117777", "121315", "121987", "125107", "125581", "128895", "131590", "131901"], "similarity": 0.375, "word": "WICKBOLD" },
-            { "words": ["WINEMAKER"], "cleanWord": "winemaker", "items": ["114158"], "similarity": 0.3333333333333333, "word": "WINEMAKER" },
-            { "words": ["CHUNKY"], "cleanWord": "chunky", "items": ["115855", "128214"], "similarity": 0.3333333333333333, "word": "CHUNKY" },
-            { "words": ["WILLIAM"], "cleanWord": "william", "items": ["21936"], "similarity": 0.2857142857142857, "word": "WILLIAM" },
-            { "words": ["WITBIER"], "cleanWord": "witbier", "items": ["112476", "127174"], "similarity": 0.2857142857142857, "word": "WITBIER" },
-            { "words": ["WICBOLD"], "cleanWord": "wicbold", "items": ["23788"], "similarity": 0.2857142857142857, "word": "WICBOLD" },
-            { "words": ["CHOCOOKY"], "cleanWord": "chocooky", "items": ["119028"], "similarity": 0.25, "word": "CHOCOOKY" },
-            { "words": ["60W/127"], "cleanWord": "60w/127", "items": ["40386"], "similarity": 0.14285714285714285, "word": "60W/127" },
-            { "words": ["100W/127"], "cleanWord": "100w/127", "items": ["39292"], "similarity": 0.125, "word": "100W/127" },
-            { "words": ["26W"], "cleanWord": "26w", "items": ["41191"], "similarity": 0, "word": "26W" },
-            { "words": ["25W"], "cleanWord": "25w", "items": ["35624", "37493", "37495", "108695"], "similarity": 0, "word": "25W" },
-            { "words": ["32W"], "cleanWord": "32w", "items": ["100062"], "similarity": 0, "word": "32W" },
-            { "words": ["22W"], "cleanWord": "22w", "items": ["109758"], "similarity": 0, "word": "22W" },
-            { "words": ["40W"], "cleanWord": "40w", "items": ["100091"], "similarity": 0, "word": "40W" },
-            { "words": ["14W"], "cleanWord": "14w", "items": ["37491", "37494", "100283", "100285", "102260"], "similarity": 0, "word": "14W" },
-            { "words": ["20W"], "cleanWord": "20w", "items": ["25089", "35623", "37492", "40312"], "similarity": 0, "word": "20W" },
-            { "words": ["21W"], "cleanWord": "21w", "items": ["109693"], "similarity": 0, "word": "21W" },
-            { "words": ["200W"], "cleanWord": "200w", "items": ["109774"], "similarity": 0, "word": "200W" },
-            { "words": ["7W"], "cleanWord": "7w", "items": ["107040"], "similarity": 0, "word": "7W" },
-            { "words": ["13W"], "cleanWord": "13w", "items": ["39013"], "similarity": 0, "word": "13W" },
-            { "words": ["11W"], "cleanWord": "11w", "items": ["109481"], "similarity": 0, "word": "11W" },
-            { "words": ["127W"], "cleanWord": "127w", "items": ["108693"], "similarity": 0, "word": "127W" },
-            { "words": ["15W"], "cleanWord": "15w", "items": ["16230", "39014", "108693"], "similarity": 0, "word": "15W" },
-            { "words": ["100W"], "cleanWord": "100w", "items": ["100231"], "similarity": 0, "word": "100W" },
-            { "words": ["150W"], "cleanWord": "150w", "items": ["100282"], "similarity": 0, "word": "150W" },
-            { "words": ["45W"], "cleanWord": "45w", "items": ["100320", "109038"], "similarity": 0, "word": "45W" }]
-    },
-    {"word": "read", "results": [
-            { "words": ["BREAD"], "cleanWord": "bread", "items": ["18464", "18612", "33148", "39812", "101024", "118468"], "similarity": 0.8, "word": "BREAD" },
-            { "words": ["REAL"], "cleanWord": "real", "items": ["13025", "36401", "113133", "133183"], "similarity": 0.75, "word": "REAL" },
-            { "words": ["HEAD"], "cleanWord": "head", "items": ["38961", "112046", "119388", "128719"], "similarity": 0.75, "word": "HEAD" },
-            { "words": ["RED"], "cleanWord": "red", "items": ["11254", "11891", "11896", "11910", "11911", "12150", "12189", "13225", "13231", "13238", "13587", "13795", "16509", "16510", "17049", "17916", "20445", "23139", "23146", "23205", "25739", "25751", "25783", "26382", "26741", "27389", "28706", "28707", "30938", "31944", "31948", "32200", "32958", "34210", "35491", "40140", "100028", "101027", "109600", "110974", "111022", "111259", "113219", "113398", "116522", "124319"], "similarity": 0.75, "word": "RED" },
-            { "words": ["REGAL"], "cleanWord": "regal", "items": ["19109"], "similarity": 0.6, "word": "REGAL" },
-            { "words": ["MAD"], "cleanWord": "mad", "items": ["21811"], "similarity": 0.5, "word": "MAD" },
-            { "words": ["REFINADO"], "cleanWord": "refinado", "items": ["10137", "11972", "11973", "25043", "25790"], "similarity": 0.5, "word": "REFINADO" },
-            { "words": ["REYMAR"], "cleanWord": "reymar", "items": ["38877", "40128", "126015"], "similarity": 0.5, "word": "REYMAR" },
-            { "words": ["RECHEADA"], "cleanWord": "recheada", "items": ["19254", "26186", "28707", "36718", "37504", "40992", "112250", "113296"], "similarity": 0.5, "word": "RECHEADA" },
-            { "words": ["REFOGADO"], "cleanWord": "refogado", "items": ["37082"], "similarity": 0.5, "word": "REFOGADO" },
-            { "words": ["RECHEADO"], "cleanWord": "recheado", "items": ["14219", "14220", "14221", "15217", "15434", "17157", "20652", "22783", "26708", "28492", "31107", "35791", "36277", "36278", "36279", "36280", "37551", "40594", "40753", "102263", "102332", "102377", "102695", "102696", "108742", "108859", "110058", "110059", "110060", "110061", "110111", "110113", "118135", "119937", "121047", "126016", "126017", "126018", "126637", "128992"], "similarity": 0.5, "word": "RECHEADO" },
-            { "words": ["RENATA"], "cleanWord": "renata", "items": ["15410", "15411", "15412", "24009", "24012", "24013", "24014", "24015", "24016", "24017", "24018", "24025", "32493", "38039", "38040", "38042", "38043", "38044", "38259", "39875", "110778"], "similarity": 0.5, "word": "RENATA" },
-            { "words": ["REDE"], "cleanWord": "rede", "items": ["28630"], "similarity": 0.5, "word": "REDE" },
-            { "words": ["RETA"], "cleanWord": "reta", "items": ["113571"], "similarity": 0.5, "word": "RETA" },
-            { "words": ["RAID"], "cleanWord": "raid", "items": ["23927", "23934", "31143", "37514", "40553", "101404"], "similarity": 0.5, "word": "RAID" },
-            { "words": ["TRAD"], "cleanWord": "trad", "items": ["24395"], "similarity": 0.5, "word": "TRAD" },
-            { "words": ["REALCE"], "cleanWord": "realce", "items": ["30870", "100367", "100368"], "similarity": 0.5, "word": "REALCE" },
-            { "words": ["REI"], "cleanWord": "rei", "items": ["28630", "32065"], "similarity": 0.5, "word": "REI" },
-            { "words": ["RESFRIADA"], "cleanWord": "resfriada", "items": ["126539"], "similarity": 0.4444444444444444, "word": "RESFRIADA" },
-            { "words": ["RESERVADO"], "cleanWord": "reservado", "items": ["10073", "11780", "11785", "27978", "35750", "37030", "37031", "37032", "100914", "102100", "116292", "119509", "119510", "119511", "125100", "125101", "125656", "131824"], "similarity": 0.4444444444444444, "word": "RESERVADO" },
-            { "words": ["REFORÇADO"], "cleanWord": "reforcado", "items": ["119963", "119964", "123608"], "similarity": 0.4444444444444444, "word": "REFORÇADO" },
-            { "words": ["REFORÇADA"], "cleanWord": "reforcada", "items": ["123604", "123607"], "similarity": 0.4444444444444444, "word": "REFORÇADA" },
-            { "words": ["REDONDO"], "cleanWord": "redondo", "items": ["11203", "22226", "34099", "112115"], "similarity": 0.42857142857142855, "word": "REDONDO" },
-            { "words": ["REGULAR"], "cleanWord": "regular", "items": ["13632", "13779", "32712"], "similarity": 0.42857142857142855, "word": "REGULAR" },
-            { "words": ["REGARGA"], "cleanWord": "regarga", "items": ["125995"], "similarity": 0.42857142857142855, "word": "REGARGA" },
-            { "words": ["REZENDE"], "cleanWord": "rezende", "items": ["14246", "14251", "16807", "26232", "111210", "113571"], "similarity": 0.42857142857142855, "word": "REZENDE" },
-            { "words": ["REDONDA"], "cleanWord": "redonda", "items": ["40340"], "similarity": 0.42857142857142855, "word": "REDONDA" },
-            { "words": ["RECARGA"], "cleanWord": "recarga", "items": ["22381", "24380", "24394", "127110", "128007", "128009", "128010", "128040"], "similarity": 0.42857142857142855, "word": "RECARGA" },
-            { "words": ["RESERVADAS"], "cleanWord": "reservadas", "items": ["119651", "119652"], "similarity": 0.4, "word": "RESERVADAS" },
-            { "words": ["REINO"], "cleanWord": "reino", "items": ["21375", "100162", "100876", "109939", "113667", "122668"], "similarity": 0.4, "word": "REINO" },
-            { "words": ["REFIL"], "cleanWord": "refil", "items": ["12540", "13529", "13766", "19137", "19304", "20276", "21092", "23927", "24353", "24516", "33083", "33686", "35818", "38575", "38805", "39829", "41279", "101405", "109796", "110347", "110354", "113486", "120353", "125802", "129082", "129176"], "similarity": 0.4, "word": "REFIL" },
-            { "words": ["RUEDA"], "cleanWord": "rueda", "items": ["127866"], "similarity": 0.4, "word": "RUEDA" },
-            { "words": ["RESSECADOS"], "cleanWord": "ressecados", "items": ["16749", "16750"], "similarity": 0.4, "word": "RESSECADOS" },
-            { "words": ["REDUZIDO"], "cleanWord": "reduzido", "items": ["127180"], "similarity": 0.375, "word": "REDUZIDO" },
-            { "words": ["REGGIANO"], "cleanWord": "reggiano", "items": ["115209"], "similarity": 0.375, "word": "REGGIANO" },
-            { "words": ["RECHEADINHO"], "cleanWord": "recheadinho", "items": ["34347", "34348", "34350"], "similarity": 0.36363636363636365, "word": "RECHEADINHO" },
-            { "words": ["RESIST"], "cleanWord": "resist", "items": ["20526", "20528", "109915", "109917", "114617", "114623"], "similarity": 0.3333333333333333, "word": "RESIST" },
-            { "words": ["RECHEACHO"], "cleanWord": "recheacho", "items": ["122741"], "similarity": 0.3333333333333333, "word": "RECHEACHO" },
-            { "words": ["RELAXANTE"], "cleanWord": "relaxante", "items": ["121888"], "similarity": 0.3333333333333333, "word": "RELAXANTE" },
-            { "words": ["REVIVA"], "cleanWord": "reviva", "items": ["37589"], "similarity": 0.3333333333333333, "word": "REVIVA" },
-            { "words": ["REMOVEDOR"], "cleanWord": "removedor", "items": ["13772", "20355", "21288", "22428", "22429", "100536", "120924", "127433"], "similarity": 0.3333333333333333, "word": "REMOVEDOR" },
-            { "words": ["REXONA"], "cleanWord": "rexona", "items": ["17886", "21779", "24676", "24679", "24680", "24690", "24692", "24694", "35633", "35644", "35663", "38088", "38323", "100750", "116530", "116531", "116532", "116534", "116742", "118390", "119305", "119306", "119307", "119413", "120663", "121462", "121803", "121942", "130138", "130142", "130147", "130618", "130619", "130620", "132089", "132090", "132091", "132092", "132093", "132155"], "similarity": 0.3333333333333333, "word": "REXONA" },
-            { "words": ["RENOVAÇÃO"], "cleanWord": "renovacao", "items": ["113348"], "similarity": 0.3333333333333333, "word": "RENOVAÇÃO" },
-            { "words": ["REQUEIJÃO", "Requeijao", "REQUEIJAO"], "cleanWord": "requeijao", "items": ["10435", "14190", "15244", "15255", "15956", "16219", "16221", "18619", "18767", "19100", "21733", "22226", "22227", "23325", "23326", "23327", "24962", "24963", "24964", "26003", "26004", "27574", "29994", "30234", "30749", "31457", "32572", "32722", "32723", "33767", "34099", "36463", "36464", "37436", "37880", "37884", "38448", "40801", "40802", "102182", "103407", "103408", "103411", "109305", "110135", "110136", "111046", "111060", "111867", "114173", "118139", "120944", "121055", "121065", "121852", "124736", "125605", "126730", "126731", "128002", "128199", "128200", "128947", "129348", "129389", "129479", "129480", "131741"], "similarity": 0.3333333333333333, "word": "Requeijao" },
-            { "words": ["REGINA"], "cleanWord": "regina", "items": ["11968", "101109"], "similarity": 0.3333333333333333, "word": "REGINA" },
-            { "words": ["REPARAÇÃO"], "cleanWord": "reparacao", "items": ["35038", "39552", "109923", "111201", "114629"], "similarity": 0.3333333333333333, "word": "REPARAÇÃO" },
-            { "words": ["REGULARES"], "cleanWord": "regulares", "items": ["113352"], "similarity": 0.3333333333333333, "word": "REGULARES" },
-            { "words": ["RECARREGUE"], "cleanWord": "recarregue", "items": ["14604"], "similarity": 0.3, "word": "RECARREGUE" },
-            { "words": ["RETANGULAR"], "cleanWord": "retangular", "items": ["11485"], "similarity": 0.3, "word": "RETANGULAR" },
-            { "words": ["RECHEIO"], "cleanWord": "recheio", "items": ["11468", "114342", "116922", "118153", "118154", "118156", "118503", "125573", "131142"], "similarity": 0.2857142857142857, "word": "RECHEIO" }]
-    },
-    {"word": "labl", "results": [
-            { "words": ["LABEL"], "cleanWord": "label", "items": ["11896", "26311", "101301", "111473", "111474", "111475", "113920", "120416", "120417", "121006"], "similarity": 0.8, "word": "LABEL" },
-            { "words": ["LA", "LÃ"], "cleanWord": "la", "items": ["12131", "12133", "12134", "12136", "20133", "36718", "101650", "102458", "110105", "110660", "112687", "112688", "112689", "112690", "117217", "118079", "130796"], "similarity": 0.5, "word": "LA" },
-            { "words": ["LAVA"], "cleanWord": "lava", "items": ["12412", "12413", "21081", "30175", "35533", "38554", "39937", "39938", "40588", "40958", "108646", "112063", "113687", "116884", "117149", "126468", "126478", "126480"], "similarity": 0.5, "word": "LAVA" },
-            { "words": ["LATA"], "cleanWord": "lata", "items": ["9", "10", "11", "12", "13", "14", "15", "17", "19", "21", "22", "10598", "10643", "10646", "10801", "11911", "12103", "12108", "12191", "12194", "12334", "12347", "12348", "12349", "12354", "12370", "12373", "12375", "12376", "13169", "13171", "13341", "13659", "13660", "13662", "13672", "14056", "14061", "14082", "14091", "14101", "14105", "14112", "14113", "14116", "14120", "14983", "17084", "17129", "19349", "19350", "20219", "20325", "20326", "21196", "21375", "22041", "22884", "24955", "25114", "25115", "25648", "25745", "25771", "26019", "26021", "26024", "26031", "26032", "26033", "26034", "26035", "27111", "28751", "30617", "30800", "31225", "31492", "33364", "33386", "34297", "34866", "35797", "36073", "36218", "36219", "37067", "37261", "37582", "38267", "38333", "38408", "38587", "38870", "39316", "39890", "40499", "40864", "40983", "41054", "41055", "41201", "100148", "100185", "100406", "100871", "101447", "101925", "102093", "102109", "102122", "109372", "112124", "112470", "112495", "112663", "112761", "113398", "113413", "114573", "116147", "118559", "120286", "122230", "122973", "123617", "124052", "124264", "124721", "124722", "126755", "126944", "127660", "128170"], "similarity": 0.5, "word": "LATA" },
-            { "words": ["LAYS"], "cleanWord": "lays", "items": ["117221", "117290", "121238", "121239", "121240", "128995", "128996", "128997"], "similarity": 0.5, "word": "LAYS" },
-            { "words": ["LAIT"], "cleanWord": "lait", "items": ["110483"], "similarity": 0.5, "word": "LAIT" },
-            { "words": ["LAKA"], "cleanWord": "laka", "items": ["15315", "19195", "113629", "113630", "114792", "115062", "123459", "123464", "123465", "123479", "127388", "132753"], "similarity": 0.5, "word": "LAKA" },
-            { "words": ["LATTE"], "cleanWord": "latte", "items": ["111826", "111827", "111828", "111830", "111831", "111832", "111833", "111834", "111835", "111836", "111837", "111838", "111839", "111842", "111843", "111844", "112092", "122680", "122681", "122682", "122683"], "similarity": 0.4, "word": "LATTE" },
-            { "words": ["LACTA"], "cleanWord": "lacta", "items": ["10790", "10803", "10859", "15315", "15317", "17909", "17912", "30573", "32401", "34125", "38393", "38399", "112041", "113620", "113621", "113622", "113623", "113624", "113625", "113626", "113627", "113628", "113629", "113630", "113632", "114776", "114777", "114792", "115062", "118715", "118723", "118724", "118725", "121398", "122709", "123458", "123459", "123462", "123463", "123464", "123465", "123466", "123467", "123472", "123473", "123474", "123475", "123476", "123479", "123481", "123483", "123485", "123487", "123512", "123686", "125753", "127379", "127388", "127389", "131080", "132751", "132752", "132753"], "similarity": 0.4, "word": "LACTA" },
-            { "words": ["LARGO"], "cleanWord": "largo", "items": ["26051", "26065", "109696"], "similarity": 0.4, "word": "LARGO" },
-            { "words": ["LATÃO"], "cleanWord": "latao", "items": ["11705", "36086", "116522", "125731"], "similarity": 0.4, "word": "LATÃO" },
-            { "words": ["LAVAR"], "cleanWord": "lavar", "items": ["38754"], "similarity": 0.4, "word": "LAVAR" },
-            { "words": ["LAURA"], "cleanWord": "laura", "items": ["101477"], "similarity": 0.4, "word": "LAURA" },
-            { "words": ["LAGER"], "cleanWord": "lager", "items": ["17235", "119244", "120951"], "similarity": 0.4, "word": "LAGER" },
-            { "words": ["LARGA"], "cleanWord": "larga", "items": ["124694"], "similarity": 0.4, "word": "LARGA" },
-            { "words": ["LATOUR"], "cleanWord": "latour", "items": ["101606", "101607"], "similarity": 0.3333333333333333, "word": "LATOUR" },
-            { "words": ["LAMBRUSCO"], "cleanWord": "lambrusco", "items": ["17112"], "similarity": 0.3333333333333333, "word": "LAMBRUSCO" },
-            { "words": ["LANCHE"], "cleanWord": "lanche", "items": ["19202", "21800", "22331", "23457", "38019", "109619", "124742"], "similarity": 0.3333333333333333, "word": "LANCHE" },
-            { "words": ["LACTEA", "LÁCTEA"], "cleanWord": "lactea", "items": ["10400", "10402", "10403", "12370", "14535", "16222", "16223", "16608", "17716", "19151", "19290", "20588", "20589", "21715", "21716", "22376", "24116", "24117", "24124", "24206", "24207", "24761", "25906", "27602", "28517", "28519", "29138", "31098", "31467", "35988", "116121", "118000", "128787"], "similarity": 0.3333333333333333, "word": "LACTEA" },
-            { "words": ["LALALOOPSY"], "cleanWord": "lalaloopsy", "items": ["123421"], "similarity": 0.3, "word": "LALALOOPSY" },
-            { "words": ["LACTOSE"], "cleanWord": "lactose", "items": ["12348", "18901", "29866", "30050", "30052", "37292", "110080", "114873", "114874", "114876", "114908", "115394", "115395", "115396", "117731", "117732", "117733", "117735", "117737", "117841", "117842", "117844", "117845", "118281", "118283", "118284", "118286", "119241", "119901", "120012", "120013", "120935", "120936", "120937", "120938", "120941", "120942", "120943", "120944", "120946", "121316", "121317", "121769", "122563", "122885", "123013", "123014", "123510", "123735", "123736", "123737", "123738", "123739", "123747", "123794", "124528", "124529", "124530", "124721", "124722", "124725", "124742", "124758", "124759", "124760", "124761", "124762", "124763", "125102", "125185", "125186", "125191", "125347", "125442", "125605", "125629", "125829", "125830", "125843", "125857", "125920", "127001", "127660", "128042", "128274", "128412", "128787", "129407", "129412", "129416", "129417", "129418", "129870", "129872", "129873", "130597", "131742", "131743", "131744"], "similarity": 0.2857142857142857, "word": "LACTOSE" },
-            { "words": ["LARANJA"], "cleanWord": "laranja", "items": ["10032", "10693", "11175", "11236", "11248", "11249", "11250", "11251", "11253", "11964", "13790", "14044", "14089", "14091", "14093", "14127", "17049", "17129", "18439", "18736", "20432", "20684", "21158", "21159", "21605", "22574", "23216", "24386", "25051", "25528", "25681", "25947", "26504", "29212", "29779", "30132", "32388", "33043", "33054", "36689", "37065", "38020", "38030", "39580", "39644", "40511", "40513", "102445", "102923", "108911", "109892", "110211", "110259", "110352", "111073", "111943", "113788", "114378", "115392", "117229", "117998", "119900", "123294", "123300", "123301", "123757", "124320", "124321", "124335", "124501", "124530", "127485", "127786", "130025", "130298", "131083", "131376", "132228", "132282", "133177", "133178"], "similarity": 0.2857142857142857, "word": "LARANJA" },
-            { "words": ["LASANHA"], "cleanWord": "lasanha", "items": ["11543", "15410", "15801", "22786", "25009", "25011", "25013", "25568", "34487", "36912", "39221", "39807", "40777", "40779", "101396", "111210", "111579", "111580", "112242", "119927", "121054", "121059", "128896", "128924", "128925", "129034", "129108", "130474"], "similarity": 0.2857142857142857, "word": "LASANHA" },
-            { "words": ["LAGARTO"], "cleanWord": "lagarto", "items": ["11202", "11203", "26188", "125591"], "similarity": 0.2857142857142857, "word": "LAGARTO" },
-            { "words": ["LAVANDA"], "cleanWord": "lavanda", "items": ["12435", "12443", "12478", "12540", "12739", "12769", "13756", "14805", "17266", "20276", "21092", "21941", "23913", "23950", "23954", "23968", "24444", "24448", "24637", "24669", "24980", "27877", "29940", "34108", "34731", "36342", "37996", "38236", "38272", "38274", "38803", "38896", "38918", "39805", "40248", "41049", "101303", "105271", "110241", "110250", "110358", "110359", "110365", "112715", "113486", "113839", "127980", "130303"], "similarity": 0.2857142857142857, "word": "LAVANDA" },
-            { "words": ["LÂMPADA"], "cleanWord": "lampada", "items": ["16230", "25089", "35623", "35624", "37491", "37492", "37493", "37494", "37495", "39013", "39014", "40312", "40386", "41191", "100062", "100091", "100231", "100282", "100283", "100285", "100320", "102260", "107040", "108693", "108695", "109038", "109481", "109693", "109758", "109774"], "similarity": 0.2857142857142857, "word": "LÂMPADA" },
-            { "words": ["LATITUD"], "cleanWord": "latitud", "items": ["108913", "110106"], "similarity": 0.2857142857142857, "word": "LATITUD" },
-            { "words": ["LACFREE"], "cleanWord": "lacfree", "items": ["120935", "120936", "120937", "120938", "120941", "120942", "120943", "120944", "120946", "121316", "121317", "121769", "122885", "123013", "123014", "123091", "123510", "123747", "124737", "124742", "127001", "127868", "127869", "128042", "128734", "130597", "131742", "131743", "131744", "132263"], "similarity": 0.2857142857142857, "word": "LACFREE" },
-            { "words": ["LAURINDO"], "cleanWord": "laurindo", "items": ["123785", "123788", "123789", "123790", "123929", "125524"], "similarity": 0.25, "word": "LAURINDO" },
-            { "words": ["LAGIOISA"], "cleanWord": "lagioisa", "items": ["10034"], "similarity": 0.25, "word": "LAGIOISA" },
-            { "words": ["LAVANDAS"], "cleanWord": "lavandas", "items": ["24736"], "similarity": 0.25, "word": "LAVANDAS" },
-            { "words": ["LAUREANO"], "cleanWord": "laureano", "items": ["21946", "39708", "40688", "101477", "101729"], "similarity": 0.25, "word": "LAUREANO" },
-            { "words": ["LAMPADAS"], "cleanWord": "lampadas", "items": ["39292"], "similarity": 0.25, "word": "LAMPADAS" },
-            { "words": ["LAMINADOS"], "cleanWord": "laminados", "items": ["101504"], "similarity": 0.2222222222222222, "word": "LAMINADOS" },
-            { "words": ["LAGER.500"], "cleanWord": "lager.500", "items": ["111356"], "similarity": 0.2222222222222222, "word": "LAGER.500" },
-            { "words": ["LANCHINHO"], "cleanWord": "lanchinho", "items": ["22204", "110077"], "similarity": 0.2222222222222222, "word": "LANCHINHO" },
-            { "words": ["LANCHINHOS"], "cleanWord": "lanchinhos", "items": ["100386"], "similarity": 0.2, "word": "LANCHINHOS" },
-            { "words": ["LARANJEIRA"], "cleanWord": "laranjeira", "items": ["35753", "123699"], "similarity": 0.2, "word": "LARANJEIRA" },
-            { "words": ["LÁGRIMA"], "cleanWord": "lagrima", "items": ["102572"], "similarity": 0.14285714285714285, "word": "LÁGRIMA" }]
-    }
-];
+// items = [
+//     {
+//         "word": "wisky", 
+//         "results": [
+//             { "words": ["WHISKY"], "cleanWord": "whisky", "items": ["10159", "10183", "11564", "11893", "11895", "11896", "11903", "13705", "19109", "22194", "26311", "40485", "101301", "101740", "101953", "104144", "109830", "110451", "113920"], "similarity": 0.8333333333333334, "word": "WHISKY" },
+//             { "words": ["WICK"], "cleanWord": "wick", "items": ["18465", "19304", "20276", "21092", "33686", "38077", "39814"], "similarity": 0.6, "word": "WICK" },
+//             { "words": ["WEISSE"], "cleanWord": "weisse", "items": ["132641"], "similarity": 0.5, "word": "WEISSE" },
+//             { "words": ["WILSON"], "cleanWord": "wilson", "items": ["31961"], "similarity": 0.5, "word": "WILSON" },
+//             { "words": ["WII"], "cleanWord": "wii", "items": ["108756"], "similarity": 0.4, "word": "WII" },
+//             { "words": ["WEISS"], "cleanWord": "weiss", "items": ["111027", "112474", "120390"], "similarity": 0.4, "word": "WEISS" },
+//             { "words": ["WITTE"], "cleanWord": "witte", "items": ["112690"], "similarity": 0.4, "word": "WITTE" },
+//             { "words": ["WHEY"], "cleanWord": "whey", "items": ["127868", "127869", "128734", "132263", "132429", "132430", "132431"], "similarity": 0.4, "word": "WHEY" },
+//             { "words": ["WINE"], "cleanWord": "wine", "items": ["11788", "14325", "14328", "26337"], "similarity": 0.4, "word": "WINE" },
+//             { "words": ["WICKBOLD"], "cleanWord": "wickbold", "items": ["23780", "23781", "23782", "23783", "23784", "23785", "23786", "23787", "23792", "25046", "25047", "25050", "25051", "25053", "25056", "27643", "30400", "30440", "31719", "32727", "33640", "33641", "36364", "36365", "36538", "36715", "37244", "38078", "38092", "38093", "38095", "38096", "39043", "39082", "101025", "101026", "110756", "110757", "110759", "110760", "110761", "110762", "113807", "117777", "121315", "121987", "125107", "125581", "128895", "131590", "131901"], "similarity": 0.375, "word": "WICKBOLD" },
+//             { "words": ["WINEMAKER"], "cleanWord": "winemaker", "items": ["114158"], "similarity": 0.3333333333333333, "word": "WINEMAKER" },
+//             { "words": ["CHUNKY"], "cleanWord": "chunky", "items": ["115855", "128214"], "similarity": 0.3333333333333333, "word": "CHUNKY" },
+//             { "words": ["WILLIAM"], "cleanWord": "william", "items": ["21936"], "similarity": 0.2857142857142857, "word": "WILLIAM" },
+//             { "words": ["WITBIER"], "cleanWord": "witbier", "items": ["112476", "127174"], "similarity": 0.2857142857142857, "word": "WITBIER" },
+//             { "words": ["WICBOLD"], "cleanWord": "wicbold", "items": ["23788"], "similarity": 0.2857142857142857, "word": "WICBOLD" },
+//             { "words": ["CHOCOOKY"], "cleanWord": "chocooky", "items": ["119028"], "similarity": 0.25, "word": "CHOCOOKY" },
+//             { "words": ["60W/127"], "cleanWord": "60w/127", "items": ["40386"], "similarity": 0.14285714285714285, "word": "60W/127" },
+//             { "words": ["100W/127"], "cleanWord": "100w/127", "items": ["39292"], "similarity": 0.125, "word": "100W/127" },
+//             { "words": ["26W"], "cleanWord": "26w", "items": ["41191"], "similarity": 0, "word": "26W" },
+//             { "words": ["25W"], "cleanWord": "25w", "items": ["35624", "37493", "37495", "108695"], "similarity": 0, "word": "25W" },
+//             { "words": ["32W"], "cleanWord": "32w", "items": ["100062"], "similarity": 0, "word": "32W" },
+//             { "words": ["22W"], "cleanWord": "22w", "items": ["109758"], "similarity": 0, "word": "22W" },
+//             { "words": ["40W"], "cleanWord": "40w", "items": ["100091"], "similarity": 0, "word": "40W" },
+//             { "words": ["14W"], "cleanWord": "14w", "items": ["37491", "37494", "100283", "100285", "102260"], "similarity": 0, "word": "14W" },
+//             { "words": ["20W"], "cleanWord": "20w", "items": ["25089", "35623", "37492", "40312"], "similarity": 0, "word": "20W" },
+//             { "words": ["21W"], "cleanWord": "21w", "items": ["109693"], "similarity": 0, "word": "21W" },
+//             { "words": ["200W"], "cleanWord": "200w", "items": ["109774"], "similarity": 0, "word": "200W" },
+//             { "words": ["7W"], "cleanWord": "7w", "items": ["107040"], "similarity": 0, "word": "7W" },
+//             { "words": ["13W"], "cleanWord": "13w", "items": ["39013"], "similarity": 0, "word": "13W" },
+//             { "words": ["11W"], "cleanWord": "11w", "items": ["109481"], "similarity": 0, "word": "11W" },
+//             { "words": ["127W"], "cleanWord": "127w", "items": ["108693"], "similarity": 0, "word": "127W" },
+//             { "words": ["15W"], "cleanWord": "15w", "items": ["16230", "39014", "108693"], "similarity": 0, "word": "15W" },
+//             { "words": ["100W"], "cleanWord": "100w", "items": ["100231"], "similarity": 0, "word": "100W" },
+//             { "words": ["150W"], "cleanWord": "150w", "items": ["100282"], "similarity": 0, "word": "150W" },
+//             { "words": ["45W"], "cleanWord": "45w", "items": ["100320", "109038"], "similarity": 0, "word": "45W" }]
+//     },
+//     {
+//         "word": "read", 
+//         "results": [
+//             { "words": ["BREAD"], "cleanWord": "bread", "items": ["18464", "18612", "33148", "39812", "101024", "118468"], "similarity": 0.8, "word": "BREAD" },
+//             { "words": ["REAL"], "cleanWord": "real", "items": ["13025", "36401", "113133", "133183"], "similarity": 0.75, "word": "REAL" },
+//             { "words": ["HEAD"], "cleanWord": "head", "items": ["38961", "112046", "119388", "128719"], "similarity": 0.75, "word": "HEAD" },
+//             { "words": ["RED"], "cleanWord": "red", "items": ["11254", "11891", "11896", "11910", "11911", "12150", "12189", "13225", "13231", "13238", "13587", "13795", "16509", "16510", "17049", "17916", "20445", "23139", "23146", "23205", "25739", "25751", "25783", "26382", "26741", "27389", "28706", "28707", "30938", "31944", "31948", "32200", "32958", "34210", "35491", "40140", "100028", "101027", "109600", "110974", "111022", "111259", "113219", "113398", "116522", "124319"], "similarity": 0.75, "word": "RED" },
+//             { "words": ["REGAL"], "cleanWord": "regal", "items": ["19109"], "similarity": 0.6, "word": "REGAL" },
+//             { "words": ["MAD"], "cleanWord": "mad", "items": ["21811"], "similarity": 0.5, "word": "MAD" },
+//             { "words": ["REFINADO"], "cleanWord": "refinado", "items": ["10137", "11972", "11973", "25043", "25790"], "similarity": 0.5, "word": "REFINADO" },
+//             { "words": ["REYMAR"], "cleanWord": "reymar", "items": ["38877", "40128", "126015"], "similarity": 0.5, "word": "REYMAR" },
+//             { "words": ["RECHEADA"], "cleanWord": "recheada", "items": ["19254", "26186", "28707", "36718", "37504", "40992", "112250", "113296"], "similarity": 0.5, "word": "RECHEADA" },
+//             { "words": ["REFOGADO"], "cleanWord": "refogado", "items": ["37082"], "similarity": 0.5, "word": "REFOGADO" },
+//             { "words": ["RECHEADO"], "cleanWord": "recheado", "items": ["14219", "14220", "14221", "15217", "15434", "17157", "20652", "22783", "26708", "28492", "31107", "35791", "36277", "36278", "36279", "36280", "37551", "40594", "40753", "102263", "102332", "102377", "102695", "102696", "108742", "108859", "110058", "110059", "110060", "110061", "110111", "110113", "118135", "119937", "121047", "126016", "126017", "126018", "126637", "128992"], "similarity": 0.5, "word": "RECHEADO" },
+//             { "words": ["RENATA"], "cleanWord": "renata", "items": ["15410", "15411", "15412", "24009", "24012", "24013", "24014", "24015", "24016", "24017", "24018", "24025", "32493", "38039", "38040", "38042", "38043", "38044", "38259", "39875", "110778"], "similarity": 0.5, "word": "RENATA" },
+//             { "words": ["REDE"], "cleanWord": "rede", "items": ["28630"], "similarity": 0.5, "word": "REDE" },
+//             { "words": ["RETA"], "cleanWord": "reta", "items": ["113571"], "similarity": 0.5, "word": "RETA" },
+//             { "words": ["RAID"], "cleanWord": "raid", "items": ["23927", "23934", "31143", "37514", "40553", "101404"], "similarity": 0.5, "word": "RAID" },
+//             { "words": ["TRAD"], "cleanWord": "trad", "items": ["24395"], "similarity": 0.5, "word": "TRAD" },
+//             { "words": ["REALCE"], "cleanWord": "realce", "items": ["30870", "100367", "100368"], "similarity": 0.5, "word": "REALCE" },
+//             { "words": ["REI"], "cleanWord": "rei", "items": ["28630", "32065"], "similarity": 0.5, "word": "REI" },
+//             { "words": ["RESFRIADA"], "cleanWord": "resfriada", "items": ["126539"], "similarity": 0.4444444444444444, "word": "RESFRIADA" },
+//             { "words": ["RESERVADO"], "cleanWord": "reservado", "items": ["10073", "11780", "11785", "27978", "35750", "37030", "37031", "37032", "100914", "102100", "116292", "119509", "119510", "119511", "125100", "125101", "125656", "131824"], "similarity": 0.4444444444444444, "word": "RESERVADO" },
+//             { "words": ["REFORÇADO"], "cleanWord": "reforcado", "items": ["119963", "119964", "123608"], "similarity": 0.4444444444444444, "word": "REFORÇADO" },
+//             { "words": ["REFORÇADA"], "cleanWord": "reforcada", "items": ["123604", "123607"], "similarity": 0.4444444444444444, "word": "REFORÇADA" },
+//             { "words": ["REDONDO"], "cleanWord": "redondo", "items": ["11203", "22226", "34099", "112115"], "similarity": 0.42857142857142855, "word": "REDONDO" },
+//             { "words": ["REGULAR"], "cleanWord": "regular", "items": ["13632", "13779", "32712"], "similarity": 0.42857142857142855, "word": "REGULAR" },
+//             { "words": ["REGARGA"], "cleanWord": "regarga", "items": ["125995"], "similarity": 0.42857142857142855, "word": "REGARGA" },
+//             { "words": ["REZENDE"], "cleanWord": "rezende", "items": ["14246", "14251", "16807", "26232", "111210", "113571"], "similarity": 0.42857142857142855, "word": "REZENDE" },
+//             { "words": ["REDONDA"], "cleanWord": "redonda", "items": ["40340"], "similarity": 0.42857142857142855, "word": "REDONDA" },
+//             { "words": ["RECARGA"], "cleanWord": "recarga", "items": ["22381", "24380", "24394", "127110", "128007", "128009", "128010", "128040"], "similarity": 0.42857142857142855, "word": "RECARGA" },
+//             { "words": ["RESERVADAS"], "cleanWord": "reservadas", "items": ["119651", "119652"], "similarity": 0.4, "word": "RESERVADAS" },
+//             { "words": ["REINO"], "cleanWord": "reino", "items": ["21375", "100162", "100876", "109939", "113667", "122668"], "similarity": 0.4, "word": "REINO" },
+//             { "words": ["REFIL"], "cleanWord": "refil", "items": ["12540", "13529", "13766", "19137", "19304", "20276", "21092", "23927", "24353", "24516", "33083", "33686", "35818", "38575", "38805", "39829", "41279", "101405", "109796", "110347", "110354", "113486", "120353", "125802", "129082", "129176"], "similarity": 0.4, "word": "REFIL" },
+//             { "words": ["RUEDA"], "cleanWord": "rueda", "items": ["127866"], "similarity": 0.4, "word": "RUEDA" },
+//             { "words": ["RESSECADOS"], "cleanWord": "ressecados", "items": ["16749", "16750"], "similarity": 0.4, "word": "RESSECADOS" },
+//             { "words": ["REDUZIDO"], "cleanWord": "reduzido", "items": ["127180"], "similarity": 0.375, "word": "REDUZIDO" },
+//             { "words": ["REGGIANO"], "cleanWord": "reggiano", "items": ["115209"], "similarity": 0.375, "word": "REGGIANO" },
+//             { "words": ["RECHEADINHO"], "cleanWord": "recheadinho", "items": ["34347", "34348", "34350"], "similarity": 0.36363636363636365, "word": "RECHEADINHO" },
+//             { "words": ["RESIST"], "cleanWord": "resist", "items": ["20526", "20528", "109915", "109917", "114617", "114623"], "similarity": 0.3333333333333333, "word": "RESIST" },
+//             { "words": ["RECHEACHO"], "cleanWord": "recheacho", "items": ["122741"], "similarity": 0.3333333333333333, "word": "RECHEACHO" },
+//             { "words": ["RELAXANTE"], "cleanWord": "relaxante", "items": ["121888"], "similarity": 0.3333333333333333, "word": "RELAXANTE" },
+//             { "words": ["REVIVA"], "cleanWord": "reviva", "items": ["37589"], "similarity": 0.3333333333333333, "word": "REVIVA" },
+//             { "words": ["REMOVEDOR"], "cleanWord": "removedor", "items": ["13772", "20355", "21288", "22428", "22429", "100536", "120924", "127433"], "similarity": 0.3333333333333333, "word": "REMOVEDOR" },
+//             { "words": ["REXONA"], "cleanWord": "rexona", "items": ["17886", "21779", "24676", "24679", "24680", "24690", "24692", "24694", "35633", "35644", "35663", "38088", "38323", "100750", "116530", "116531", "116532", "116534", "116742", "118390", "119305", "119306", "119307", "119413", "120663", "121462", "121803", "121942", "130138", "130142", "130147", "130618", "130619", "130620", "132089", "132090", "132091", "132092", "132093", "132155"], "similarity": 0.3333333333333333, "word": "REXONA" },
+//             { "words": ["RENOVAÇÃO"], "cleanWord": "renovacao", "items": ["113348"], "similarity": 0.3333333333333333, "word": "RENOVAÇÃO" },
+//             { "words": ["REQUEIJÃO", "Requeijao", "REQUEIJAO"], "cleanWord": "requeijao", "items": ["10435", "14190", "15244", "15255", "15956", "16219", "16221", "18619", "18767", "19100", "21733", "22226", "22227", "23325", "23326", "23327", "24962", "24963", "24964", "26003", "26004", "27574", "29994", "30234", "30749", "31457", "32572", "32722", "32723", "33767", "34099", "36463", "36464", "37436", "37880", "37884", "38448", "40801", "40802", "102182", "103407", "103408", "103411", "109305", "110135", "110136", "111046", "111060", "111867", "114173", "118139", "120944", "121055", "121065", "121852", "124736", "125605", "126730", "126731", "128002", "128199", "128200", "128947", "129348", "129389", "129479", "129480", "131741"], "similarity": 0.3333333333333333, "word": "Requeijao" },
+//             { "words": ["REGINA"], "cleanWord": "regina", "items": ["11968", "101109"], "similarity": 0.3333333333333333, "word": "REGINA" },
+//             { "words": ["REPARAÇÃO"], "cleanWord": "reparacao", "items": ["35038", "39552", "109923", "111201", "114629"], "similarity": 0.3333333333333333, "word": "REPARAÇÃO" },
+//             { "words": ["REGULARES"], "cleanWord": "regulares", "items": ["113352"], "similarity": 0.3333333333333333, "word": "REGULARES" },
+//             { "words": ["RECARREGUE"], "cleanWord": "recarregue", "items": ["14604"], "similarity": 0.3, "word": "RECARREGUE" },
+//             { "words": ["RETANGULAR"], "cleanWord": "retangular", "items": ["11485"], "similarity": 0.3, "word": "RETANGULAR" },
+//             { "words": ["RECHEIO"], "cleanWord": "recheio", "items": ["11468", "114342", "116922", "118153", "118154", "118156", "118503", "125573", "131142"], "similarity": 0.2857142857142857, "word": "RECHEIO" }]
+//     },
+//     {
+//         "word": "labl", 
+//         "results": [
+//             { "words": ["LABEL"], "cleanWord": "label", "items": ["11896", "26311", "101301", "111473", "111474", "111475", "113920", "120416", "120417", "121006"], "similarity": 0.8, "word": "LABEL" },
+//             { "words": ["LA", "LÃ"], "cleanWord": "la", "items": ["12131", "12133", "12134", "12136", "20133", "36718", "101650", "102458", "110105", "110660", "112687", "112688", "112689", "112690", "117217", "118079", "130796"], "similarity": 0.5, "word": "LA" },
+//             { "words": ["LAVA"], "cleanWord": "lava", "items": ["12412", "12413", "21081", "30175", "35533", "38554", "39937", "39938", "40588", "40958", "108646", "112063", "113687", "116884", "117149", "126468", "126478", "126480"], "similarity": 0.5, "word": "LAVA" },
+//             { "words": ["LATA"], "cleanWord": "lata", "items": ["9", "10", "11", "12", "13", "14", "15", "17", "19", "21", "22", "10598", "10643", "10646", "10801", "11911", "12103", "12108", "12191", "12194", "12334", "12347", "12348", "12349", "12354", "12370", "12373", "12375", "12376", "13169", "13171", "13341", "13659", "13660", "13662", "13672", "14056", "14061", "14082", "14091", "14101", "14105", "14112", "14113", "14116", "14120", "14983", "17084", "17129", "19349", "19350", "20219", "20325", "20326", "21196", "21375", "22041", "22884", "24955", "25114", "25115", "25648", "25745", "25771", "26019", "26021", "26024", "26031", "26032", "26033", "26034", "26035", "27111", "28751", "30617", "30800", "31225", "31492", "33364", "33386", "34297", "34866", "35797", "36073", "36218", "36219", "37067", "37261", "37582", "38267", "38333", "38408", "38587", "38870", "39316", "39890", "40499", "40864", "40983", "41054", "41055", "41201", "100148", "100185", "100406", "100871", "101447", "101925", "102093", "102109", "102122", "109372", "112124", "112470", "112495", "112663", "112761", "113398", "113413", "114573", "116147", "118559", "120286", "122230", "122973", "123617", "124052", "124264", "124721", "124722", "126755", "126944", "127660", "128170"], "similarity": 0.5, "word": "LATA" },
+//             { "words": ["LAYS"], "cleanWord": "lays", "items": ["117221", "117290", "121238", "121239", "121240", "128995", "128996", "128997"], "similarity": 0.5, "word": "LAYS" },
+//             { "words": ["LAIT"], "cleanWord": "lait", "items": ["110483"], "similarity": 0.5, "word": "LAIT" },
+//             { "words": ["LAKA"], "cleanWord": "laka", "items": ["15315", "19195", "113629", "113630", "114792", "115062", "123459", "123464", "123465", "123479", "127388", "132753"], "similarity": 0.5, "word": "LAKA" },
+//             { "words": ["LATTE"], "cleanWord": "latte", "items": ["111826", "111827", "111828", "111830", "111831", "111832", "111833", "111834", "111835", "111836", "111837", "111838", "111839", "111842", "111843", "111844", "112092", "122680", "122681", "122682", "122683"], "similarity": 0.4, "word": "LATTE" },
+//             { "words": ["LACTA"], "cleanWord": "lacta", "items": ["10790", "10803", "10859", "15315", "15317", "17909", "17912", "30573", "32401", "34125", "38393", "38399", "112041", "113620", "113621", "113622", "113623", "113624", "113625", "113626", "113627", "113628", "113629", "113630", "113632", "114776", "114777", "114792", "115062", "118715", "118723", "118724", "118725", "121398", "122709", "123458", "123459", "123462", "123463", "123464", "123465", "123466", "123467", "123472", "123473", "123474", "123475", "123476", "123479", "123481", "123483", "123485", "123487", "123512", "123686", "125753", "127379", "127388", "127389", "131080", "132751", "132752", "132753"], "similarity": 0.4, "word": "LACTA" },
+//             { "words": ["LARGO"], "cleanWord": "largo", "items": ["26051", "26065", "109696"], "similarity": 0.4, "word": "LARGO" },
+//             { "words": ["LATÃO"], "cleanWord": "latao", "items": ["11705", "36086", "116522", "125731"], "similarity": 0.4, "word": "LATÃO" },
+//             { "words": ["LAVAR"], "cleanWord": "lavar", "items": ["38754"], "similarity": 0.4, "word": "LAVAR" },
+//             { "words": ["LAURA"], "cleanWord": "laura", "items": ["101477"], "similarity": 0.4, "word": "LAURA" },
+//             { "words": ["LAGER"], "cleanWord": "lager", "items": ["17235", "119244", "120951"], "similarity": 0.4, "word": "LAGER" },
+//             { "words": ["LARGA"], "cleanWord": "larga", "items": ["124694"], "similarity": 0.4, "word": "LARGA" },
+//             { "words": ["LATOUR"], "cleanWord": "latour", "items": ["101606", "101607"], "similarity": 0.3333333333333333, "word": "LATOUR" },
+//             { "words": ["LAMBRUSCO"], "cleanWord": "lambrusco", "items": ["17112"], "similarity": 0.3333333333333333, "word": "LAMBRUSCO" },
+//             { "words": ["LANCHE"], "cleanWord": "lanche", "items": ["19202", "21800", "22331", "23457", "38019", "109619", "124742"], "similarity": 0.3333333333333333, "word": "LANCHE" },
+//             { "words": ["LACTEA", "LÁCTEA"], "cleanWord": "lactea", "items": ["10400", "10402", "10403", "12370", "14535", "16222", "16223", "16608", "17716", "19151", "19290", "20588", "20589", "21715", "21716", "22376", "24116", "24117", "24124", "24206", "24207", "24761", "25906", "27602", "28517", "28519", "29138", "31098", "31467", "35988", "116121", "118000", "128787"], "similarity": 0.3333333333333333, "word": "LACTEA" },
+//             { "words": ["LALALOOPSY"], "cleanWord": "lalaloopsy", "items": ["123421"], "similarity": 0.3, "word": "LALALOOPSY" },
+//             { "words": ["LACTOSE"], "cleanWord": "lactose", "items": ["12348", "18901", "29866", "30050", "30052", "37292", "110080", "114873", "114874", "114876", "114908", "115394", "115395", "115396", "117731", "117732", "117733", "117735", "117737", "117841", "117842", "117844", "117845", "118281", "118283", "118284", "118286", "119241", "119901", "120012", "120013", "120935", "120936", "120937", "120938", "120941", "120942", "120943", "120944", "120946", "121316", "121317", "121769", "122563", "122885", "123013", "123014", "123510", "123735", "123736", "123737", "123738", "123739", "123747", "123794", "124528", "124529", "124530", "124721", "124722", "124725", "124742", "124758", "124759", "124760", "124761", "124762", "124763", "125102", "125185", "125186", "125191", "125347", "125442", "125605", "125629", "125829", "125830", "125843", "125857", "125920", "127001", "127660", "128042", "128274", "128412", "128787", "129407", "129412", "129416", "129417", "129418", "129870", "129872", "129873", "130597", "131742", "131743", "131744"], "similarity": 0.2857142857142857, "word": "LACTOSE" },
+//             { "words": ["LARANJA"], "cleanWord": "laranja", "items": ["10032", "10693", "11175", "11236", "11248", "11249", "11250", "11251", "11253", "11964", "13790", "14044", "14089", "14091", "14093", "14127", "17049", "17129", "18439", "18736", "20432", "20684", "21158", "21159", "21605", "22574", "23216", "24386", "25051", "25528", "25681", "25947", "26504", "29212", "29779", "30132", "32388", "33043", "33054", "36689", "37065", "38020", "38030", "39580", "39644", "40511", "40513", "102445", "102923", "108911", "109892", "110211", "110259", "110352", "111073", "111943", "113788", "114378", "115392", "117229", "117998", "119900", "123294", "123300", "123301", "123757", "124320", "124321", "124335", "124501", "124530", "127485", "127786", "130025", "130298", "131083", "131376", "132228", "132282", "133177", "133178"], "similarity": 0.2857142857142857, "word": "LARANJA" },
+//             { "words": ["LASANHA"], "cleanWord": "lasanha", "items": ["11543", "15410", "15801", "22786", "25009", "25011", "25013", "25568", "34487", "36912", "39221", "39807", "40777", "40779", "101396", "111210", "111579", "111580", "112242", "119927", "121054", "121059", "128896", "128924", "128925", "129034", "129108", "130474"], "similarity": 0.2857142857142857, "word": "LASANHA" },
+//             { "words": ["LAGARTO"], "cleanWord": "lagarto", "items": ["11202", "11203", "26188", "125591"], "similarity": 0.2857142857142857, "word": "LAGARTO" },
+//             { "words": ["LAVANDA"], "cleanWord": "lavanda", "items": ["12435", "12443", "12478", "12540", "12739", "12769", "13756", "14805", "17266", "20276", "21092", "21941", "23913", "23950", "23954", "23968", "24444", "24448", "24637", "24669", "24980", "27877", "29940", "34108", "34731", "36342", "37996", "38236", "38272", "38274", "38803", "38896", "38918", "39805", "40248", "41049", "101303", "105271", "110241", "110250", "110358", "110359", "110365", "112715", "113486", "113839", "127980", "130303"], "similarity": 0.2857142857142857, "word": "LAVANDA" },
+//             { "words": ["LÂMPADA"], "cleanWord": "lampada", "items": ["16230", "25089", "35623", "35624", "37491", "37492", "37493", "37494", "37495", "39013", "39014", "40312", "40386", "41191", "100062", "100091", "100231", "100282", "100283", "100285", "100320", "102260", "107040", "108693", "108695", "109038", "109481", "109693", "109758", "109774"], "similarity": 0.2857142857142857, "word": "LÂMPADA" },
+//             { "words": ["LATITUD"], "cleanWord": "latitud", "items": ["108913", "110106"], "similarity": 0.2857142857142857, "word": "LATITUD" },
+//             { "words": ["LACFREE"], "cleanWord": "lacfree", "items": ["120935", "120936", "120937", "120938", "120941", "120942", "120943", "120944", "120946", "121316", "121317", "121769", "122885", "123013", "123014", "123091", "123510", "123747", "124737", "124742", "127001", "127868", "127869", "128042", "128734", "130597", "131742", "131743", "131744", "132263"], "similarity": 0.2857142857142857, "word": "LACFREE" },
+//             { "words": ["LAURINDO"], "cleanWord": "laurindo", "items": ["123785", "123788", "123789", "123790", "123929", "125524"], "similarity": 0.25, "word": "LAURINDO" },
+//             { "words": ["LAGIOISA"], "cleanWord": "lagioisa", "items": ["10034"], "similarity": 0.25, "word": "LAGIOISA" },
+//             { "words": ["LAVANDAS"], "cleanWord": "lavandas", "items": ["24736"], "similarity": 0.25, "word": "LAVANDAS" },
+//             { "words": ["LAUREANO"], "cleanWord": "laureano", "items": ["21946", "39708", "40688", "101477", "101729"], "similarity": 0.25, "word": "LAUREANO" },
+//             { "words": ["LAMPADAS"], "cleanWord": "lampadas", "items": ["39292"], "similarity": 0.25, "word": "LAMPADAS" },
+//             { "words": ["LAMINADOS"], "cleanWord": "laminados", "items": ["101504"], "similarity": 0.2222222222222222, "word": "LAMINADOS" },
+//             { "words": ["LAGER.500"], "cleanWord": "lager.500", "items": ["111356"], "similarity": 0.2222222222222222, "word": "LAGER.500" },
+//             { "words": ["LANCHINHO"], "cleanWord": "lanchinho", "items": ["22204", "110077"], "similarity": 0.2222222222222222, "word": "LANCHINHO" },
+//             { "words": ["LANCHINHOS"], "cleanWord": "lanchinhos", "items": ["100386"], "similarity": 0.2, "word": "LANCHINHOS" },
+//             { "words": ["LARANJEIRA"], "cleanWord": "laranjeira", "items": ["35753", "123699"], "similarity": 0.2, "word": "LARANJEIRA" },
+//             { "words": ["LÁGRIMA"], "cleanWord": "lagrima", "items": ["102572"], "similarity": 0.14285714285714285, "word": "LÁGRIMA" }]
+//     }
+// ];
 
 const _intersection = (arrays, mustMatchLength) => {
     let output = [];
@@ -222,62 +229,73 @@ const _intersection = (arrays, mustMatchLength) => {
     return (output);
 };
 
-const _powerSet = (array) => {
-    const results = [[]];
-    for (const value of array) {
-        const copy = [...results];
-        for (const prefix of copy) {
-            results.push(prefix.concat(value));
-        }
-    }
-    return results.filter(w => { 
-                        return w.length > 0; 
-                    }).sort((x, y) => {
-                        return ((x.length > y.length) ? -1 : 1);
-                    });
+const cartesianProductOf = (array) => {
+    return _.reduce(array, (a, b) => {
+        return _.flatten(_.map(a, x => {
+            return _.map(b, y => {
+                return x.concat([y]);
+            });
+        }), true);
+    }, [[]]);
 };
-
 
 let arrItems = items.map(w => {
     if (w.results && w.results.length === 0) {
         return [];
     }
-
     return _.flatten(w.results.map(i => {
         return i.items;
     }));
-
 });
 
 let commonItemsIds = _intersection(arrItems, arrItems.length);
 
-console.log(commonItemsIds);
+//console.log(commonItemsIds);
 
 let arr = [];
-
+let index = 0;
 items.map(w => {
-
+    arr.push([]);
     for (let i = 0; i < w.results.length; i++) {
         const item = w.results[i];
         if (_intersection([item.items, commonItemsIds], 2).length > 0){
-            console.log(item.word);
-            arr.push(item.word);
-            //break;
+            arr[index].push(item.word);
         }
     }
-
+    index++; 
 });
 
-console.log(_powerSet(arr));
+
+let cp = cartesianProductOf(arr);
+
+//console.log(cp);
+
+for (let index = 0; index < cp.length; index++) {
+    const element = cp[index];
+
+    arrItems = [];
+
+    for (let j = 0; j < element.length; j++) {
+        const word = element[j];
+
+        let arr = _.find(items[j].results, { 'word': word });
+        
+        arrItems.push(arr.items);
+    }
+
+    let arrItemsIds = _intersection(arrItems, arrItems.length);
+					
+    if (arrItemsIds.length > 0){
+        console.log(arrItemsIds)
+        break;
+    } 
+}
 
 // nss.on("initialized", async () => {
 
 //     await nss.loadJson("./test/produtos.json");
 
 //     let q = await nss.query("wisky read labl");
-//    "itemName": "WHISKY ESCOCÊS JOHNNIE WALKER RED LABEL 1LT"
-//    "itemName": "PURIFICADOR DE AR BOM AIR WICK FRESHMATIC LAVANDA APARELHO + REFIL GRATIS 250ML"
-//    "itemName": "PURIFICADOR DE AR BOM AIR WICK FRESHMATIC LAVANDA REFIL 250ML"
 
 //     console.log(q);
 

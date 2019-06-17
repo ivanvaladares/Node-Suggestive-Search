@@ -106,12 +106,15 @@ describe('Test test.json -', () => {
             .then(data => {
                 assert(
                     data != null &&
-                    data.words.length == 2 &&
-                    data.words[0] == "RED" &&
-                    data.words[1] == "LABEL" &&
-                    data.missingWords.length == 1 &&
+                    data.words.length == 3 &&
+                    data.words[0] == "WHISKY" &&
+                    data.words[1] == "RED" &&
+                    data.words[2] == "LABEL" &&
+                    data.missingWords.length == 3 &&
                     data.missingWords[0] == "wisk" && 
-                    data.itemsId.length == 2,
+                    data.missingWords[1] == "read" && 
+                    data.missingWords[2] == "labl" && 
+                    data.itemsId.length == 1,
                     "Error on query for: wisk read labl"
                 );
             });

@@ -194,7 +194,8 @@ describe('Test produtos.json -', () => {
                     data.words[0] == "TOFFEE" &&
                     data.itemsId.length == 1 &&
                     data.itemsId[0] == "21360" &&
-                    data.missingWords.length == 0 &&
+                    data.missingWords.length == 1 &&
+                    data.missingWords[0] == "coffee" &&
                     data.expressions.length == 0 &&
                     data.missingExpressions.length == 0,
                     "Error on query for: coffee"
@@ -307,11 +308,10 @@ describe('Test produtos.json -', () => {
     it('query for: wisky read labl', () => {
         return nss.query("wisky read labl")
             .then(data => {
-                console.log(data)
                 assert(
                     data != null &&
                     data.words.length == 3 &&
-                    data.words[0] == "wisky" &&
+                    data.words[0] == "WHISKY" &&
                     data.words[1] == "RED" &&
                     data.words[2] == "LABEL" &&
                     data.itemsId.length == 1 &&

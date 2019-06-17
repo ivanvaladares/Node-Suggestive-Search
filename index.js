@@ -276,6 +276,16 @@ const NodeSuggestiveSearch = class {
 						});
 	}
 
+	_cartesianProductOf (array) {
+		return _.reduce(array, (a, b) => {
+			return _.flatten(_.map(a, x => {
+				return _.map(b, y => {
+					return x.concat([y]);
+				});
+			}), true);
+		}, [[]]);
+	}
+
 	_matchWordsByItemsIds (wordItems, finalWordItems) {
 	
 		let maxSimilarity = -1;
@@ -1177,50 +1187,86 @@ const NodeSuggestiveSearch = class {
 						
 					});
 
-					let mustMatch = arrItems.length;
-					let commonItemsIds;
+					let commonItemsIds = this._intersection(arrItems, arrItems.length);
 
-					do {
+					let arr = [];
+					let index = 0;
+					items.map(w => {
+						arr.push([]);
+						for (let i = 0; i < w.results.length; i++) {
+							const item = w.results[i];
+							if (this._intersection([item.items, commonItemsIds], 2).length > 0){
+								arr[index].push(item.word);
+							}
+						}
+						index++; 
+					});
 
-						commonItemsIds = this._intersection(arrItems, mustMatch);
+					let cp = this._cartesianProductOf(arr);
 
-						if (commonItemsIds.length > 0) {
-
-							response.words = [];
-							response.missingWords = [];
-	
-							items.map(w => {
-
-								let foundWord = false;
-
-								for (let i = 0; i < w.results.length; i++) {
-									const item = w.results[i];
-//console.log(item.word)
-									if (this._intersection([item.items, commonItemsIds], 2).length === commonItemsIds.length){
-										foundWord = true;
-										if (response.words.indexOf(item.word) < 0) {
-											response.words.push(item.word);
-										}
-										break;
-									}
-								}
-
-								if (!foundWord) {
-									if (response.missingWords.indexOf(w.word) < 0) {
-										response.missingWords.push(w.word);
-									}									
-								}
-
-							});
-
-//console.log("PASSOU")							
-
-							break;
+					for (let index = 0; index < cp.length; index++) {
+						const element = cp[index];
+						
+						response.words = [];
+						arrItems = [];
+					
+						for (let j = 0; j < element.length; j++) {
+							const word = element[j];
+							response.words.push(word);
+							let arr = _.find(items[j].results, { 'word': word });
+							arrItems.push(arr.items);
 						}
 
-						mustMatch--;
+						commonItemsIds = this._intersection(arrItems, arrItems.length);
+						if (commonItemsIds.length > 0){
+							break;
+						} 
 
-					} while (mustMatch > 0);
+					}
+
+					//let mustMatch = arrItems.length;
+
+// 					do {
+
+// 						commonItemsIds = this._intersection(arrItems, mustMatch);
+
+// 						if (commonItemsIds.length > 0) {
+
+// 							response.words = [];
+// 							response.missingWords = [];
+	
+// 							items.map(w => {
+
+// 								let foundWord = false;
+
+// 								for (let i = 0; i < w.results.length; i++) {
+// 									const item = w.results[i];
+// //console.log(item.word)
+// 									if (this._intersection([item.items, commonItemsIds], 2).length === commonItemsIds.length){
+// 										foundWord = true;
+// 										if (response.words.indexOf(item.word) < 0) {
+// 											response.words.push(item.word);
+// 										}
+// 										break;
+// 									}
+// 								}
+
+// 								if (!foundWord) {
+// 									if (response.missingWords.indexOf(w.word) < 0) {
+// 										response.missingWords.push(w.word);
+// 									}									
+// 								}
+
+// 							});
+
+// //console.log("PASSOU")							
+
+// 							break;
+// 						}
+
+// 						mustMatch--;
+
+// 					} while (mustMatch > 0);
 
 					return commonItemsIds;
 				});
