@@ -74,6 +74,7 @@ describe('Test produtos.json -', () => {
     it('query: REFRIGERANTE coca-cora \'EMBALAGEM COM 6 UNIDADES\'', () => {
         return nss.query("REFRIGERANTE coca-cora 'EMBALAGEM COM 6 UNIDADES'")
             .then(data => {
+                console.log(data)
                 assert(
                     data != null &&
                     data.words.length == 7 &&

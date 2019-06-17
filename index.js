@@ -1,3 +1,4 @@
+/* eslint-disable complexity */
 /* eslint-disable no-await-in-loop */
 /* eslint-disable node/no-unsupported-features */
 /*
@@ -1078,8 +1079,12 @@ const NodeSuggestiveSearch = class {
 			response.expressions = [];
 			response.missingExpressions = [];	
 
+			let arrDictionary = [];
+
 			//first, lets try to find the exact words in our dictionary
 			let promises = arrWords.map(word => {
+
+				arrDictionary.push([{ word }]);
 
 				return new Promise((resolve, reject) => {
 
@@ -1094,10 +1099,7 @@ const NodeSuggestiveSearch = class {
 
 			//check if all words have intersect items
 			let arrItemsIds = [];
-			let tempResult = [];
-			let items = await Promise.all(promises).then(items => {
-
-				tempResult = items;
+			let tempResult = await Promise.all(promises).then(items => {
 
 				let arrItems = items.map(w => {
 					if (w.items && w.items.length === 0) {
@@ -1110,7 +1112,7 @@ const NodeSuggestiveSearch = class {
 
 				arrItemsIds = this._intersection(arrItems, arrItems.length);
 
-				return arrItems;
+				return items;
 			});
 
 			// if arrItemsIds is empty, means there is no intersection or some word is wrong
@@ -1135,7 +1137,7 @@ const NodeSuggestiveSearch = class {
 					//ivan -atencao
 					//todo: salvar esses resultados para usar na proxima etapa e nao ter que voltar ao dicionario
 
-					await this._getWordsFromSoundexAndParts(arrWords[i]).then(foundItems  => {
+					arrDictionary[i] = await this._getWordsFromSoundexAndParts(arrWords[i]).then(foundItems  => {
 						if (foundItems !== null) {
 
 							let results = foundItems.map(obj => {
@@ -1143,20 +1145,53 @@ const NodeSuggestiveSearch = class {
 								return obj;
 							}).sort((x, y) => {
 								return ((x.similarity > y.similarity) ? -1 : 1);
-							}).slice(0, arrWords.length > 1 ? 10 : 1)
-							.filter(o => {
-								return this._intersection([arrItemsIds, o.items], 2).length > 0;
-							});
+							}).slice(0, arrWords.length > 1 ? 50 : 1);
 
-							if (results.length > 0) {
-								tempResult[i].word = results[0].word;
-								tempResult[i].items = results[0].items;
-							}
+							return { word: arrWords[i].toLowerCase().latinize(), results };
+
+						} else {
+							return { word: arrWords[i], results: [] };
 						}
 					});
 
-					if (tempResult[i].items.length === 0){
-						sair = true;
+					//todo: skip if there is only one word in the query
+					if (arrDictionary[i].results.length > 0) {
+
+						for (let xx = 0; xx < arrDictionary[i].results.length && xx < 10; xx++) {
+							sair = true;
+							const element = arrDictionary[i].results[xx];
+
+							if (this._intersection([arrItemsIds, element.items], 2).length > 0) {
+								tempResult[i].word = arrDictionary[i].word;
+								tempResult[i].items = arrDictionary[i].results[0].items;
+								sair = false;
+								break;
+							}
+						}
+
+					}
+
+					// await this._getWordsFromSoundexAndParts(arrWords[i]).then(foundItems  => {
+					// 	if (foundItems !== null) {
+
+					// 		let results = foundItems.map(obj => {
+					// 			this._setWordAndSimilarity(obj, arrWords[i]);
+					// 			return obj;
+					// 		}).sort((x, y) => {
+					// 			return ((x.similarity > y.similarity) ? -1 : 1);
+					// 		}).slice(0, arrWords.length > 1 ? 10 : 1)
+					// 		.filter(o => {
+					// 			return this._intersection([arrItemsIds, o.items], 2).length > 0;
+					// 		});
+
+					// 		if (arrDictionary[i].results.length > 0) {
+					// 			tempResult[i].word = arrDictionary[i].word;
+					// 			tempResult[i].items = arrDictionary[i].results[0].items;
+					// 		}
+					// 	}
+					// });
+
+					if (sair){
 						break;
 					}
 				}
@@ -1295,39 +1330,42 @@ const NodeSuggestiveSearch = class {
 				//console.log("########## last chance ############ ");
 				response.words = [];
 
-				promises = arrWords.map(word => {
+				
+				for (let i = 0; i < arrDictionary.length; i++) {
+					const element = arrDictionary[i];
+					
+					if (element.results === undefined) {
 
-					return new Promise(resolve => {
-	
-						//this function will try to get words in our dictionary that is similar to the word from the query
-						this._getWordsFromSoundexAndParts(word).then(foundItems  => {
+						arrDictionary[i] = await this._getWordsFromSoundexAndParts(arrWords[i]).then(foundItems  => {
 							if (foundItems !== null) {
-
+		
 								let results = foundItems.map(obj => {
-									this._setWordAndSimilarity(obj, word);
+									this._setWordAndSimilarity(obj, arrWords[i]);
 									return obj;
 								}).sort((x, y) => {
 									return ((x.similarity > y.similarity) ? -1 : 1);
 								}).slice(0, arrWords.length > 1 ? 50 : 1);
-
-								resolve({ word: word.toLowerCase().latinize(), results });
-
+		
+								return { word: arrWords[i].toLowerCase().latinize(), results };
+		
 							} else {
-								resolve({ word: word, results: [] });
+								return { word: arrWords[i], results: [] };
 							}
-						}).catch(() => {
-							//instead of returning an error, lets return an empty result
-							resolve({ word, results: [] });
 						});
-						
-					});
-	
-				});
 
-				//check if all words have intersect items
-				arrItemsIds = await Promise.all(promises).then(items => {
+					}
 
-					let arrItems = items.map(w => {
+				}
+
+
+				if (arrDictionary.length === 1 && arrDictionary[0].results && arrDictionary[0].results[0]) {
+
+					response.words.push(arrDictionary[0].results[0].word);
+					arrItemsIds = arrDictionary[0].results[0].items;
+
+				} else {
+
+					let arrItems = arrDictionary.map(w => {
 						if (w.results && w.results.length === 0) {
 							return [];
 						}
@@ -1335,18 +1373,18 @@ const NodeSuggestiveSearch = class {
 							return i.items;
 						}));				
 					});
-
-					let commonItemsIds = this._intersection(arrItems, arrItems.length);
-
-					if (commonItemsIds.length > 0) {
-
+	
+					arrItemsIds = this._intersection(arrItems, arrItems.length);
+	
+					if (arrItemsIds.length > 0) {
+	
 						let arr = [];
 						let index = 0;
-						items.map(w => {
+						arrDictionary.map(w => {
 							arr.push([]);
 							for (let i = 0; i < w.results.length; i++) {
 								const item = w.results[i];
-								if (this._intersection([item.items, commonItemsIds], 2).length > 0){
+								if (this._intersection([item.items, arrItemsIds], 2).length > 0){
 									arr[index].push(item.word);
 								}
 							}
@@ -1364,19 +1402,23 @@ const NodeSuggestiveSearch = class {
 							for (let j = 0; j < element.length; j++) {
 								const word = element[j];
 								response.words.push(word);
-								let arr = _.find(items[j].results, { 'word': word });
+								let arr = _.find(arrDictionary[j].results, { 'word': word });
 								arrItems.push(arr.items);
 							}
 
-							commonItemsIds = this._intersection(arrItems, arrItems.length);
-							if (commonItemsIds.length > 0){
+							arrItemsIds = this._intersection(arrItems, arrItems.length);
+							if (arrItemsIds.length > 0){
 								break;
 							} 
 						}
-
+					
 					}
 
-					//let mustMatch = arrItems.length;
+				}
+
+
+
+				//let mustMatch = arrItems.length;
 
 // 					do {
 
@@ -1386,7 +1428,7 @@ const NodeSuggestiveSearch = class {
 
 // 							response.words = [];
 // 							response.missingWords = [];
-	
+
 // 							items.map(w => {
 
 // 								let foundWord = false;
@@ -1420,8 +1462,7 @@ const NodeSuggestiveSearch = class {
 
 // 					} while (mustMatch > 0);
 
-					return commonItemsIds;
-				});
+				//return commonItemsIds;
 
 			}
 			
