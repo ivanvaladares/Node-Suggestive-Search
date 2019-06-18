@@ -11,7 +11,7 @@ describe('Test produtos.json -', () => {
     before(done => {
 
         //tests using memory
-        nss = require('../index.js').init();    
+        //nss = require('../index.js').init();    
 
         //tests using redis
         // nss = require("../index.js").init(
@@ -23,13 +23,13 @@ describe('Test produtos.json -', () => {
         // });
 
         //tests using nedb
-        // nss = require('../index.js').init(
-        // {
-        //     dataBase: "nedb",
-        //     neDbDataPath: "",
-        //     neDbInMemoryOnly: true,
-        //     cache: false
-        // });
+        nss = require('../index.js').init(
+        {
+            dataBase: "nedb",
+            neDbDataPath: "",
+            neDbInMemoryOnly: true,
+            cache: false
+        });
 
         //tests using mongogdb
         // nss = require('../index.js').init(
@@ -74,6 +74,7 @@ describe('Test produtos.json -', () => {
     it('query: REFRIGERANTE coca-cora \'EMBALAGEM COM 6 UNIDADES\'', () => {
         return nss.query("REFRIGERANTE coca-xola 'EMBALAGEM COM 6 UNIDADES'")
             .then(data => {
+                console.log(data)
                 assert(
                     data != null &&
                     data.words.length == 7 &&

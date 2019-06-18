@@ -296,16 +296,16 @@ nss.on("initialized", async () => {
     await nss.loadJson("./test/produtos.json");
     let q;
 
-    // q = await nss.query("wisk red label");
-    // console.log(q);
+    q = await nss.query("wisk red label");
+    console.log(q);
 
-    // q = await nss.query("ivan red label");
-    // console.log(q);
+    q = await nss.query("BLACK red label");
+    console.log(q);
 
-    // q = await nss.query("abjabajbajba coca cola refri");
-    // console.log(q);
+    q = await nss.query("abjabajbajba coca cola refri");
+    console.log(q);
 
-    q = await nss.query("REFRIGERANTE coca-cora 'EMBALAGEM COM 6 UNIDADES'");
+    q = await nss.query("REFRIGERANTE coca-xola 'EMBALAGEM COM 6 UNIDADES'");
     console.log(q);
 
 });
@@ -315,7 +315,9 @@ nss.on("initialized", async () => {
 
 //     await nss.loadJson("./test/names.json");
 
-//     let q = await nss.query("ivam valadar");
+//     await nss.getSuggestedWords("ivan v");
+
+//     let q = await nss.getSuggestedItems("ivan v");
 
 //     console.log(q);
 

@@ -15,6 +15,7 @@ http://ivanvaladares.com
 const fs = require('fs');
 const util = require('util');
 const _ = require('lodash');
+const cache = require('memory-cache');
 const EventEmitter = require('events');
 
 
@@ -196,6 +197,10 @@ const NodeSuggestiveSearch = class {
 
 	_splitWords (text) {
 
+		if (text === undefined || text.trim() === ""){
+			return [];
+		}
+
 		//todo: reserach for a better strategy for splitting words and dates
 
 		let words = [];
@@ -264,18 +269,20 @@ const NodeSuggestiveSearch = class {
 	}
 
 	_powerSet (array) {
-		const results = [[]];
-		for (const value of array) {
-			const copy = [...results];
-			for (const prefix of copy) {
-				results.push(prefix.concat(value));
+		//todo: not good when dealign with several entries... must improve this... sampling maybe
+		var result = [];
+
+		const fork = (i, t) => {
+			if (i === array.length) {
+				result.push(t);
+				return;
 			}
-		}
-		return results.filter(w => { 
-							return w.length > 0; 
-						}).sort((x, y) => {
-							return ((x.length > y.length) ? -1 : 1);
-						});
+			fork(i + 1, t.concat([array[i]]));
+			fork(i + 1, t);
+		};
+
+		fork(0, []);
+		return result.slice(0, 50);
 	}
 
 	_cartesianProductOf (array) {
@@ -376,6 +383,12 @@ const NodeSuggestiveSearch = class {
 
 		return new Promise(async (resolve, reject) => {
 
+			let cached = cache.get("_getWordsFromSoundexAndParts" + word);
+
+			if (cached !== null) {
+				return resolve(cached);
+			}
+
 			//try to find an word is our dictionary using soundex and parts of the word
 
 			//todo: research a better way to improve the performance of this query
@@ -435,11 +448,12 @@ const NodeSuggestiveSearch = class {
 				});
 			}
 
+			cache.put("_getWordsFromSoundexAndParts" + word, results, 1000);
+
 			resolve(results);
 		});
 
 	}
-
 
 	_getWordsFromCleanWords (arrWords){
 
@@ -680,6 +694,8 @@ const NodeSuggestiveSearch = class {
 
 		this._checkInitialized();
 
+		cache.clear();
+
 		return new Promise((resolve, reject) => {
 
 			let time = this._clock();
@@ -835,6 +851,8 @@ const NodeSuggestiveSearch = class {
 	insertItem (itemJson, itemId = "itemId", itemName = "itemName", keywords = "keywords") {
 
 		this._checkInitialized();
+	
+		cache.clear();
 
 		return new Promise((resolve, reject) => {
 
@@ -983,6 +1001,8 @@ const NodeSuggestiveSearch = class {
 
 		this._checkInitialized();
 
+		cache.clear();
+
 		return new Promise((resolve, reject) => {
 
 			let time = this._clock();
@@ -1029,6 +1049,8 @@ const NodeSuggestiveSearch = class {
 	loadJsonString (jSonString, itemId = "itemId", itemName = "itemName", keywords = "keywords") {
 
 		this._checkInitialized();
+
+		cache.clear();
 
 		return new Promise((resolve, reject) => {
 
@@ -1182,44 +1204,11 @@ const NodeSuggestiveSearch = class {
 					arrItemsIds = this._intersection(arrItems, arrItems.length);	
 				}
 
-			}
-
-			// if (arrItemsIds.length === 0) {
-
-			// 	let correctIndexes = [];
-			// 	tempResult.map((w, i) => {
-			// 		if (w.items.length > 0) {
-			// 			correctIndexes.push(i);
-			// 		}
-			// 	});
-				
-			// 	correctIndexes = this._powerSet(correctIndexes);
-
-				
-			// 	for (let i = 0; i < correctIndexes.length; i++) {
-			// 		const indexes = correctIndexes[i];
-
-			// 		response.words = [];
-			// 		let arrItems = [];
-				
-			// 		indexes.forEach(index => {
-			// 			response.words.push(tempResult[index].word);
-			// 			arrItems.push(tempResult[index].items);
-			// 		});
-				
-			// 		arrItemsIds = this._intersection(arrItems, arrItems.length);
-					
-			// 		if (arrItemsIds.length > 0){
-			// 			break;
-			// 		} 
-			// 	}
-			// }			
+			}		
 
 			// if arrItemsIds is empty, means there is no intersection or some word is wrong
-			// let's execute a wide search
 			if (arrItemsIds.length === 0) {
 
-				//console.log("########## last chance ############ ");
 				response.words = [];
 				
 				for (let i = 0; i < arrDictionary.length; i++) {
@@ -1278,7 +1267,7 @@ const NodeSuggestiveSearch = class {
 
 						let cp = this._cartesianProductOf(arr);
 
-						for (let index = 0; index < cp.length; index++) {
+						for (let index = 0; index < cp.length && index < 100; index++) {
 							const element = cp[index];
 							
 							response.words = [];
@@ -1301,6 +1290,54 @@ const NodeSuggestiveSearch = class {
 
 				}
 
+			}
+
+			// if arrItemsIds is empty, means there is no intersection or some word is wrong
+			if (arrItemsIds.length === 0 && arrDictionary.length > 1) {
+
+				//console.log("########## last chance ############ ");
+
+				arrDictionary = arrDictionary.filter(o => { 
+					return o.results && o.results.length > 0; 
+				});
+
+				let correctIndexes = [];
+				arrDictionary.map((w, i) => {
+					correctIndexes.push(i);
+				});
+				
+				let columns = this._powerSet(correctIndexes);
+
+				for (let i = 0; i < columns.length && i < 100; i++) {
+					const indexes = columns[i];
+
+					response.words = [];
+					response.missingWords = [];
+
+					let elimitaded = _.xor(correctIndexes, indexes);
+
+					elimitaded.forEach(c => {
+						response.missingWords.push(arrDictionary[c].word);
+					});
+					
+					let arrItems = [];
+				
+					indexes.forEach(index => {
+						response.words.push(arrDictionary[index].word);
+						arrItems.push(arrDictionary[index].results[0].items);
+					});
+				
+					arrItemsIds = this._intersection(arrItems, arrItems.length);
+					
+					if (arrItemsIds.length > 0){
+						break;
+					} 
+				}
+			}
+
+			if (arrItemsIds.length === 0) {
+				response.words = [];
+				response.missingWords = arrWords;				
 			}
 
 			//pos search - match quoted expressions, hyphenated words and separated by slashes
