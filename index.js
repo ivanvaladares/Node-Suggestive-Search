@@ -374,7 +374,7 @@ const NodeSuggestiveSearch = class {
 
 	_getWordsFromSoundexAndParts (word) {
 
-		return new Promise((resolve, reject) => {
+		return new Promise(async (resolve, reject) => {
 
 			//try to find an word is our dictionary using soundex and parts of the word
 
@@ -401,36 +401,45 @@ const NodeSuggestiveSearch = class {
 
 			}
 
-			this._db.findWords({ $or: queryCriteria }).then(foundWords => {
 
-				if (!foundWords || foundWords.length <= 0) {
+			let results = await this._db.findWords({ $or: queryCriteria }).then(foundWords => {
 
-					//nothing was found... should we try another method?
-					//todo: research for another method					
-					resolve(null);
-
-				} else {
+				if (foundWords && foundWords.length > 0) {
 
 					//before return the result, lets give a similarity rank for each result	
 					//and filter top 50 most similar result 
-					resolve(
-						foundWords.map(obj => {
+					return foundWords.map(obj => {
 							this._setWordAndSimilarity(obj, _word);
 							return obj;
 						}).sort((x, y) => {
 							return ((x.similarity > y.similarity) ? -1 : 1);
-						}).slice(0, 50)
-					);
+						}).slice(0, 50);
 
 				}
 
+				return null;
 			}).catch(err => {
-				reject(err);
+				return reject(err);
 			});
 
+			if (!results || results.length <= 0) {
+
+				await Promise.all(this._getWordsFromCleanWords([word])).then(cleanWord => {
+
+					if (cleanWord.length > 0 && cleanWord[0]) {
+						results = [cleanWord[0].results[0]];
+					}
+	
+				}).catch(err => {
+					return reject(err);
+				});
+			}
+
+			resolve(results);
 		});
 
 	}
+
 
 	_getWordsFromCleanWords (arrWords){
 
@@ -1134,32 +1143,19 @@ const NodeSuggestiveSearch = class {
 						continue;
 					}
 
-					//ivan -atencao
-					//todo: salvar esses resultados para usar na proxima etapa e nao ter que voltar ao dicionario
-
 					arrDictionary[i] = await this._getWordsFromSoundexAndParts(arrWords[i]).then(foundItems  => {
 						if (foundItems !== null) {
-
-							let results = foundItems.map(obj => {
-								this._setWordAndSimilarity(obj, arrWords[i]);
-								return obj;
-							}).sort((x, y) => {
-								return ((x.similarity > y.similarity) ? -1 : 1);
-							}).slice(0, arrWords.length > 1 ? 50 : 1);
-
-							return { word: arrWords[i].toLowerCase().latinize(), results };
-
+							return { word: arrWords[i], results: foundItems.slice(0, arrWords.length > 1 ? 50 : 1) };
 						} else {
 							return { word: arrWords[i], results: [] };
 						}
 					});
 
-					//todo: skip if there is only one word in the query
-					if (arrDictionary[i].results.length > 0) {
+					if (arrDictionary.length > 1 && arrDictionary[i].results.length > 0) {
 
-						for (let xx = 0; xx < arrDictionary[i].results.length && xx < 10; xx++) {
+						for (let x = 0; x < arrDictionary[i].results.length && x < 10; x++) {
 							sair = true;
-							const element = arrDictionary[i].results[xx];
+							const element = arrDictionary[i].results[x];
 
 							if (this._intersection([arrItemsIds, element.items], 2).length > 0) {
 								tempResult[i].word = arrDictionary[i].word;
@@ -1168,29 +1164,8 @@ const NodeSuggestiveSearch = class {
 								break;
 							}
 						}
-
 					}
-
-					// await this._getWordsFromSoundexAndParts(arrWords[i]).then(foundItems  => {
-					// 	if (foundItems !== null) {
-
-					// 		let results = foundItems.map(obj => {
-					// 			this._setWordAndSimilarity(obj, arrWords[i]);
-					// 			return obj;
-					// 		}).sort((x, y) => {
-					// 			return ((x.similarity > y.similarity) ? -1 : 1);
-					// 		}).slice(0, arrWords.length > 1 ? 10 : 1)
-					// 		.filter(o => {
-					// 			return this._intersection([arrItemsIds, o.items], 2).length > 0;
-					// 		});
-
-					// 		if (arrDictionary[i].results.length > 0) {
-					// 			tempResult[i].word = arrDictionary[i].word;
-					// 			tempResult[i].items = arrDictionary[i].results[0].items;
-					// 		}
-					// 	}
-					// });
-
+					
 					if (sair){
 						break;
 					}
@@ -1207,111 +1182,29 @@ const NodeSuggestiveSearch = class {
 					arrItemsIds = this._intersection(arrItems, arrItems.length);	
 				}
 
-
-				//console.log(JSON.stringify(tempResult));
-
-				// correctIndexes = this._powerSet(correctIndexes);
-
-				// let arrItems = items.map(w => {
-				// 	if (w.results && w.results.length === 0) {
-				// 		return [];
-				// 	}
-				// 	return _.flatten(w.results.map(i => {
-				// 		return i.items;
-				// 	}));				
-				// });
-
-				// let commonItemsIds = this._intersection(arrItems, arrItems.length);
-
-				
-				// console.log(correctIndexes);
-
-
-				// if (commonItemsIds.length > 0) {
-
-				// 	let arr = [];
-				// 	let index = 0;
-				// 	items.map(w => {
-				// 		arr.push([]);
-				// 		for (let i = 0; i < w.results.length; i++) {
-				// 			const item = w.results[i];
-				// 			if (this._intersection([item.items, commonItemsIds], 2).length > 0){
-				// 				arr[index].push(item.word);
-				// 			}
-				// 		}
-				// 		index++; 
-				// 	});
-
-				// 	let cp = this._cartesianProductOf(arr);
-
-				// 	for (let index = 0; index < cp.length; index++) {
-				// 		const element = cp[index];
-						
-				// 		response.words = [];
-				// 		arrItems = [];
-					
-				// 		for (let j = 0; j < element.length; j++) {
-				// 			const word = element[j];
-				// 			response.words.push(word);
-				// 			let arr = _.find(items[j].results, { 'word': word });
-				// 			arrItems.push(arr.items);
-				// 		}
-
-				// 		commonItemsIds = this._intersection(arrItems, arrItems.length);
-				// 		if (commonItemsIds.length > 0){
-				// 			break;
-				// 		} 
-				// 	}
-
-				//}				
-
-
-				// for (let i = 0; i < correctIndexes.length; i++) {
-				// 	const indexes = correctIndexes[i];
-
-				// 	let arrItems = [];
-				
-				// 	indexes.forEach(index => {
-				// 		arrItems.push(items[index]);
-				// 	});
-				
-				// 	arrItemsIds = this._intersection(arrItems, arrItems.length);
-					
-				// 	if (arrItemsIds.length > 0){
-				// 		break;
-				// 	} 
-				// }
 			}
 
-
-			// if arrItemsIds is empty, means there is no intersection or some word is wrong
 			// if (arrItemsIds.length === 0) {
 
-			// 	console.log("########## last chance ############ ");
-
-			// 	for (let index = 0; index < tempResult.length; index++) {
-			// 		const element = tempResult[index];
-			// 		if (element.length > 0) {
-			// 			continue;
-			// 		}				
-			// 	}
-
 			// 	let correctIndexes = [];
-			// 	items.map((w, i) => {
-			// 		if (w.length > 0) {
+			// 	tempResult.map((w, i) => {
+			// 		if (w.items.length > 0) {
 			// 			correctIndexes.push(i);
 			// 		}
 			// 	});
 				
 			// 	correctIndexes = this._powerSet(correctIndexes);
+
 				
 			// 	for (let i = 0; i < correctIndexes.length; i++) {
 			// 		const indexes = correctIndexes[i];
 
+			// 		response.words = [];
 			// 		let arrItems = [];
 				
 			// 		indexes.forEach(index => {
-			// 			arrItems.push(items[index]);
+			// 			response.words.push(tempResult[index].word);
+			// 			arrItems.push(tempResult[index].items);
 			// 		});
 				
 			// 		arrItemsIds = this._intersection(arrItems, arrItems.length);
@@ -1320,8 +1213,7 @@ const NodeSuggestiveSearch = class {
 			// 			break;
 			// 		} 
 			// 	}
-			// }
-			
+			// }			
 
 			// if arrItemsIds is empty, means there is no intersection or some word is wrong
 			// let's execute a wide search
@@ -1329,7 +1221,6 @@ const NodeSuggestiveSearch = class {
 
 				//console.log("########## last chance ############ ");
 				response.words = [];
-
 				
 				for (let i = 0; i < arrDictionary.length; i++) {
 					const element = arrDictionary[i];
@@ -1338,16 +1229,7 @@ const NodeSuggestiveSearch = class {
 
 						arrDictionary[i] = await this._getWordsFromSoundexAndParts(arrWords[i]).then(foundItems  => {
 							if (foundItems !== null) {
-		
-								let results = foundItems.map(obj => {
-									this._setWordAndSimilarity(obj, arrWords[i]);
-									return obj;
-								}).sort((x, y) => {
-									return ((x.similarity > y.similarity) ? -1 : 1);
-								}).slice(0, arrWords.length > 1 ? 50 : 1);
-		
-								return { word: arrWords[i].toLowerCase().latinize(), results };
-		
+								return { word: arrWords[i], results: foundItems.slice(0, arrWords.length > 1 ? 50 : 1) };
 							} else {
 								return { word: arrWords[i], results: [] };
 							}
@@ -1365,14 +1247,14 @@ const NodeSuggestiveSearch = class {
 
 				} else {
 
-					let arrItems = arrDictionary.map(w => {
-						if (w.results && w.results.length === 0) {
-							return [];
-						}
+					let arrItems = arrDictionary.filter(o => { 
+						return o.results && o.results.length > 0; 
+					}).map(w => {
 						return _.flatten(w.results.map(i => {
 							return i.items;
-						}));				
+						}));	
 					});
+
 	
 					arrItemsIds = this._intersection(arrItems, arrItems.length);
 	
@@ -1380,7 +1262,9 @@ const NodeSuggestiveSearch = class {
 	
 						let arr = [];
 						let index = 0;
-						arrDictionary.map(w => {
+						arrDictionary = arrDictionary.filter(o => { 
+							return o.results && o.results.length > 0; 
+						}).map(w => {
 							arr.push([]);
 							for (let i = 0; i < w.results.length; i++) {
 								const item = w.results[i];
@@ -1388,7 +1272,8 @@ const NodeSuggestiveSearch = class {
 									arr[index].push(item.word);
 								}
 							}
-							index++; 
+							index++;
+							return w;
 						});
 
 						let cp = this._cartesianProductOf(arr);
@@ -1416,218 +1301,106 @@ const NodeSuggestiveSearch = class {
 
 				}
 
-
-
-				//let mustMatch = arrItems.length;
-
-// 					do {
-
-// 						commonItemsIds = this._intersection(arrItems, mustMatch);
-
-// 						if (commonItemsIds.length > 0) {
-
-// 							response.words = [];
-// 							response.missingWords = [];
-
-// 							items.map(w => {
-
-// 								let foundWord = false;
-
-// 								for (let i = 0; i < w.results.length; i++) {
-// 									const item = w.results[i];
-// //console.log(item.word)
-// 									if (this._intersection([item.items, commonItemsIds], 2).length === commonItemsIds.length){
-// 										foundWord = true;
-// 										if (response.words.indexOf(item.word) < 0) {
-// 											response.words.push(item.word);
-// 										}
-// 										break;
-// 									}
-// 								}
-
-// 								if (!foundWord) {
-// 									if (response.missingWords.indexOf(w.word) < 0) {
-// 										response.missingWords.push(w.word);
-// 									}									
-// 								}
-
-// 							});
-
-// //console.log("PASSOU")							
-
-// 							break;
-// 						}
-
-// 						mustMatch--;
-
-// 					} while (mustMatch > 0);
-
-				//return commonItemsIds;
-
 			}
-			
-			//console.log(arrItemsIds);
 
-			//create a promise for each word from query and create an array of promises
-			// let promises = arrWords.map(word => {
+			//pos search - match quoted expressions, hyphenated words and separated by slashes
+			let quotedStrings = words.match(/"(.*?)"|'(.*?)'|((?:\w+-)+\w+)|((?:\w+\/|\\)+\w+)/g, "$1");
 
-			// 	return new Promise((resolve, reject) => {
+			if ((quotedStrings !== null && quotedStrings.length > 0) || returnItemsJson === true){
 
-			// 		//first, lets try to find the exact word in our dictionary
-			// 		this._db.findWords({ cleanWord: word.toLowerCase().latinize() }).then(foundWords => {
+				this._db.findItems({ itemId: { $in: arrItemsIds } }).then(foundItems => {
 
-			// 			//no results :(, lets try with soundex and parts
-			// 			if (!foundWords || foundWords.length <= 0) {
+					let filteredItems = [];
 
-			// 				//this function will try to get words in our dictionary that is similar to the word from the query
-			// 				this._getWordsFromSoundexAndParts(word).then(soudexFoundItems  => {
-			// 					if (soudexFoundItems !== null) {
-			// 						resolve({ word: word, results: soudexFoundItems });
-			// 					} else {
-			// 						resolve({ word: word, results: [] });
-			// 					}
-			// 				}).catch(() => {
-			// 					//instead of returning an error, lets return an empty result
-			// 					resolve({ word, results: [] });
-			// 				});
+					//todo: create a better way to check the expressions and repetitions
+					
+					if (quotedStrings !== null && quotedStrings.length > 0) {
+						//remove quotes from expressions
+						quotedStrings = quotedStrings.map(item => {
+							return item.replace(/^"(.+(?="$))"$/, '$1').replace(/^'(.+(?='$))'$/, '$1'); //remove quotes
+						});
 
-			// 			} else {
-
-			// 				//sort to return top 10 most similar result 
-			// 				foundWords = foundWords.map(obj => {
-			// 					this._setWordAndSimilarity(obj, word);
-			// 					return obj;
-			// 				}).sort((x, y) => {
-			// 					return ((x.similarity > y.similarity) ? -1 : 1);
-			// 				}).slice(0, 10);
-
-			// 				resolve({ word, correct: true, results: foundWords });
-			// 			}
-
-			// 		}).catch(err => {
-			// 			reject(err);
-			// 		});
-			// 	});
-			// });
-
-			//now, lets resolve all promises from the array of promises
-			//Promise.all(promises).then(arrItemsIds => {
-
-				//console.log("end");
-
-				//console.log(JSON.stringify(items));
-
-				//contruct the response object
-	
-
-				//items variable contains an array of words objects and results for each word from the query
-				// {word: word, results: db.words[]} 
-				//if there is any incorrect word, lets choose the best match between the results 
-
-				//response.timeElapsed = this._clock(time);	
-
-				//pos search - match quoted expressions, hyphenated words and separated by slashes
-				let quotedStrings = words.match(/"(.*?)"|'(.*?)'|((?:\w+-)+\w+)|((?:\w+\/|\\)+\w+)/g, "$1");
-
-				if ((quotedStrings !== null && quotedStrings.length > 0) || returnItemsJson === true){
-
-					this._db.findItems({ itemId: { $in: arrItemsIds } }).then(foundItems => {
-
-						let filteredItems = [];
-
-						//todo: create a better way to check the expressions and repetitions
-						
-						if (quotedStrings !== null && quotedStrings.length > 0) {
-							//remove quotes from expressions
-							quotedStrings = quotedStrings.map(item => {
-								return item.replace(/^"(.+(?="$))"$/, '$1').replace(/^'(.+(?='$))'$/, '$1'); //remove quotes
-							});
-
-							//get the expressions from the item name and keywords
-							filteredItems = foundItems.filter(item => {
-								for (let quotedString in quotedStrings){
-									if (item.itemName.search(new RegExp(quotedStrings[quotedString], "ig")) >= 0 ||
-										(item.keywords !== null && item.keywords !== undefined && item.keywords.search(new RegExp(quotedStrings[quotedString], "ig")) >= 0)) {
-										if (response.expressions.indexOf(quotedStrings[quotedString]) < 0){
-											response.expressions.push(quotedStrings[quotedString]);
-										}
-										return item;
+						//get the expressions from the item name and keywords
+						filteredItems = foundItems.filter(item => {
+							for (let quotedString in quotedStrings){
+								if (item.itemName.search(new RegExp(quotedStrings[quotedString], "ig")) >= 0 ||
+									(item.keywords !== null && item.keywords !== undefined && item.keywords.search(new RegExp(quotedStrings[quotedString], "ig")) >= 0)) {
+									if (response.expressions.indexOf(quotedStrings[quotedString]) < 0){
+										response.expressions.push(quotedStrings[quotedString]);
 									}
+									return item;
+								}
+							}
+						});
+
+						//get the missing expressions
+						quotedStrings.map(quotedString => {
+							if (response.expressions.indexOf(quotedString) < 0){
+								response.missingExpressions.push(quotedString);
+							}
+						});
+					}
+
+					//apply the ordering function
+					if (orderBy !== undefined){
+						let orderFunc;
+
+						if (!_.isFunction(orderBy) && orderBy.field !== undefined){
+							orderFunc = ((x, y) => { 
+								if (orderBy.direction === "desc"){
+									return x[orderBy.field] < y[orderBy.field]; 
+								} else {
+									return x[orderBy.field] > y[orderBy.field]; 
 								}
 							});
-
-							//get the missing expressions
-							quotedStrings.map(quotedString => {
-								if (response.expressions.indexOf(quotedString) < 0){
-									response.missingExpressions.push(quotedString);
-								}
-							});
 						}
 
-						//apply the ordering function
-						if (orderBy !== undefined){
-							let orderFunc;
+						if (_.isFunction(orderBy)){
+							orderFunc = orderBy;
+						}
 
-							if (!_.isFunction(orderBy) && orderBy.field !== undefined){
-								orderFunc = ((x, y) => { 
-									if (orderBy.direction === "desc"){
-										return x[orderBy.field] < y[orderBy.field]; 
-									} else {
-										return x[orderBy.field] > y[orderBy.field]; 
-									}
-								});
-							}
+						if (filteredItems.length > 0){
+							filteredItems.sort(orderFunc);
+						} else {
+							foundItems.sort(orderFunc);
+						}
+					}
 
-							if (_.isFunction(orderBy)){
-								orderFunc = orderBy;
-							}
+					if (returnItemsJson === true){
 
-							if (filteredItems.length > 0){
-								filteredItems.sort(orderFunc);
-							} else {
-								foundItems.sort(orderFunc);
+						if (filteredItems.length > 0){
+							response.items = filteredItems;
+						} else {
+							response.items = foundItems;
+						}
+
+					}else{
+
+						if (filteredItems.length > 0){
+							//tranform filtered object items to array of itemsId
+							arrItemsIds = [];
+							for (let item in filteredItems) {
+								arrItemsIds.push(filteredItems[item].itemId);
 							}
 						}
 
-						if (returnItemsJson === true){
-
-							if (filteredItems.length > 0){
-								response.items = filteredItems;
-							} else {
-								response.items = foundItems;
-							}
-	
-						}else{
-
-							if (filteredItems.length > 0){
-								//tranform filtered object items to array of itemsId
-								arrItemsIds = [];
-								for (let item in filteredItems) {
-									arrItemsIds.push(filteredItems[item].itemId);
-								}
-							}
-
-							response.itemsId = arrItemsIds;
-						}
-
-						response.timeElapsed = this._clock(time);
-						resolve(response);
-								
-					}).catch(err => {
-						reject(err);
-					});
-
-				}else{
-
-					response.itemsId = arrItemsIds;
+						response.itemsId = arrItemsIds;
+					}
 
 					response.timeElapsed = this._clock(time);
 					resolve(response);
-				}
+							
+				}).catch(err => {
+					reject(err);
+				});
 
-			//}).catch(err => {
-			//	reject(err);
-			//});
+			}else{
+
+				response.itemsId = arrItemsIds;
+
+				response.timeElapsed = this._clock(time);
+				resolve(response);
+			}
 
 		});
 
