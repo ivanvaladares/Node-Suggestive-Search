@@ -11,7 +11,7 @@ describe('Test produtos.json -', () => {
     before(done => {
 
         //tests using memory
-        //nss = require('../index.js').init();    
+        nss = require('../index.js').init();    
 
         //tests using redis
         // nss = require("../index.js").init(
@@ -23,13 +23,13 @@ describe('Test produtos.json -', () => {
         // });
 
         //tests using nedb
-        nss = require('../index.js').init(
-        {
-            dataBase: "nedb",
-            neDbDataPath: "",
-            neDbInMemoryOnly: true,
-            cache: false
-        });
+        // nss = require('../index.js').init(
+        // {
+        //     dataBase: "nedb",
+        //     neDbDataPath: "",
+        //     neDbInMemoryOnly: true,
+        //     cache: false
+        // });
 
         //tests using mongogdb
         // nss = require('../index.js').init(
@@ -71,14 +71,14 @@ describe('Test produtos.json -', () => {
             });
     });
 
-    it('query: REFRIGERANTE coca-cora \'EMBALAGEM COM 6 UNIDADES\'', () => {
+    it('query: REFRIGERANTE coca-xola \'EMBALAGEM COM 6 UNIDADES\'', () => {
         return nss.query("REFRIGERANTE coca-xola 'EMBALAGEM COM 6 UNIDADES'")
             .then(data => {
                 assert(
                     data != null &&
                     data.words.length == 7 &&
                     data.words[0] == "REFRIGERANTE" &&
-                    data.words[1] == "COCA" &&
+                    data.words[1] == "coca" &&
                     data.words[2] == "COLA" &&
                     data.words[3] == "EMBALAGEM" &&
                     data.words[4] == "COM" &&
@@ -90,7 +90,7 @@ describe('Test produtos.json -', () => {
                     data.expressions[0] == "EMBALAGEM COM 6 UNIDADES" &&
                     data.missingExpressions.length == 1 &&
                     data.missingExpressions[0] == "coca-xola",
-                    "Error on: REFRIGERANTE coca-cora 'EMBALAGEM COM 6 UNIDADES'"
+                    "Error on: REFRIGERANTE coca-cora 'EMBALAGEM COM 6 UNIDADES'\n" + JSON.stringify(data, ' ', null)
                 );
             });
     });
@@ -220,6 +220,26 @@ describe('Test produtos.json -', () => {
                     data.expressions.length == 0 &&
                     data.missingExpressions.length == 0,
                     "Error on query for: whisky red label"
+                );
+            });
+    });
+
+
+    it('query for: black red label', () => {
+        return nss.query("black red label")
+            .then(data => {
+                assert(
+                    data != null &&
+                    data.words.length == 2 &&
+                    data.words[0] == "BLACK" &&
+                    data.words[1] == "LABEL" &&
+                    data.itemsId.length == 1 &&
+                    data.itemsId[0] == "26311" &&
+                    data.missingWords.length == 1 &&
+                    data.missingWords[0] == "red" &&
+                    data.expressions.length == 0 &&
+                    data.missingExpressions.length == 0,
+                    "Error on query for: black red label"
                 );
             });
     });

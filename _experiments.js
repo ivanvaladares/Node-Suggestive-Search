@@ -296,17 +296,17 @@ nss.on("initialized", async () => {
     await nss.loadJson("./test/produtos.json");
     let q;
 
-    q = await nss.query("wisk red label");
-    console.log(q);
+    // q = await nss.query("wisk red label");
+    // console.log(q);
 
     q = await nss.query("BLACK red label");
     console.log(q);
 
-    q = await nss.query("abjabajbajba coca cola refri");
-    console.log(q);
+    // q = await nss.query("abjabajbajba coca cola refri");
+    // console.log(q);
 
-    q = await nss.query("REFRIGERANTE coca-xola 'EMBALAGEM COM 6 UNIDADES'");
-    console.log(q);
+    // q = await nss.query("REFRIGERANTE coca-xola 'EMBALAGEM COM 6 UNIDADES'");
+    // console.log(q);
 
 });
 
