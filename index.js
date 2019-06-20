@@ -1232,6 +1232,7 @@ const NodeSuggestiveSearch = class {
 							const element = cp[index];
 							
 							response.words = [];
+							response.missingWords = [];
 
 							arrItems = element.map((word, j) => {
 								response.words.push(word);
