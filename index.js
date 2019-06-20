@@ -2,7 +2,7 @@
 /* eslint-disable no-await-in-loop */
 /* eslint-disable node/no-unsupported-features */
 /*
-node-suggestive-search v1.9.7
+node-suggestive-search v1.9.8
 https://github.com/ivanvaladares/node-suggestive-search/
 by Ivan Valadares 
 http://ivanvaladares.com 
@@ -1241,6 +1241,13 @@ const NodeSuggestiveSearch = class {
 						
 							arrItemsIds = this._intersection(arrItems);
 							if (arrItemsIds.length > 0){
+
+								arrWords.forEach((ow, ix) => {
+									if (response.words[ix].toLowerCase() !== ow.toLowerCase()){
+										response.missingWords.push(ow);
+									}
+								});
+
 								break;
 							} 
 						}
