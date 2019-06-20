@@ -109,20 +109,31 @@ const NodeSuggestiveSearch = class {
 	_setWordAndSimilarity (wordObj, wordToCompare) {
 
 		wordObj.words.map(word => {
-			let longer = word;
-			let shorter = wordToCompare;
-			if (word.length < wordToCompare.length) {
-				longer = wordToCompare;
-				shorter = word;
-			}
-			let longerLength = longer.length;
-			if (longerLength == 0) {
-				return 1.0;
-			}
-			let similarity = (longerLength - this._editDistance(longer, shorter)) / parseFloat(longerLength);
+			let similarity = 0;
 
-			if (word === wordToCompare){
-				similarity += 0.1;
+			if (word.toLowerCase() === wordToCompare.toLowerCase()){
+				similarity = 1;
+			}else{
+				let longer = word;
+				let shorter = wordToCompare;
+				if (word.length < wordToCompare.length) {
+					longer = wordToCompare;
+					shorter = word;
+				}
+				let longerLength = longer.length;
+				if (longerLength === 0) {
+					return 1;
+				}
+	
+				similarity = (longerLength - this._editDistance(longer, shorter)) / parseFloat(longerLength);
+	
+				if (word.toLowerCase().indexOf(wordToCompare.toLowerCase()) === 0){
+					similarity += 1 / (word.length / wordToCompare.length); //todo: have to test this more carefully
+	
+					if (similarity > 0.9) {
+						similarity = 0.9;
+					}
+				}
 			}
 
 			if (wordObj.similarity === undefined || similarity > wordObj.similarity){
@@ -1080,25 +1091,35 @@ const NodeSuggestiveSearch = class {
 			//check if all words have intersect items
 			let arrItemsIds = [];
 			let arrItems = [];
+			let allWordsMatched = true;
+			let someWordMatched = false;
+
 			let tempResult = await Promise.all(promises).then(items => {
 
-				arrItems = items.map(w => {
+				arrItems = items.map((w, i) => {
+					arrDictionary[i].index = i;
 					if (w.items && w.items.length === 0) {
+						arrDictionary[i].matched = false;
+						allWordsMatched = false;
 						response.missingWords.push(w.word);
 						return [];
 					}
+					arrDictionary[i].matched = true;
+					someWordMatched = true;
 					response.words.push(w.word);
 					return w.items;
 				});
 
-				arrItemsIds = this._intersection(arrItems, arrItems.length);
+				if (allWordsMatched) {
+					arrItemsIds = this._intersection(arrItems, arrItems.length);
+				}
 
 				return items;
 			});
 
 			// if arrItemsIds is empty, means there is no intersection or some word is wrong
 			// in this first round, let's just try to find a good match for the words that are wrong
-			if (arrItemsIds.length === 0 && _.findIndex(arrItems, i => { return i.length === 0; }) >= 0) {
+			if (arrItemsIds.length === 0 && someWordMatched && !allWordsMatched) {
 
 				arrItems = arrItems.filter(i => { 
 					return i.length > 0;
@@ -1115,12 +1136,9 @@ const NodeSuggestiveSearch = class {
 							continue;
 						}
 	
-						arrDictionary[i] = await this._getWordsFromSoundexAndParts(arrWords[i]).then(foundItems  => {
-							if (foundItems !== null) {
-								return { word: arrWords[i], results: foundItems.slice(0, arrWords.length > 1 ? 50 : 1) };
-							} else {
-								return { word: arrWords[i], results: [] };
-							}
+						await this._getWordsFromSoundexAndParts(arrWords[i]).then(foundItems  => {
+							arrDictionary[i].word = arrWords[i];
+							arrDictionary[i].results = (foundItems !== null) ? foundItems.slice(0, arrWords.length > 1 ? 50 : 1) : [];
 						});
 	
 						if (arrDictionary.length > 1 && arrDictionary[i].results.length > 0) {
@@ -1169,12 +1187,9 @@ const NodeSuggestiveSearch = class {
 					
 					if (element.results === undefined) {
 
-						arrDictionary[i] = await this._getWordsFromSoundexAndParts(arrWords[i]).then(foundItems  => {
-							if (foundItems !== null) {
-								return { word: arrWords[i], results: foundItems.slice(0, arrWords.length > 1 ? 50 : 1) };
-							} else {
-								return { word: arrWords[i], results: [] };
-							}
+						await this._getWordsFromSoundexAndParts(arrWords[i]).then(foundItems  => {
+							arrDictionary[i].word = arrWords[i];
+							arrDictionary[i].results = (foundItems !== null) ? foundItems.slice(0, arrWords.length > 1 ? 50 : 1) : [];							
 						});
 
 					}
@@ -1247,8 +1262,6 @@ const NodeSuggestiveSearch = class {
 			// in this round we will try to eliminate words and check the remaining combination
 			if (arrItemsIds.length === 0 && arrDictionary.length > 1) {
 
-				//console.log("########## last chance ############ ");
-
 				arrDictionary = arrDictionary.filter(o => { 
 					return o.results && o.results.length > 0; 
 				});
@@ -1258,6 +1271,58 @@ const NodeSuggestiveSearch = class {
 					correctIndexes.push(i);
 				});
 				
+				if (correctIndexes.length < 6) {
+					//todo: check if the result of this would be too big to deal with
+					let columns = this._powerSet(correctIndexes);
+
+					for (let i = 0; i < columns.length && i < 100; i++) {
+						const indexes = columns[i];
+
+						response.words = [];
+						response.missingWords = [];
+
+						let arrItems = [];
+					
+						indexes.forEach(index => {
+							response.words.push(arrDictionary[index].results[0].word);
+							arrItems.push(arrDictionary[index].results[0].items);
+						});
+					
+						arrItemsIds = this._intersection(arrItems, arrItems.length);
+						
+						if (arrItemsIds.length > 0){
+							
+							arrWords.forEach((ow, ix) => {
+								if (indexes.indexOf(ix) < 0){
+									response.missingWords.push(ow);
+								}
+							});
+
+							break;
+						} 
+					}
+				}
+			}
+
+			// if arrItemsIds is empty, means there is no intersection or some word is wrong
+			// in this round we will try to eliminate all not matched words and check the remaining combination
+			if (arrItemsIds.length === 0 && arrDictionary.length > 1 && someWordMatched) {
+
+				//console.log("########## last chance ############ ");
+
+				arrDictionary = arrDictionary.filter(o => { 
+					return o.matched; 
+				});
+
+				let correctIndexes = [];
+				arrDictionary.map((w, i) => {
+					correctIndexes.push(i);
+				});
+
+				if (correctIndexes.length > 6) {
+					correctIndexes = correctIndexes.slice(0, 6);
+				}
+				
 				let columns = this._powerSet(correctIndexes);
 
 				for (let i = 0; i < columns.length && i < 100; i++) {
@@ -1265,12 +1330,7 @@ const NodeSuggestiveSearch = class {
 
 					response.words = [];
 					response.missingWords = [];
-
-					//store the missing words
-					_.xor(correctIndexes, indexes).forEach(c => {
-						response.missingWords.push(arrDictionary[c].word);
-					});
-					
+				
 					let arrItems = [];
 				
 					indexes.forEach(index => {
@@ -1281,10 +1341,18 @@ const NodeSuggestiveSearch = class {
 					arrItemsIds = this._intersection(arrItems, arrItems.length);
 					
 					if (arrItemsIds.length > 0){
+
+						arrWords.forEach((ow, ix) => {
+							if (indexes.indexOf(ix) < 0){
+								response.missingWords.push(ow);
+							}
+						});
+						
 						break;
 					} 
 				}
 			}
+
 
 			if (arrItemsIds.length === 0) {
 				response.words = [];
