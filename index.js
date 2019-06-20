@@ -2,7 +2,7 @@
 /* eslint-disable no-await-in-loop */
 /* eslint-disable node/no-unsupported-features */
 /*
-node-suggestive-search v1.9.6
+node-suggestive-search v1.9.7
 https://github.com/ivanvaladares/node-suggestive-search/
 by Ivan Valadares 
 http://ivanvaladares.com 
@@ -254,34 +254,32 @@ const NodeSuggestiveSearch = class {
 		});
 	}
 
-	_intersection (arrays, mustMatchLength) {
+	_intersection (arrays) {
+		
 		let output = [];
 		let cntObj = {};
-		let array, cnt, item;
-		for (let i = 0; i < arrays.length; i++) {
-			array = arrays[i];
-			for (let j = 0; j < array.length; j++) {
-				item = array[j];
-				cnt = cntObj[item] || 0;
-				// if cnt is exactly the number of previous arrays, 
-				// then increment by one so we count only one per array
+
+		arrays.map((array, i) => {
+			array.map(item => {
+				let cnt = cntObj[item] || 0;
 				if (cnt == i) {
 					cntObj[item] = cnt + 1;
 				}
-			}
-		}
+			});
+		});
 
-		for (item in cntObj) {
-			if (cntObj[item] === mustMatchLength) {
+		for (let item in cntObj) {
+			if (cntObj[item] === arrays.length) {
 				output.push(item);
 			}
 		}
+
 		return(output);
 	}
 
 	_powerSet (array) {
 		//todo: not good when dealign with several entries... must improve this... sampling maybe
-		var result = [];
+		let result = [];
 
 		const fork = (i, t) => {
 			if (i === array.length) {
@@ -1111,7 +1109,7 @@ const NodeSuggestiveSearch = class {
 				});
 
 				if (allWordsMatched) {
-					arrItemsIds = this._intersection(arrItems, arrItems.length);
+					arrItemsIds = this._intersection(arrItems);
 				}
 
 				return items;
@@ -1125,7 +1123,7 @@ const NodeSuggestiveSearch = class {
 					return i.length > 0;
 				});
 
-				arrItemsIds = this._intersection(arrItems, arrItems.length);
+				arrItemsIds = this._intersection(arrItems);
 				let sair = false;
 
 				if (arrItemsIds.length > 0) {
@@ -1149,7 +1147,7 @@ const NodeSuggestiveSearch = class {
 	
 								const element = arrDictionary[i].results[x];
 	
-								if (this._intersection([arrItemsIds, element.items], 2).length > 0) {
+								if (this._intersection([arrItemsIds, element.items]).length > 0) {
 									tempResult[i].word = element.word;
 									tempResult[i].items = element.items;
 									sair = false;
@@ -1171,7 +1169,7 @@ const NodeSuggestiveSearch = class {
 							return w.items;
 						});
 		
-						arrItemsIds = this._intersection(arrItems, arrItems.length);	
+						arrItemsIds = this._intersection(arrItems);	
 					}
 				}
 			}		
@@ -1181,17 +1179,14 @@ const NodeSuggestiveSearch = class {
 			if (arrItemsIds.length === 0) {
 
 				response.words = [];
-				
+
 				for (let i = 0; i < arrDictionary.length; i++) {
-					const element = arrDictionary[i];
-					
-					if (element.results === undefined) {
+					if (arrDictionary[i].results === undefined) {
 
 						await this._getWordsFromSoundexAndParts(arrWords[i]).then(foundItems  => {
 							arrDictionary[i].word = arrWords[i];
 							arrDictionary[i].results = (foundItems !== null) ? foundItems.slice(0, arrWords.length > 1 ? 50 : 1) : [];							
 						});
-
 					}
 				}
 
@@ -1211,24 +1206,24 @@ const NodeSuggestiveSearch = class {
 						}));	
 					});
 	
-					arrItemsIds = this._intersection(arrItems, arrItems.length);
+					arrItemsIds = this._intersection(arrItems);
 	
 					if (arrItemsIds.length > 0) {
 	
 						let arr = [];
 						let index = 0;
+
 						arrDictionary = arrDictionary.filter(o => { 
 							return o.results && o.results.length > 0; 
-						}).map(w => {
+						}).map(word => {
 							arr.push([]);
-							for (let i = 0; i < w.results.length; i++) {
-								const item = w.results[i];
-								if (this._intersection([item.items, arrItemsIds], 2).length > 0){
+							word.results.forEach(item => {
+								if (item.similarity > 0.5 && this._intersection([item.items, arrItemsIds]).length > 0){
 									arr[index].push(item.word);
 								}
-							}
+							});
 							index++;
-							return w;
+							return word;
 						});
 
 						let cp = this._cartesianProductOf(arr);
@@ -1237,25 +1232,20 @@ const NodeSuggestiveSearch = class {
 							const element = cp[index];
 							
 							response.words = [];
-							arrItems = [];
-						
-							for (let j = 0; j < element.length; j++) {
-								const word = element[j];
+
+							arrItems = element.map((word, j) => {
 								response.words.push(word);
 								let arr = _.find(arrDictionary[j].results, { 'word': word });
-								arrItems.push(arr.items);
-							}
-
-							arrItemsIds = this._intersection(arrItems, arrItems.length);
+								return arr.items;
+							});
+						
+							arrItemsIds = this._intersection(arrItems);
 							if (arrItemsIds.length > 0){
 								break;
 							} 
 						}
-					
 					}
-
 				}
-
 			}
 
 			// if arrItemsIds is empty, means there is no intersection or some word is wrong
@@ -1266,14 +1256,11 @@ const NodeSuggestiveSearch = class {
 					return o.results && o.results.length > 0; 
 				});
 
-				let correctIndexes = [];
-				arrDictionary.map((w, i) => {
-					correctIndexes.push(i);
-				});
+				let filteredColumns = arrDictionary.map((w, i) => i);
 				
-				if (correctIndexes.length < 6) {
-					//todo: check if the result of this would be too big to deal with
-					let columns = this._powerSet(correctIndexes);
+				if (filteredColumns.length < 6) {
+
+					let columns = this._powerSet(filteredColumns);
 
 					for (let i = 0; i < columns.length && i < 100; i++) {
 						const indexes = columns[i];
@@ -1281,14 +1268,12 @@ const NodeSuggestiveSearch = class {
 						response.words = [];
 						response.missingWords = [];
 
-						let arrItems = [];
-					
-						indexes.forEach(index => {
-							response.words.push(arrDictionary[index].results[0].word);
-							arrItems.push(arrDictionary[index].results[0].items);
+						let arrItems = indexes.map(d => {
+							response.words.push(arrDictionary[d].results[0].word);
+							return arrDictionary[d].results[0].items;
 						});
 					
-						arrItemsIds = this._intersection(arrItems, arrItems.length);
+						arrItemsIds = this._intersection(arrItems);
 						
 						if (arrItemsIds.length > 0){
 							
@@ -1314,16 +1299,13 @@ const NodeSuggestiveSearch = class {
 					return o.matched; 
 				});
 
-				let correctIndexes = [];
-				arrDictionary.map((w, i) => {
-					correctIndexes.push(i);
-				});
+				let filteredColumns = arrDictionary.map((w, i) => i);
 
-				if (correctIndexes.length > 6) {
-					correctIndexes = correctIndexes.slice(0, 6);
+				if (filteredColumns.length > 6) {
+					filteredColumns = filteredColumns.slice(0, 6);
 				}
 				
-				let columns = this._powerSet(correctIndexes);
+				let columns = this._powerSet(filteredColumns);
 
 				for (let i = 0; i < columns.length && i < 100; i++) {
 					const indexes = columns[i];
@@ -1331,14 +1313,12 @@ const NodeSuggestiveSearch = class {
 					response.words = [];
 					response.missingWords = [];
 				
-					let arrItems = [];
-				
-					indexes.forEach(index => {
-						response.words.push(arrDictionary[index].results[0].word);
-						arrItems.push(arrDictionary[index].results[0].items);
+					let arrItems = indexes.map(d => {
+						response.words.push(arrDictionary[d].results[0].word);
+						return arrDictionary[d].results[0].items;
 					});
 				
-					arrItemsIds = this._intersection(arrItems, arrItems.length);
+					arrItemsIds = this._intersection(arrItems);
 					
 					if (arrItemsIds.length > 0){
 
