@@ -47,10 +47,8 @@ let DbDriver = class {
                         return reject(err);
                     }
 
-                    this._cache.insertItem(items).then(() => {
+                    return this._cache.insertItem(items).then(() => {
                         resolve(true);
-                    }).catch(err => {
-                        reject(err);
                     });
 
                 });                        
@@ -63,17 +61,15 @@ let DbDriver = class {
                         return reject(err);
                     }
 
-                    this._cache.insertWord(words).then(() => {
+                    return this._cache.insertWord(words).then(() => {
                         resolve(true);
-                    }).catch(err => {
-                        reject(err);
                     });
 
                 });
                 
             });
 
-            Promise.all([pItems, pWords]).then(() => {
+            return Promise.all([pItems, pWords]).then(() => {
 
                 this.emit('initialized');
 
@@ -129,7 +125,7 @@ let DbDriver = class {
     }
 
     cleanDatabase () {                
-        return new Promise((resolve, reject) => {
+        return new Promise(resolve => {
             if (this._cacheOn){
                 this._cache.cleanDatabase();
             }
@@ -137,10 +133,8 @@ let DbDriver = class {
             let p1 = this._remove(this.dbItems, {}, { multi: true });
             let p2 = this._remove(this.dbWords, {}, { multi: true });
 
-            Promise.all([p1, p2]).then(() => {
+            return Promise.all([p1, p2]).then(() => {
                 resolve();
-            }).catch(err => {
-                reject(err);
             });
         });
     }

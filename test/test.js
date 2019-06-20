@@ -19,7 +19,7 @@ describe('Test test.json -', () => {
         // {
         //     dataBase: "redis",  
         //     keysPrefixName: "nss-",
-        //     redisDatabase: "redis://localhost:6379",
+        //     redisDatabase: "redis://<user>:<password>@<domain>:<port>",
         //     cache: false
         // });        
 
@@ -38,7 +38,7 @@ describe('Test test.json -', () => {
         //     dataBase: "mongodb", 
         //     itemsCollectionName: "nss-test-items",
         //     wordsCollectionName: "nss-test-words",
-        //     mongoDatabase: "mongodb://localhost:27017/nodeSugestiveSearchTest",
+        //     mongoDatabase: "mongodb://<user>:<password>@<domain>:<port>/<dbname>",
         //     cache: false
         // });
 

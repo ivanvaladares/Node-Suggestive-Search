@@ -49,10 +49,8 @@ let DbDriver = class {
                             arrItems.push(JSON.parse(itemStr));
                         });
 
-                        this._cache.insertItem(arrItems).then(() => {
+                        return this._cache.insertItem(arrItems).then(() => {
                             resolve(true);
-                        }).catch(err => {
-                            reject(err);
                         });
                         
                     });
@@ -90,10 +88,8 @@ let DbDriver = class {
                             arrWords.push(objWord);
                         });
 
-                        this._cache.insertWord(arrWords).then(() => {
+                        return this._cache.insertWord(arrWords).then(() => {
                             resolve(true);
-                        }).catch(err => {
-                            reject(err);
                         });
                         
                     });
@@ -314,13 +310,11 @@ let DbDriver = class {
     }
     
     _findWords (criteria) {
-        return new Promise((resolve, reject) => {
+        return new Promise(resolve => {
 
             if (criteria.cleanWord !== undefined){
-                this._getWordsFromCleanWord([criteria.cleanWord]).then(words => {
+                return this._getWordsFromCleanWord([criteria.cleanWord]).then(words => {
                     resolve(words);
-                }).catch(err => {
-                    reject(err);
                 });
             }else{
                 let criterias = [];
@@ -351,10 +345,8 @@ let DbDriver = class {
                     }
                 });
 
-                this._getWordsFromSoundexAndParts(parts, soundex).then(words => {
+                return this._getWordsFromSoundexAndParts(parts, soundex).then(words => {
                     resolve(words);
-                }).catch(err => {
-                    reject(err);
                 });
             }
         });    
@@ -423,13 +415,9 @@ let DbDriver = class {
                         })
                     );
 
-                    Promise.all(innerPromises).then(() => {
+                    return Promise.all(innerPromises).then(() => {
 
                         return resolve(1);
-
-                    }).catch(err => {
-
-                        reject(err);
 
                     });
 

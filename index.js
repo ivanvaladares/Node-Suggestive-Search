@@ -1,4 +1,3 @@
-/* eslint-disable promise/no-promise-in-callback */
 /* eslint-disable complexity */
 /* eslint-disable no-await-in-loop */
 /* eslint-disable node/no-unsupported-features */

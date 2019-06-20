@@ -28,48 +28,38 @@ let DbDriver = class {
             }
 
             //if is cached and the database is not empty, lets fill the cache
-            let pItems = new Promise((resolve, reject) => { 
+            let pItems = new Promise(resolve => { 
 
-                this.dbItems.find({}).toArray().then(items => {
+                return this.dbItems.find({}).toArray().then(items => {
 
-                    this._cache.insertItem(items).then(() => {
+                    return this._cache.insertItem(items).then(() => {
 
                         resolve(true);
 
-                    }).catch(err => {
-                        reject(err);
                     }); 
 
-                }).catch(err => {
-                    reject(err);
                 });
 
             });
 
-            let pWords = new Promise((resolve, reject) => { 
+            let pWords = new Promise(resolve => { 
 
-                this.dbWords.find({}).toArray().then(words => {
+                return this.dbWords.find({}).toArray().then(words => {
 
-                    this._cache.insertWord(words).then(() => {
+                    return this._cache.insertWord(words).then(() => {
 
                         resolve(true);
 
-                    }).catch(err => {
-                        reject(err);
                     }); 
 
-                }).catch(err => {
-                    reject(err);
                 });
 
             });                                
 
-            Promise.all([pItems, pWords]).then(() => {
+            return Promise.all([pItems, pWords]).then(() => {
 
                 this.emit('initialized');
 
-            }).catch(err => {
-                this.emit('error', err);
             });
 
         }).catch(err => {
@@ -121,7 +111,7 @@ let DbDriver = class {
     }
         
     cleanDatabase () {
-        return new Promise((resolve, reject) => {
+        return new Promise(resolve => {
             if (this._cacheOn){
                 this._cache.cleanDatabase();
             }
@@ -129,10 +119,8 @@ let DbDriver = class {
             let p1 = this._remove(this.dbItems, {}, { multi: true });
             let p2 = this._remove(this.dbWords, {}, { multi: true });
     
-            Promise.all([p1, p2]).then(() => {
+            return Promise.all([p1, p2]).then(() => {
                 resolve();
-            }).catch(err => {
-                reject(err);
             });
         });
     }
