@@ -1,8 +1,9 @@
+/* eslint-disable promise/no-promise-in-callback */
 /* eslint-disable complexity */
 /* eslint-disable no-await-in-loop */
 /* eslint-disable node/no-unsupported-features */
 /*
-node-suggestive-search v1.9.5
+node-suggestive-search v1.9.6
 https://github.com/ivanvaladares/node-suggestive-search/
 by Ivan Valadares 
 http://ivanvaladares.com 
@@ -414,7 +415,6 @@ const NodeSuggestiveSearch = class {
 
 			}
 
-
 			let results = await this._db.findWords({ $or: queryCriteria }).then(foundWords => {
 
 				if (foundWords && foundWords.length > 0) {
@@ -448,7 +448,7 @@ const NodeSuggestiveSearch = class {
 				});
 			}
 
-			cache.put("_getWordsFromSoundexAndParts" + word, results, 10000);
+			cache.put("_getWordsFromSoundexAndParts" + word, results, 60000);
 
 			resolve(results);
 		});
@@ -459,10 +459,10 @@ const NodeSuggestiveSearch = class {
 
 		let promises = arrWords.map(word => {
 			
-			return new Promise((resolve, reject) => {
+			return new Promise(resolve => {
 
 				//try to find the exact word in our dictionary
-				this._db.findWords({ cleanWord: word.toLowerCase().latinize() }).then(foundWords => {
+				return this._db.findWords({ cleanWord: word.toLowerCase().latinize() }).then(foundWords => {
 
 					if (!foundWords || foundWords.length <= 0) {
 
@@ -483,8 +483,6 @@ const NodeSuggestiveSearch = class {
 
 					}
 
-				}).catch(err => {
-					reject(err);
 				});
 
 			});
@@ -496,7 +494,7 @@ const NodeSuggestiveSearch = class {
 
 	_getWordsStartingWith (word, limit) {
 
-		return new Promise((resolve, reject) => {
+		return new Promise(resolve => {
 
 			let queryCriteria = {};
 			let hasCriteria = false;
@@ -519,7 +517,7 @@ const NodeSuggestiveSearch = class {
 			}
 
 			//execute the query
-			this._db.findWords(queryCriteria).then(foundWords => {
+			return this._db.findWords(queryCriteria).then(foundWords => {
 
 				if (foundWords.length > 0) {
 
@@ -545,8 +543,6 @@ const NodeSuggestiveSearch = class {
 
 				}
 
-			}).catch(err => {
-				reject(err);
 			});
 
 		});
@@ -590,9 +586,8 @@ const NodeSuggestiveSearch = class {
 			let wordsArray = [];			
 			let objWords = {};
 
-			this._db.cleanDatabase().then(() => {		
+			return this._db.cleanDatabase().then(() => {		
 				
-
 				itemsJson.map(item => {
 
 					try {
@@ -604,7 +599,7 @@ const NodeSuggestiveSearch = class {
 				});
 
 				//insert all items in the database
-				this._db.insertItem(itemsArray).then(itemsInserted => {
+				return this._db.insertItem(itemsArray).then(itemsInserted => {
 
 					itemsInserted.map(itemObject => {
 
@@ -638,7 +633,7 @@ const NodeSuggestiveSearch = class {
 					}
 
 					//insert all words at once in database
-					this._db.insertWord(wordsArray).then(() => {
+					return this._db.insertWord(wordsArray).then(() => {
 
 						//let the database create the indexes but don't wait for it
 						this._db.createIndexes();
@@ -646,16 +641,10 @@ const NodeSuggestiveSearch = class {
 						//return some information about this process
 						resolve({ words: wordsArray.length });
 
-					}).catch(err => {
-						reject(err);
 					});					
 
-				}).catch(err => {
-					reject(err);
 				});
 
-			}).catch(err => {
-				reject(err);
 			});						
 
 		});
@@ -696,11 +685,11 @@ const NodeSuggestiveSearch = class {
 
 		cache.clear();
 
-		return new Promise((resolve, reject) => {
+		return new Promise(resolve => {
 
 			let time = this._clock();
 
-			this._db.findItems({ itemId }).then(existingItem => {
+			return this._db.findItems({ itemId }).then(existingItem => {
 
 				if (!existingItem || existingItem.length <= 0) {
 					return resolve({ timeElapsed: this._clock(time) });
@@ -709,16 +698,16 @@ const NodeSuggestiveSearch = class {
 				let arrWords = this._splitWords(existingItem[0].itemName);
 
 				//remove item from items dictionary
-				this._db.removeItem({ itemId }).then(() => {
+				return this._db.removeItem({ itemId }).then(() => {
 
 
 					//make a promise for each word and create an array of promises
 					let promises = arrWords.map(word => {
 
-						return new Promise((resolve, reject) => {
+						return new Promise(resolve => {
 
 							//try to find the exact word in our dictionary
-							this._db.findWords({ cleanWord: word.toLowerCase().latinize() }).then(foundWords => {
+							return this._db.findWords({ cleanWord: word.toLowerCase().latinize() }).then(foundWords => {
 
 								if (foundWords === null || foundWords.length <= 0) {
 
@@ -730,15 +719,13 @@ const NodeSuggestiveSearch = class {
 
 								}
 
-							}).catch(err => {
-								reject(err);
 							});
 
 						});
 
 					});
 
-					Promise.all(promises).then(promiseFoundWords => {
+					return Promise.all(promises).then(promiseFoundWords => {
 
 						let innerPromises = [];
 
@@ -754,11 +741,9 @@ const NodeSuggestiveSearch = class {
 								if (word.items === undefined || word.items.length <= 0) {
 
 									//remove this word from the database because it does not have any more items associated with it
-									let innerPromise = new Promise((resolve, reject) => {
-										this._db.removeWord({ cleanWord: word.cleanWord }).then(numRemoved => {
+									let innerPromise = new Promise(resolve => {
+										return this._db.removeWord({ cleanWord: word.cleanWord }).then(numRemoved => {
 											resolve(numRemoved);
-										}).catch(err => {
-											reject(err);
 										});
 									});
 
@@ -768,7 +753,7 @@ const NodeSuggestiveSearch = class {
 
 									//update this word 
 									let innerPromise = new Promise((resolve)  => {
-										this._db.findItems({ itemId: { $in: word.items } }).then(foundItems => {
+										return this._db.findItems({ itemId: { $in: word.items } }).then(foundItems => {
 										
 											let wordStillInUse = false;
 
@@ -797,14 +782,9 @@ const NodeSuggestiveSearch = class {
 												});
 											}
 
-											this._db.updateWord(word.cleanWord, word.items, word.words).then(numReplaced => {
+											return this._db.updateWord(word.cleanWord, word.items, word.words).then(numReplaced => {
 												resolve(numReplaced);
-											}).catch(err => {
-												reject(err);
 											});
-					
-										}).catch(err => {
-											reject(err);
 										});
 									});
 
@@ -814,26 +794,17 @@ const NodeSuggestiveSearch = class {
 							});
 						});
 
-						Promise.all(innerPromises).then(() => {
-							//todo: test if any operation had failed 
+						return Promise.all(innerPromises).then(() => {
+							//todo: test if any operation had fail
 
 							//return some information about this process
 							resolve({ timeElapsed: this._clock(time) });
-
-						}).catch(err => {
-							reject(err);
 						});
 
-					}).catch(err => {
-						reject(err);
 					});
 
-				}).catch(err => {
-					reject(err);
 				});
 
-			}).catch(err => {
-				reject(err);
 			});
 
 		});
@@ -865,10 +836,10 @@ const NodeSuggestiveSearch = class {
 				return reject(err);
 			}
 			
-			this.removeItem(itemObject.itemId).then(() => {
+			return this.removeItem(itemObject.itemId).then(() => {
 				
 				//insert item into items dictionary
-				this._db.insertItem([itemObject]).then(insertedItem => {
+				return this._db.insertItem([itemObject]).then(insertedItem => {
 
 					itemObject = insertedItem[0];
 
@@ -890,10 +861,10 @@ const NodeSuggestiveSearch = class {
 					//make a promise for each word and create an array of promises
 					let promises = arrWords.map(word => {
 
-						return new Promise((resolve, reject) => {
+						return new Promise(resolve => {
 
 							//try to find the exact word in our dictionary
-							this._db.findWords({ cleanWord: word.toLowerCase().latinize() }).then(foundWord => {
+							return this._db.findWords({ cleanWord: word.toLowerCase().latinize() }).then(foundWord => {
 
 								if (!foundWord || foundWord.length <= 0) {
 
@@ -916,8 +887,6 @@ const NodeSuggestiveSearch = class {
 									resolve(true);
 								}
 
-							}).catch(err => {
-								reject(err);
 							});
 
 						});
@@ -925,7 +894,7 @@ const NodeSuggestiveSearch = class {
 					});
 
 					//now, lets resolve all promises from the array of promises
-					Promise.all(promises).then(() => {
+					return Promise.all(promises).then(() => {
 
 						let wordsArray = [];			
 						//create a database compatible JSON array from the above dictionary
@@ -939,11 +908,9 @@ const NodeSuggestiveSearch = class {
 						let insertAndUpdatePromises = [];
 						
 						insertAndUpdatePromises.push(
-							new Promise((resolve, reject) => {
-								this._db.insertWord(wordsArray).then(() => {
+							new Promise(resolve => {
+								return this._db.insertWord(wordsArray).then(() => {
 									resolve();
-								}).catch(err => {
-									reject(err);
 								});
 							})
 						);
@@ -952,36 +919,25 @@ const NodeSuggestiveSearch = class {
 							foundWords.map(word => {
 
 								//send it back to the database
-								return new Promise((resolve, reject) => {  
-									this._db.updateWord(word.cleanWord, word.items, word.words).then(() => {
+								return new Promise(resolve => {  
+									return this._db.updateWord(word.cleanWord, word.items, word.words).then(() => {
 										resolve(true);
-									}).catch(err => {
-										reject(err);
 									});
 								});
 
 							})
 						);
 
-						Promise.all(insertAndUpdatePromises).then(() => {
+						return Promise.all(insertAndUpdatePromises).then(() => {
 							
 							//return some information about this process
 							resolve({ timeElapsed: this._clock(time) });
-
-						}).catch(err => {
-							reject(err);
 						});
 
-					}).catch(err => {
-						reject(err);
 					});
 
-				}).catch(err => {
-					reject(err);
 				});
 
-			}).catch(() => {
-				return reject(new Error("Could not insert this item!"));
 			});
 
 		});
@@ -1020,7 +976,7 @@ const NodeSuggestiveSearch = class {
 				}
 
 				//from the items, lets extract our dictionary 
-				this._populateDatabase(itemsJson, itemId, itemName, keywords).then(information => {
+				return this._populateDatabase(itemsJson, itemId, itemName, keywords).then(information => {
 
 					information.items = itemsJson.length;
 					information.timeElapsed = this._clock(time);
@@ -1028,8 +984,6 @@ const NodeSuggestiveSearch = class {
 					//return some information about this process
 					resolve(information);
 
-				}).catch(err => {
-					reject(err);
 				});
 
 			});
@@ -1067,16 +1021,13 @@ const NodeSuggestiveSearch = class {
 			}
 
 			//from the items, lets extract our dictionary 
-			this._populateDatabase(itemsJson, itemId, itemName, keywords).then(information => {
+			return this._populateDatabase(itemsJson, itemId, itemName, keywords).then(information => {
 
 				information.items = itemsJson.length;
 				information.timeElapsed = this._clock(time);
 
 				//return some information about this process
 				resolve(information);
-
-			}).catch(err => {
-				reject(err);
 			});
 
 		});
@@ -1117,15 +1068,14 @@ const NodeSuggestiveSearch = class {
 
 				arrDictionary.push([{ word }]);
 
-				return new Promise((resolve, reject) => {
+				return new Promise(resolve => {
 
-					this._db.findWords({ cleanWord: word.toLowerCase().latinize() }).then(foundWord => {
+					return this._db.findWords({ cleanWord: word.toLowerCase().latinize() }).then(foundWord => {
 						resolve({ word, items: foundWord.length > 0 ? foundWord[0].items : [] });
-					}).catch(err => {
-						reject(err);
 					});
 
 				});
+
 			});
 
 			//check if all words have intersect items
@@ -1347,7 +1297,7 @@ const NodeSuggestiveSearch = class {
 
 			if ((quotedStrings !== null && quotedStrings.length > 0) || returnItemsJson === true){
 
-				this._db.findItems({ itemId: { $in: arrItemsIds } }).then(foundItems => {
+				return this._db.findItems({ itemId: { $in: arrItemsIds } }).then(foundItems => {
 
 					let filteredItems = [];
 
@@ -1427,17 +1377,16 @@ const NodeSuggestiveSearch = class {
 					}
 
 					response.timeElapsed = this._clock(time);
+
 					resolve(response);
-							
-				}).catch(err => {
-					reject(err);
+
 				});
 
 			}else{
 
 				response.itemsId = arrItemsIds;
-
 				response.timeElapsed = this._clock(time);
+
 				resolve(response);
 			}
 
@@ -1478,7 +1427,7 @@ const NodeSuggestiveSearch = class {
 			if (arrWords.length == 1 && words.indexOf(" ") == -1) {
 
 				//try to get more words like this one. Limit 5
-				this._getWordsStartingWith(arrWords[0], 5).then(queryResponse => {
+				return this._getWordsStartingWith(arrWords[0], 5).then(queryResponse => {
 
 					let arrResponse = [];
 
@@ -1510,17 +1459,13 @@ const NodeSuggestiveSearch = class {
 
 					//if there is only one result, call again to get more suggestions
 					if (arrResponse.length == 1 &&  arguments.length == 1){
-						this.getSuggestedWords(arrResponse[0] + " ", time).then(moreResults => {
+						return this.getSuggestedWords(arrResponse[0] + " ", time).then(moreResults => {
 							resolve(moreResults);
-						}).catch(err => {
-							reject(err);
 						});
 					}else{
 						resolve({ suggestions: arrResponse, timeElapsed: this._clock(time) });
-					}					
+					}
 
-				}).catch(err => {
-					reject(err);
 				});
 
 			} else { //one word with space at the end or more words came from the query.
@@ -1529,7 +1474,7 @@ const NodeSuggestiveSearch = class {
 				let promises = this._getWordsFromCleanWords(arrWords.slice(0, arrWords.length - 1));
 				
 				//now, lets resolve all promises from the array of promises
-				Promise.all(promises).then(foundWords => {
+				return Promise.all(promises).then(foundWords => {
 
 					let previousWords = "";
 
@@ -1564,7 +1509,7 @@ const NodeSuggestiveSearch = class {
 						objResponse[el.toLowerCase().latinize()] = 1;
 					});
 
-					this._db.findItems({ itemId: { $in: arrItemsIds.slice(0, 1000) } }).then(othersItems => {
+					return this._db.findItems({ itemId: { $in: arrItemsIds.slice(0, 1000) } }).then(othersItems => {
 
 						//get all item's names from items returned from query and create a relatedWords dictionary
 						let objRelatedWords = {};
@@ -1631,26 +1576,17 @@ const NodeSuggestiveSearch = class {
 
 						//if there is only one result, call again to get more suggestions
 						if (arrResponse.length == 1 &&  arguments.length == 1){
-							this.getSuggestedWords(arrResponse[0] + " ", time).then(moreResults => {
+							return this.getSuggestedWords(arrResponse[0] + " ", time).then(moreResults => {
 								resolve(moreResults);
-							}).catch(err => {
-								reject(err);
 							});
 						}else{
 							resolve({ suggestions: arrResponse, timeElapsed: this._clock(time) });
 						}
 
-					}).catch(err => {
-						reject(err);
 					});
-
-				}).catch(err => {
-					reject(err);
 				});
 			}
-
 		});
-
 	}
 
 	/**
@@ -1698,7 +1634,7 @@ const NodeSuggestiveSearch = class {
 			if (arrWords.length == 1) {
 
 				//try to get more words like this one. Limit 5
-				this._getWordsStartingWith(arrWords[0], 10).then(queryResponse => {
+				return this._getWordsStartingWith(arrWords[0], 10).then(queryResponse => {
 
 					let arrItemsIds = [];
 
@@ -1711,7 +1647,7 @@ const NodeSuggestiveSearch = class {
 					//remove duplications
 					arrItemsIds = _.uniq(arrItemsIds);					
 
-					this._db.findItems({ itemId: { $in: arrItemsIds } }).then(foundItems => {
+					return this._db.findItems({ itemId: { $in: arrItemsIds } }).then(foundItems => {
 
 						let arrResponse = [];
 						if (foundItems !== null) {
@@ -1726,12 +1662,8 @@ const NodeSuggestiveSearch = class {
 
 						return resolve({ items: arrResponse, timeElapsed: this._clock(time) });
 
-					}).catch(err => {
-						reject(err);
 					});
 
-				}).catch(err => {
-					reject(err);
 				});
 
 			} else { //two or more words came from the query.
@@ -1740,7 +1672,7 @@ const NodeSuggestiveSearch = class {
 				let promises = this._getWordsFromCleanWords(arrWords.slice(0, arrWords.length - 1));
 
 				//now, lets resolve all promises from the array of promises
-				Promise.all(promises).then(foundWords => {
+				return Promise.all(promises).then(foundWords => {
 					
 					//test if all words exists
 					for (let index in foundWords) {
@@ -1761,7 +1693,7 @@ const NodeSuggestiveSearch = class {
 						return resolve({ items: [], timeElapsed: this._clock(time) });
 					}
 
-					this._db.findItems({ itemId: { $in: arrItemsIds } }).then(foundItems => {
+					return this._db.findItems({ itemId: { $in: arrItemsIds } }).then(foundItems => {
 
 						let arrResponse = [];
 						let lastWord = arrWords[arrWords.length - 1].toLowerCase().latinize();
@@ -1801,12 +1733,8 @@ const NodeSuggestiveSearch = class {
 
 						resolve({ items: arrResponse, timeElapsed: this._clock(time) });
 
-					}).catch(err => {
-						reject(err);
 					});
-					
-				}).catch(err => {
-					reject(err);
+
 				});
 
 			}
