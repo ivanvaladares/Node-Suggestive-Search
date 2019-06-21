@@ -2,7 +2,7 @@
 /* eslint-disable no-await-in-loop */
 /* eslint-disable node/no-unsupported-features */
 /*
-node-suggestive-search v1.9.9
+node-suggestive-search v1.9.10
 https://github.com/ivanvaladares/node-suggestive-search/
 by Ivan Valadares 
 http://ivanvaladares.com 
@@ -57,7 +57,7 @@ const NodeSuggestiveSearch = class {
 		this._db.on("error", (err) => {
 			this.emit("error", err);
 		});
-		
+
 		return this;
 	}
 
@@ -255,6 +255,10 @@ const NodeSuggestiveSearch = class {
 	}
 
 	_intersection (arrays) {
+
+		if (_.some(arrays, {length: 0})) {
+			return [];
+		}
 		
 		let output = [];
 		let cntObj = {};
@@ -274,18 +278,20 @@ const NodeSuggestiveSearch = class {
 			}
 		}
 
-		return(output);
+		return output;
 	}
 
 	_powerSet (array) {
-		//todo: not good when dealign with several entries... must improve this... sampling maybe
 		let result = [];
+		let rounds = 1; 
+		let maxRounds = array.length * 10 / 2; //todo: have to test this more carefully
 
 		const fork = (i, t) => {
-			if (i === array.length) {
+			if (i === array.length || rounds > maxRounds) {
 				result.push(t);
 				return;
 			}
+			rounds++;
 			fork(i + 1, t.concat([array[i]]));
 			fork(i + 1, t);
 		};
