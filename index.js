@@ -2,7 +2,7 @@
 /* eslint-disable no-await-in-loop */
 /* eslint-disable node/no-unsupported-features */
 /*
-node-suggestive-search v1.9.8
+node-suggestive-search v1.9.9
 https://github.com/ivanvaladares/node-suggestive-search/
 by Ivan Valadares 
 http://ivanvaladares.com 
@@ -16,6 +16,7 @@ const fs = require('fs');
 const util = require('util');
 const _ = require('lodash');
 const cache = require('memory-cache');
+const JSONStream = require('JSONStream');
 const EventEmitter = require('events');
 
 
@@ -56,7 +57,7 @@ const NodeSuggestiveSearch = class {
 		this._db.on("error", (err) => {
 			this.emit("error", err);
 		});
-
+		
 		return this;
 	}
 
@@ -120,12 +121,11 @@ const NodeSuggestiveSearch = class {
 					longer = wordToCompare;
 					shorter = word;
 				}
-				let longerLength = longer.length;
-				if (longerLength === 0) {
-					return 1;
+				if (longer.length === 0) {
+					return;
 				}
 	
-				similarity = (longerLength - this._editDistance(longer, shorter)) / parseFloat(longerLength);
+				similarity = (longer.length - this._editDistance(longer, shorter)) / parseFloat(longer.length);
 	
 				if (word.toLowerCase().indexOf(wordToCompare.toLowerCase()) === 0){
 					similarity += 1 / (word.length / wordToCompare.length); //todo: have to test this more carefully
@@ -181,7 +181,7 @@ const NodeSuggestiveSearch = class {
 
 		//validate json object
 		if (itemJson[itemId] === undefined || itemJson[itemName] === undefined){
-			throw new Error('Item must have itemId and itemName!');
+			throw new Error('Item must have at least itemId and itemName!');
 		}
 
 		let objItem = {};
@@ -225,7 +225,7 @@ const NodeSuggestiveSearch = class {
 				text = text.replace(item, '');
 				return item;
 			});
-			words = words.concat(dates);			
+			words = words.concat(dates);
 		}
 
 		//do not split numbers with comma or points separators, followed or not by a measurement unit. ex: 1.5 or 1.5L or 1,5ml
@@ -370,7 +370,7 @@ const NodeSuggestiveSearch = class {
 					continue;
 				}
 
-				let arr = _.intersection(wordItem.results[i].items, finalWordItems.itemsIds);
+				let arr = this._intersection([wordItem.results[i].items, finalWordItems.itemsIds]);
 		
 				if (arr.length > 0){	
 					wordItem.results = wordItem.results[i];
@@ -970,18 +970,15 @@ const NodeSuggestiveSearch = class {
 		return new Promise((resolve, reject) => {
 
 			let time = this._clock();
+			let itemsJson = [];
+			let transformStream = JSONStream.parse("*");
+			let inputStream = fs.createReadStream(jSonFilePath, charset);
 
-			let itemsJson = null;
-
-			//get the file from the path
-			fs.readFile(jSonFilePath, charset, (err, data) => {
-				if (err) return reject(err);
-
-				try {
-					itemsJson = JSON.parse(data);
-				} catch (err) {
-					return reject(err);	
-				}
+			inputStream.pipe(transformStream)
+			.on("data", data => {
+				itemsJson.push(data);
+			})
+			.on("end", () => {
 
 				//from the items, lets extract our dictionary 
 				return this._populateDatabase(itemsJson, itemId, itemName, keywords).then(information => {
@@ -994,6 +991,9 @@ const NodeSuggestiveSearch = class {
 
 				});
 
+			}).on("error", (err) => {
+				itemsJson = null;
+				return reject(err);	
 			});
 
 		});
