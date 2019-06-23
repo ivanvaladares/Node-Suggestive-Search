@@ -48,6 +48,10 @@ describe('Test test.json -', () => {
         });
     });
 
+    after(() => {
+        nss.destroy();
+    });
+
     it('load json file test.json with 6 items and 18 words', () => {
         return nss.loadJson("test/test.json")
             .then(data => {
@@ -107,9 +111,9 @@ describe('Test test.json -', () => {
                 assert(
                     data != null &&
                     data.words.length == 3 &&
-                    data.words[0] == "WHISKY" &&
-                    data.words[1] == "RED" &&
-                    data.words[2] == "LABEL" &&
+                    data.words[0] == "whisky" &&
+                    data.words[1] == "red" &&
+                    data.words[2] == "label" &&
                     data.missingWords.length == 3 &&
                     data.missingWords[0] == "wisk" && 
                     data.missingWords[1] == "read" && 
@@ -454,12 +458,12 @@ describe('Test test.json -', () => {
 
     it('get words suggestions for: lab', () => {
         return nss.getSuggestedWords("lab")
-            .then(data => {                            
+            .then(data => {
                 assert(
                     data != null &&
                     data.suggestions.length == 2 &&
-                    data.suggestions.indexOf("LABEL") >= 0  &&
-                    data.suggestions.indexOf("LABELY") >= 0,
+                    data.suggestions.indexOf("label") >= 0  &&
+                    data.suggestions.indexOf("labely") >= 0,
                     "Error on get words suggestions for: lab"
                 );
             });
@@ -471,10 +475,10 @@ describe('Test test.json -', () => {
                 assert(
                     data != null &&
                     data.suggestions.length == 4 &&
-                    data.suggestions.indexOf("WHISKY fancy") >= 0 &&
-                    data.suggestions.indexOf("WHISKY LABEL")  >= 0 &&
-                    data.suggestions.indexOf("WHISKY RED")  >= 0 &&
-                    data.suggestions.indexOf("WHISKY BLACK") >= 0,
+                    data.suggestions.indexOf("whisky fancy") >= 0 &&
+                    data.suggestions.indexOf("whisky label")  >= 0 &&
+                    data.suggestions.indexOf("whisky red")  >= 0 &&
+                    data.suggestions.indexOf("whisky black") >= 0,
                     "Error on get words suggestions for: lab"
                 );
             });

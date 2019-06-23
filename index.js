@@ -2,7 +2,7 @@
 /* eslint-disable no-await-in-loop */
 /* eslint-disable node/no-unsupported-features */
 /*
-node-suggestive-search v1.9.10
+node-suggestive-search v1.9.11
 https://github.com/ivanvaladares/node-suggestive-search/
 by Ivan Valadares 
 http://ivanvaladares.com 
@@ -38,9 +38,9 @@ const NodeSuggestiveSearch = class {
 		this._options = options;
 
 		if (options !== undefined && options.dataBase !== undefined){
-			if (options.dataBase.toLowerCase() == "mongodb" || 
-				options.dataBase.toLowerCase() == "nedb" || 
-				options.dataBase.toLowerCase() == "redis") {
+			if (options.dataBase.toLowerCase() === "mongodb" || 
+				options.dataBase.toLowerCase() === "nedb" || 
+				options.dataBase.toLowerCase() === "redis") {
 				this._db = require(`./plugins/${options.dataBase.toLowerCase()}.js`).init(options);
 			} else {
 				throw new Error("This module requires MongoDB, Redis or NeDB!");
@@ -87,7 +87,7 @@ const NodeSuggestiveSearch = class {
 		for (let i = 0; i <= s1.length; i++) {
 			let lastValue = i;
 			for (let j = 0; j <= s2.length; j++) {
-				if (i == 0){
+				if (i === 0){
 					costs[j] = j;
 				} else {
 					if (j > 0) {
@@ -161,7 +161,7 @@ const NodeSuggestiveSearch = class {
 		].join("").substr(0, 4);
 
 		return string +
-			(string.length == 4 ? "" : (new Array(5 - string.length)).join("0"));
+			(string.length === 4 ? "" : (new Array(5 - string.length)).join("0"));
 	}
 
 	_createWordObject (word) {
@@ -266,7 +266,7 @@ const NodeSuggestiveSearch = class {
 		arrays.map((array, i) => {
 			array.map(item => {
 				let cnt = cntObj[item] || 0;
-				if (cnt == i) {
+				if (cnt === i) {
 					cntObj[item] = cnt + 1;
 				}
 			});
@@ -390,6 +390,37 @@ const NodeSuggestiveSearch = class {
 			//did not find itemsId for this words, go to the next
 			return this._matchWordsByItemsIds(wordItems, finalWordItems);
 
+		}
+
+	}
+
+	_copyWritingStyle (original, copy) {
+
+		let style = "original"; 
+		let firstUpper = original[0] === original[0].toUpperCase();
+		let secondUpper = original.length > 1 && original[1] === original[1].toUpperCase();
+  
+		if (firstUpper && secondUpper){
+			style = "upper";
+		}else{
+			if (!firstUpper && !secondUpper){
+				style = "lower";
+			}else{
+				if (firstUpper && !secondUpper){
+					style = "capitalized";
+				}
+			}
+		}
+  
+		switch (style) {
+			case "upper":
+				return copy.toUpperCase();
+			case "lower":
+				return copy.toLowerCase();
+			case "capitalized":
+				return copy.charAt(0).toUpperCase() + copy.slice(1).toLowerCase();
+			default:
+				return copy;
 		}
 
 	}
@@ -540,7 +571,7 @@ const NodeSuggestiveSearch = class {
 						foundWords.filter(objWord => {
 							//todo: check this oportunity to return different accents
 							this._setWordAndSimilarity(objWord, word);
-							return objWord.cleanWord.toLowerCase().indexOf(cleanWord.toLowerCase()) == 0;
+							return objWord.cleanWord.toLowerCase().indexOf(cleanWord.toLowerCase()) === 0;
 						}).sort((x, y) => {
 							if (x.word.length > y.word.length) {
 								return 1;
@@ -1154,7 +1185,7 @@ const NodeSuggestiveSearch = class {
 								const element = arrDictionary[i].results[x];
 	
 								if (this._intersection([arrItemsIds, element.items]).length > 0) {
-									tempResult[i].word = element.word;
+									tempResult[i].word = this._copyWritingStyle(arrDictionary[i].word, element.word);
 									tempResult[i].items = element.items;
 									sair = false;
 									break;
@@ -1199,7 +1230,7 @@ const NodeSuggestiveSearch = class {
 				// if the user is searching with just one word, and we have at least one result, return from here
 				if (arrDictionary.length === 1 && arrDictionary[0].results && arrDictionary[0].results[0]) {
 
-					response.words.push(arrDictionary[0].results[0].word);
+					response.words.push(this._copyWritingStyle(arrWords[0], arrDictionary[0].results[0].word));
 					arrItemsIds = arrDictionary[0].results[0].items;
 
 				} else {
@@ -1241,7 +1272,7 @@ const NodeSuggestiveSearch = class {
 							response.missingWords = [];
 
 							arrItems = element.map((word, j) => {
-								response.words.push(word);
+								response.words.push(this._copyWritingStyle(arrDictionary[j].word, word));
 								let arr = _.find(arrDictionary[j].results, { 'word': word });
 								return arr.items;
 							});
@@ -1283,7 +1314,7 @@ const NodeSuggestiveSearch = class {
 						response.missingWords = [];
 
 						let arrItems = indexes.map(d => {
-							response.words.push(arrDictionary[d].results[0].word);
+							response.words.push(this._copyWritingStyle(arrDictionary[d].word, arrDictionary[d].results[0].word));
 							return arrDictionary[d].results[0].items;
 						});
 					
@@ -1328,7 +1359,7 @@ const NodeSuggestiveSearch = class {
 					response.missingWords = [];
 				
 					let arrItems = indexes.map(d => {
-						response.words.push(arrDictionary[d].results[0].word);
+						response.words.push(this._copyWritingStyle(arrDictionary[d].word, arrDictionary[d].results[0].word));
 						return arrDictionary[d].results[0].items;
 					});
 				
@@ -1476,7 +1507,7 @@ const NodeSuggestiveSearch = class {
 
 			let arrWords = this._splitWords(words);
 
-			if (words.lastIndexOf(" ") == words.length - 1) {
+			if (words.lastIndexOf(" ") === words.length - 1) {
 				arrWords.push("");
 			}
 
@@ -1485,7 +1516,7 @@ const NodeSuggestiveSearch = class {
 			}
 			
 			//only one word came from query and no space at the end
-			if (arrWords.length == 1 && words.indexOf(" ") == -1) {
+			if (arrWords.length === 1 && words.indexOf(" ") === -1) {
 
 				//try to get more words like this one. Limit 5
 				return this._getWordsStartingWith(arrWords[0], 5).then(queryResponse => {
@@ -1494,7 +1525,7 @@ const NodeSuggestiveSearch = class {
 
 					if (queryResponse !== null) {
 						for (let index = 0; index < queryResponse.length; index++) {
-							arrResponse.push(queryResponse[index].word);
+							arrResponse.push(this._copyWritingStyle(arrWords[0], queryResponse[index].word));
 						}
 					}
 
@@ -1519,7 +1550,7 @@ const NodeSuggestiveSearch = class {
 					});
 
 					//if there is only one result, call again to get more suggestions
-					if (arrResponse.length == 1 &&  arguments.length == 1){
+					if (arrResponse.length === 1 && arguments.length === 1){
 						return this.getSuggestedWords(arrResponse[0] + " ", time).then(moreResults => {
 							resolve(moreResults);
 						});
@@ -1546,7 +1577,7 @@ const NodeSuggestiveSearch = class {
 							return resolve({ suggestions: [], timeElapsed: this._clock(time) });
 						}
 
-						previousWords += foundWords[index].word + " ";
+						previousWords += this._copyWritingStyle(arrWords[index], foundWords[index].word) + " ";
 					}
 
 					previousWords = previousWords.trim();
@@ -1585,7 +1616,7 @@ const NodeSuggestiveSearch = class {
 							for (let y = 0; y < arrItemWords.length; y++){
 								let word = arrItemWords[y];
 
-								if (lastWord === "" || word.toLowerCase().latinize().indexOf(lastWord) == 0){
+								if (lastWord === "" || word.toLowerCase().latinize().indexOf(lastWord) === 0){
 									if (objRelatedWords[word] !== undefined && typeof objRelatedWords[word] === "string") {
 										objRelatedWords[word]++;
 									} else {
@@ -1628,7 +1659,9 @@ const NodeSuggestiveSearch = class {
 							//todo: filter words that begins with numbers and stopwords if we have others results to show
 							
 							for (let index = 0; index < relatedWords.length && index < 5; index++) {
-								arrResponse.push(previousWords + " " + relatedWords[index].word);
+								arrResponse.push(previousWords + " " + 
+												this._copyWritingStyle(arrWords[arrWords.length - 1] !== "" 
+														? arrWords[arrWords.length - 1] : arrWords[arrWords.length - 2], relatedWords[index].word));
 							}
 
 						}else{
@@ -1636,9 +1669,10 @@ const NodeSuggestiveSearch = class {
 						}
 
 						//if there is only one result, call again to get more suggestions
-						if (arrResponse.length == 1 &&  arguments.length == 1){
+						if (arrResponse.length === 1 &&  arguments.length === 1){
 							return this.getSuggestedWords(arrResponse[0] + " ", time).then(moreResults => {
 								resolve(moreResults);
+								console.log(arrResponse[0])
 							});
 						}else{
 							resolve({ suggestions: arrResponse, timeElapsed: this._clock(time) });
@@ -1692,7 +1726,7 @@ const NodeSuggestiveSearch = class {
 
 
 			//only one word came from query
-			if (arrWords.length == 1) {
+			if (arrWords.length === 1) {
 
 				//try to get more words like this one. Limit 5
 				return this._getWordsStartingWith(arrWords[0], 10).then(queryResponse => {
@@ -1775,7 +1809,7 @@ const NodeSuggestiveSearch = class {
 								//the rest of the words will be compared with the last words from the query
 								let foundLast = false;
 								for (let y = 0; y < arrItemWords.length; y++){
-									if (arrItemWords[y].toLowerCase().latinize().indexOf(lastWord) == 0){
+									if (arrItemWords[y].toLowerCase().latinize().indexOf(lastWord) === 0){
 										foundLast = true;
 										break;
 									}
@@ -1802,6 +1836,12 @@ const NodeSuggestiveSearch = class {
 
 		});
 
+	}
+
+	destroy () {
+		cache.clear();
+		this._db = null;
+		this._initialized = false;
 	}
 };
 	

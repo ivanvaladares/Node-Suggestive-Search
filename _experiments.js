@@ -291,80 +291,87 @@ let items = [
 //     } 
 // }
 
-// nss.on("initialized", async () => {
-
-//     await nss.loadJson("./test/produtos.json");
-//     let q;
-
-//     // q = await nss.query("wisk red label");
-//     // console.log(q);
-
-//     q = await nss.query("BLACK red label");
-//     console.log(q);
-
-//     // q = await nss.query("abjabajbajba coca cola refri");
-//     // console.log(q);
-
-//     // q = await nss.query("REFRIGERANTE coca-xola 'EMBALAGEM COM 6 UNIDADES'");
-//     // console.log(q);
-
-//     await nss.query("x-14");
-//     await nss.query("REFRIGERANTE coca-xola 'EMBALAGEM COM 6 UNIDADES'");
-//     await nss.query("coca abjabajbajba");
-//     await nss.query("coca abjabajbajba cola");
-//     await nss.query("coca cola abjabajbajba");
-//     await nss.query("coca cola abjabajbajba refri");
-//     await nss.query("abjabajbajba coca cola refri");
-//     await nss.query("coffee");
-//     await nss.query("whisky red label");
-//     await nss.query("black red label");
-//     await nss.query("\"whisky label\"");
-//     await nss.query("\"red label\"");
-//     await nss.query("'label red'");
-//     await nss.query("DANIELS");
-//     await nss.query("DANIEL`S");
-//     await nss.query("wisky read labl");
-//     await nss.removeItem("29852");
-//     await nss.query("absolut");
-//     await nss.getSuggestedWords("vinh");
-//     await nss.getSuggestedWords("vinho ");
-//     await nss.getSuggestedItems("frascat");
-//     await nss.getSuggestedItems("frascati br");
-//     await nss.getSuggestedItems("whisky");
-//     await nss.getSuggestedItems("whisky re");
-
-//     console.log(" done ");
-
-// });
-
-
 nss.on("initialized", async () => {
 
-    try {
+    await nss.loadJson("./test/produtos.json");
+    let q;
 
-        await nss.loadJson("./test/names.json");
+    // q = await nss.query("wIsk");
+    // console.log(q);
 
-        await nss.getSuggestedWords("ivan v");
+    // q = await nss.query("BLACK red label");
+    // console.log(q);
 
-        let q = await nss.getSuggestedItems("ivan v");
+    // q = await nss.query("abjabajbajba Coca Cola refri");
+    // console.log(q);
 
-        console.log(q);
+    // q = await nss.query("refrigerante Coca-Xola 'EMBALAGEM COM 6 UNIDADES'");
+    // console.log(q);
 
-        await nss.query("ivan valadares");
-        await nss.query("VICHI");
-        await nss.query("VICHI");
-        await nss.query("\"EDUARDO VICHI\"");
-        await nss.query("VICHI");
-        await nss.query("absolut");
-        await nss.query("ivan consentino valadares");
-        await nss.getSuggestedWords("ivan v");
-        await nss.getSuggestedItems("ivan v");
-        await nss.query("ivam valadar");
+    q = await nss.query("Coca-Xola lata");
+    console.log(q);    
 
-    } catch (error) {
-        console.log(error);
-    }
-
+    // await nss.query("x-14");
+    // await nss.query("REFRIGERANTE coca-xola 'EMBALAGEM COM 6 UNIDADES'");
+    // await nss.query("coca abjabajbajba");
+    // await nss.query("coca abjabajbajba cola");
+    // await nss.query("coca cola abjabajbajba");
+    // await nss.query("coca cola abjabajbajba refri");
+    // await nss.query("abjabajbajba coca cola refri");
+    // await nss.query("coffee");
+    // await nss.query("whisky red label");
+    // await nss.query("black red label");
+    // await nss.query("\"whisky label\"");
+    // await nss.query("\"red label\"");
+    // await nss.query("'label red'");
+    // await nss.query("DANIELS");
+    // await nss.query("DANIEL`S");
+    // await nss.query("wisky read labl");
+    // await nss.removeItem("29852");
+    // await nss.query("absolut");
+    // await nss.getSuggestedWords("vinh");
+    // await nss.getSuggestedWords("vinho ");
+    // await nss.getSuggestedItems("frascat");
+    // await nss.getSuggestedItems("frascati br");
+    // await nss.getSuggestedItems("whisky");
+    // await nss.getSuggestedItems("whisky re");
 
     console.log(" done ");
+
+    nss.destroy();
+
 });
+
+
+// nss.on("initialized", async () => {
+
+//     try {
+
+//         await nss.loadJson("./test/names.json");
+
+//         await nss.getSuggestedWords("ivan v");
+
+//         let q = await nss.getSuggestedItems("ivan v");
+
+//         console.log(q);
+
+//         await nss.query("ivan valadares");
+//         await nss.query("VICHI");
+//         await nss.query("VICHI");
+//         await nss.query("\"EDUARDO VICHI\"");
+//         await nss.query("VICHI");
+//         await nss.query("absolut");
+//         await nss.query("ivan consentino valadares");
+//         await nss.getSuggestedWords("ivan v");
+//         await nss.getSuggestedItems("ivan v");
+//         await nss.query("ivam valadar");
+
+//     } catch (error) {
+//         console.log(error);
+//     }
+
+
+//        nss.destroy();
+
+//     console.log(" done ");
+// });

@@ -47,6 +47,10 @@ describe('Test names.json -', () => {
         });
     });
 
+    after(() => {
+        nss.destroy();
+    });
+
     it('load json file names.json with 50003 items and 3452 words', () => {
         return nss.loadJson("test/names.json")
             .then(data => {
@@ -79,10 +83,9 @@ describe('Test names.json -', () => {
     it('query for: VICHI', () => {
         return nss.query("VICHI")
             .then(data => {
-                //console.log(data);
                 assert(
                     data != null &&
-                    data.words[0] == "Vickie" &&
+                    data.words[0] == "VICKIE" &&
                     data.words.length == 1 &&
                     data.itemsId.length == 20 &&
                     data.expressions.length == 0 &&
@@ -152,7 +155,7 @@ describe('Test names.json -', () => {
             .then(data => {
                 assert(
                     data != null &&
-                    data.words[0] == "Vickie" &&
+                    data.words[0] == "VICKIE" &&
                     data.words.length == 1 &&
                     data.itemsId.length == 20 &&
                     data.missingWords.length == 1 &&
@@ -170,7 +173,7 @@ describe('Test names.json -', () => {
                 assert(
                     data != null &&
                     data.words.length == 1 &&
-                    data.words[0] == "Abbott" &&
+                    data.words[0] == "abbott" &&
                     data.missingWords.length == 1 &&
                     data.missingWords[0] == "absolut" &&
                     data.expressions.length == 0 &&
@@ -230,8 +233,8 @@ describe('Test names.json -', () => {
                 assert(
                     data != null &&
                     data.words.length == 2 &&
-                    data.words[0] == "Ivan" &&
-                    data.words[1] == "Valadares" &&
+                    data.words[0] == "ivan" &&
+                    data.words[1] == "valadares" &&
                     data.itemsId.length == 1 &&
                     data.itemsId[0] == "49999" &&
                     data.missingWords.length == 2 &&
