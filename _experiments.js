@@ -1,5 +1,5 @@
 /* eslint-disable node/no-unsupported-features */
-let nss = require('./index.js').init();
+let nss = require('./index.js').init({ stopWords: ["1033", "1046"] });
 
 const _ = require('lodash');
 
@@ -308,8 +308,11 @@ nss.on("initialized", async () => {
     // q = await nss.query("refrigerante Coca-Xola 'EMBALAGEM COM 6 UNIDADES'");
     // console.log(q);
 
-    q = await nss.query("Coca-Xola lata");
-    console.log(q);    
+    // q = await nss.query("Coca-Xola lata");
+    // console.log(q);    
+
+    q = await nss.getSuggestedWords("vinho");
+    console.log(q);        
 
     // await nss.query("x-14");
     // await nss.query("REFRIGERANTE coca-xola 'EMBALAGEM COM 6 UNIDADES'");

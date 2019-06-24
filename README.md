@@ -16,12 +16,8 @@ Module name on npm is "node-suggestive-search".
 npm install node-suggestive-search --save   # Install the latest version in your project
 ```
 
-
 ## Example of usage
 https://node-suggestive-search.herokuapp.com
-
-## Playground on Runkit
-https://runkit.com/ivanvaladares/node-suggestive-search-1.9.2
 
 
 ## API
@@ -85,7 +81,26 @@ var nss = require('node-suggestive-search').init(
 
 ```
 
-The "cache" option enables an in-memory copy of the data structure boosting the performance. If you have more than one instance accessing the same database, turn off this option. 
+There is also an option to include stop-words:
+```javascript
+var nss = require('node-suggestive-search').init(
+			{
+			stopWords: ["1033", "1046", ..., __dirname + "\\yourOwnStopWords.json"]
+			});
+			
+//current built-in available stopwords dictionary
+//1033 - en-us - English - United States
+//1036 - fr-fr - French - France
+//1040 - it-it - Italian - Italy
+//1046 - pt-br - Portuguese - Brazil
+//1048 - ro    - Romanian - Romania
+//2057 - en-gb - English - Great Britain
+//2070 - pt-pt - Portuguese - Portugal
+
+```
+
+
+The "cache" option enables an in-memory copy of the data structure boosting the performance. Turn off this option if you have more than one instance accessing the same database. 
 
 
 ### Loading a database

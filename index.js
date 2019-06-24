@@ -2,7 +2,7 @@
 /* eslint-disable no-await-in-loop */
 /* eslint-disable node/no-unsupported-features */
 /*
-node-suggestive-search v1.9.11
+node-suggestive-search v1.10.0
 https://github.com/ivanvaladares/node-suggestive-search/
 by Ivan Valadares 
 http://ivanvaladares.com 
@@ -36,6 +36,11 @@ const NodeSuggestiveSearch = class {
 		this._db = {};
 		this._initialized = false;
 		this._options = options;
+		this._stopWords = {};
+		
+		if (options !== undefined && options.stopWords !== undefined) {
+			this._loadStopWords(options.stopWords);
+		}
 
 		if (options !== undefined && options.dataBase !== undefined){
 			if (options.dataBase.toLowerCase() === "mongodb" || 
@@ -715,6 +720,27 @@ const NodeSuggestiveSearch = class {
 			}
 		}
 		return arrItemWords;
+	}
+
+	_loadStopWords (langs) {
+
+		langs.forEach(lang => {
+			// eslint-disable-next-line no-sync
+			let langFilePath = !isNaN(lang) ? './stopwords/' + lang + '.json' : lang;
+			let langFileContents = fs.readFileSync(langFilePath, 'utf8');
+			let arrStopWords = JSON.parse(langFileContents); 
+
+			arrStopWords.map(word => {
+
+				let cleanWord = word.toLowerCase().latinize();
+
+				if (this._stopWords[cleanWord] === undefined && typeof this._stopWords[cleanWord] !== "string" && typeof this._stopWords[cleanWord] !== "number") {
+					this._stopWords[cleanWord] = 1;
+				}
+
+			});
+
+		});
 	}
 	
 	//#endregion
@@ -1656,9 +1682,21 @@ const NodeSuggestiveSearch = class {
 
 							});
 
-							//todo: filter words that begins with numbers and stopwords if we have others results to show
+							//remove stopwords from suggestions if there are more results to show
+							let countStopWords = 0;
+							for (let index = 0; index < relatedWords.length; index++) {
+								let cleanWord = relatedWords[index].word.toLowerCase().latinize();
+								if (this._stopWords[cleanWord] !== undefined && (typeof this._stopWords[cleanWord] === "string" || typeof this._stopWords[cleanWord] === "number")) {
+									relatedWords[index].isStopWord = true;
+									countStopWords++;
+								}
+							}
 							
 							for (let index = 0; index < relatedWords.length && index < 5; index++) {
+								if (countStopWords < relatedWords.length && relatedWords[index].isStopWord) {
+									continue;
+								}
+
 								arrResponse.push(previousWords + " " + 
 												this._copyWritingStyle(arrWords[arrWords.length - 1] !== "" 
 														? arrWords[arrWords.length - 1] : arrWords[arrWords.length - 2], relatedWords[index].word));
@@ -1672,7 +1710,6 @@ const NodeSuggestiveSearch = class {
 						if (arrResponse.length === 1 &&  arguments.length === 1){
 							return this.getSuggestedWords(arrResponse[0] + " ", time).then(moreResults => {
 								resolve(moreResults);
-								console.log(arrResponse[0])
 							});
 						}else{
 							resolve({ suggestions: arrResponse, timeElapsed: this._clock(time) });
@@ -1841,6 +1878,7 @@ const NodeSuggestiveSearch = class {
 	destroy () {
 		cache.clear();
 		this._db = null;
+		this._stopWords = null;
 		this._initialized = false;
 	}
 };

@@ -1,0 +1,7 @@
+1033 - en-us - English - United States
+1036 - fr-fr - French - France
+1040 - it-it - Italian - Italy
+1046 - pt-br - Portuguese - Brazil
+1048 - ro    - Romanian - Romania
+2057 - en-gb - English - Great Britain
+2070 - pt-pt - Portuguese - Portugal

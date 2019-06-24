@@ -109,8 +109,6 @@ describe('Test names.json -', () => {
     it('query for: VICHI', () => {
         return nss.query("VICHI")
             .then(data => {
-                //console.log(data);
-
                 assert(
                     data != null &&
                     data.words.length == 1 &&

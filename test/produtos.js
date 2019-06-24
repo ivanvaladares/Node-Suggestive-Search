@@ -11,7 +11,7 @@ describe('Test produtos.json -', () => {
     before(done => {
 
         //tests using memory
-        nss = require('../index.js').init();    
+        nss = require('../index.js').init({ stopWords: ["1033", "1046"] });    
 
         //tests using redis
         // nss = require("../index.js").init(
@@ -70,7 +70,7 @@ describe('Test produtos.json -', () => {
                     data != null &&
                     data.words.length == 2 &&
                     data.itemsId.length == 5,
-                    "Error on query: x-14'\n" + JSON.stringify(data)
+                    "Error on query: x-14"
                 );
             });
     });
@@ -94,7 +94,7 @@ describe('Test produtos.json -', () => {
                     data.expressions[0] == "EMBALAGEM COM 6 UNIDADES" &&
                     data.missingExpressions.length == 1 &&
                     data.missingExpressions[0] == "coca-xola",
-                    "Error on: REFRIGERANTE coca-cora 'EMBALAGEM COM 6 UNIDADES'\n" + JSON.stringify(data)
+                    "Error on: REFRIGERANTE coca-cora 'EMBALAGEM COM 6 UNIDADES"
                 );
             });
     });
@@ -111,7 +111,7 @@ describe('Test produtos.json -', () => {
                     data.missingWords[0] == "abjabajbajba" &&
                     data.expressions.length == 0 &&
                     data.missingExpressions.length == 0,
-                    "Error on: coca abjabajbajba'\n" + JSON.stringify(data)
+                    "Error on: coca abjabajbajba"
                 );
             });
     });
@@ -129,7 +129,7 @@ describe('Test produtos.json -', () => {
                     data.missingWords[0] == "abjabajbajba" &&
                     data.expressions.length == 0 &&
                     data.missingExpressions.length == 0,
-                    "Error on: coca abjabajbajba cola'\n" + JSON.stringify(data)
+                    "Error on: coca abjabajbajba cola"
                 );
             });
     });
@@ -147,7 +147,7 @@ describe('Test produtos.json -', () => {
                     data.missingWords[0] == "abjabajbajba" &&
                     data.expressions.length == 0 &&
                     data.missingExpressions.length == 0,
-                    "Error on: coca cola abjabajbajba'\n" + JSON.stringify(data)
+                    "Error on: coca cola abjabajbajba"
                 );
             });
     });    
@@ -166,7 +166,7 @@ describe('Test produtos.json -', () => {
                     data.missingWords[1] == "refri" &&
                     data.expressions.length == 0 &&
                     data.missingExpressions.length == 0,
-                    "Error on: coca cola abjabajbajba refri'\n" + JSON.stringify(data)
+                    "Error on: coca cola abjabajbajba refri"
                 );
             });
     });      
@@ -185,7 +185,7 @@ describe('Test produtos.json -', () => {
                     data.missingWords[1] == "refri" &&
                     data.expressions.length == 0 &&
                     data.missingExpressions.length == 0,
-                    "Error on: abjabajbajba coca cola refri'\n" + JSON.stringify(data)
+                    "Error on: abjabajbajba coca cola refri"
                 );
             });
     });      
@@ -204,7 +204,7 @@ describe('Test produtos.json -', () => {
                     data.missingWords[0] == "coffee" &&
                     data.expressions.length == 0 &&
                     data.missingExpressions.length == 0,
-                    "Error on query for: coffee'\n" + JSON.stringify(data)
+                    "Error on query for: coffee"
                 );
             });
     });
@@ -223,7 +223,7 @@ describe('Test produtos.json -', () => {
                     data.missingWords.length == 0 &&
                     data.expressions.length == 0 &&
                     data.missingExpressions.length == 0,
-                    "Error on query for: whisky red label'\n" + JSON.stringify(data)
+                    "Error on query for: whisky red label"
                 );
             });
     });
@@ -243,7 +243,7 @@ describe('Test produtos.json -', () => {
                     data.missingWords[0] == "red" &&
                     data.expressions.length == 0 &&
                     data.missingExpressions.length == 0,
-                    "Error on query for: black red label'\n" + JSON.stringify(data)
+                    "Error on query for: black red label"
                 );
             });
     });
@@ -261,7 +261,7 @@ describe('Test produtos.json -', () => {
                     data.expressions.length == 0 &&
                     data.missingExpressions.length == 1 &&
                     data.missingExpressions[0] == "Whisky Label",
-                    "Error on query for: \"whisky label\"'\n" + JSON.stringify(data)
+                    "Error on query for: \"whisky label\""
                 );
             });
     });
@@ -280,7 +280,7 @@ describe('Test produtos.json -', () => {
                     data.expressions.length == 1 &&
                     data.missingExpressions.length == 0 &&
                     data.expressions[0] == "red label",
-                    "Error on query for: \"red label\"'\n" + JSON.stringify(data)
+                    "Error on query for: \"red label\""
                 );
             });
     });
@@ -299,7 +299,7 @@ describe('Test produtos.json -', () => {
                     data.expressions.length == 0 &&
                     data.missingExpressions.length == 1 &&
                     data.missingExpressions[0] == "label red",
-                    "Error on query for: \"label red\"'\n" + JSON.stringify(data)
+                    "Error on query for: \"label red\""
                 );
             });
     });    
@@ -313,7 +313,7 @@ describe('Test produtos.json -', () => {
                     data.words[0] == "DANIEL" &&
                     data.itemsId.length == 1 &&
                     data.itemsId[0] == "101740",
-                    "Error on query for: DANIELS'\n" + JSON.stringify(data)
+                    "Error on query for: DANIELS"
                 );
             });
     });      
@@ -328,7 +328,7 @@ describe('Test produtos.json -', () => {
                     data.words[1] == "S" &&
                     data.itemsId.length == 1 &&
                     data.itemsId[0] == "101740",
-                    "Error on query for: DANIEL`S'\n" + JSON.stringify(data)
+                    "Error on query for: DANIEL`S"
                 );
             });
     });    
@@ -344,7 +344,7 @@ describe('Test produtos.json -', () => {
                     data.words[2] == "label" &&
                     data.itemsId.length == 1 &&
                     data.itemsId[0] == "11896",
-                    "Error on query for: wisky read labl'\n" + JSON.stringify(data)
+                    "Error on query for: wisky read labl"
                 );
             });
     });
@@ -368,7 +368,7 @@ describe('Test produtos.json -', () => {
                     data.words.length == 1 &&
                     data.words[0] == "absoluto" &&
                     data.itemsId.length == 2,
-                    "Error on query for: absolut'\n" + JSON.stringify(data)
+                    "Error on query for: absolut"
                 );
             });
     });
@@ -382,7 +382,7 @@ describe('Test produtos.json -', () => {
                     data.suggestions[0] == "vinho" &&
                     data.suggestions[1] == "vinhas" &&
                     data.suggestions[2] == "vinhadalho",
-                    "Error on get words suggestions for: vinh'\n" + JSON.stringify(data)
+                    "Error on get words suggestions for: vinh"
                 );
             });
     });
@@ -397,7 +397,7 @@ describe('Test produtos.json -', () => {
                     data.suggestions[0] == "Vinho" &&
                     data.suggestions[1] == "Vinhas" &&
                     data.suggestions[2] == "Vinhadalho",
-                    "Error on get words suggestions for: vinh'\n" + JSON.stringify(data)
+                    "Error on get words suggestions for: vinh"
                 );
             });
     });
@@ -411,7 +411,7 @@ describe('Test produtos.json -', () => {
                     data.suggestions[0] == "VINHO" &&
                     data.suggestions[1] == "VINHAS" &&
                     data.suggestions[2] == "VINHADALHO",
-                    "Error on get words suggestions for: vinh'\n" + JSON.stringify(data)
+                    "Error on get words suggestions for: vinh"
                 );
             });
     });
@@ -421,8 +421,8 @@ describe('Test produtos.json -', () => {
             .then(data => {
                 assert(
                     data != null &&
-                    data.suggestions.length == 5,
-                    "Error on get words suggestions for: vinho '\n" + JSON.stringify(data)
+                    data.suggestions.length == 4,
+                    "Error on get words suggestions for: vinho"
                 );
             });
     });
@@ -436,7 +436,7 @@ describe('Test produtos.json -', () => {
                     data.suggestions[0] == "Whisky reserva" &&
                     data.suggestions[1] == "Whisky regal" &&
                     data.suggestions[2] == "Whisky red" &&
-                    "Error on get words suggestions for: Whisky r '\n" + JSON.stringify(data)
+                    "Error on get words suggestions for: Whisky r"
                 );
             });
     });
@@ -450,7 +450,7 @@ describe('Test produtos.json -', () => {
                     data.suggestions[0] == "Whisky Reserva" &&
                     data.suggestions[1] == "Whisky Regal" &&
                     data.suggestions[2] == "Whisky Red" &&
-                    "Error on get words suggestions for: Whisky R '\n" + JSON.stringify(data)
+                    "Error on get words suggestions for: Whisky R"
                 );
             });
     });
@@ -461,7 +461,7 @@ describe('Test produtos.json -', () => {
                 assert(
                     data != null &&
                     data.items.length == 3,
-                    "Error on get items suggestions for: frascat'\n" + JSON.stringify(data)
+                    "Error on get items suggestions for: frascat"
                 );
             });
     });
@@ -472,7 +472,7 @@ describe('Test produtos.json -', () => {
                 assert(
                     data != null &&
                     data.items.length == 2,
-                    "Error on get items suggestions for: frascati b'\n" + JSON.stringify(data)
+                    "Error on get items suggestions for: frascati b"
                 );
             });
     });
@@ -483,7 +483,7 @@ describe('Test produtos.json -', () => {
                 assert(
                     data != null &&
                     data.items.length == 10,
-                    "Error on get items suggestions for: whisky'\n" + JSON.stringify(data)
+                    "Error on get items suggestions for: whisky"
                 );
             });
     });
@@ -494,7 +494,7 @@ describe('Test produtos.json -', () => {
                 assert(
                     data != null &&
                     data.items.length == 3,
-                    "Error on get items suggestions for: whisky re'\n" + JSON.stringify(data)
+                    "Error on get items suggestions for: whisky re"
                 );
             });
     });
