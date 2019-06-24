@@ -2,7 +2,7 @@
 /* eslint-disable no-await-in-loop */
 /* eslint-disable node/no-unsupported-features */
 /*
-node-suggestive-search v1.10.1
+node-suggestive-search v1.10.2
 https://github.com/ivanvaladares/node-suggestive-search/
 by Ivan Valadares 
 http://ivanvaladares.com 
@@ -13,6 +13,7 @@ http://ivanvaladares.com
  */
 
 const fs = require('fs');
+const path = require('path');
 const util = require('util');
 const _ = require('lodash');
 const cache = require('memory-cache');
@@ -726,7 +727,7 @@ const NodeSuggestiveSearch = class {
 
 		langs.forEach(lang => {
 			// eslint-disable-next-line no-sync
-			let langFilePath = !isNaN(lang) ? __dirname + '\\stopwords\\' + lang + '.json' : lang;
+			let langFilePath = !isNaN(lang) ? path.join(__dirname, 'stopwords', lang + '.json') : lang;
 			let langFileContents = fs.readFileSync(langFilePath, 'utf8');
 			let arrStopWords = JSON.parse(langFileContents); 
 
