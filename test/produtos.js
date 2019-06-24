@@ -421,7 +421,7 @@ describe('Test produtos.json -', () => {
             .then(data => {
                 assert(
                     data != null &&
-                    data.suggestions.length == 4,
+                    data.suggestions.length == 5,
                     "Error on get words suggestions for: vinho"
                 );
             });

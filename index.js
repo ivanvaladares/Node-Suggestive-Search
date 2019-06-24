@@ -2,7 +2,7 @@
 /* eslint-disable no-await-in-loop */
 /* eslint-disable node/no-unsupported-features */
 /*
-node-suggestive-search v1.10.0
+node-suggestive-search v1.10.1
 https://github.com/ivanvaladares/node-suggestive-search/
 by Ivan Valadares 
 http://ivanvaladares.com 
@@ -726,7 +726,7 @@ const NodeSuggestiveSearch = class {
 
 		langs.forEach(lang => {
 			// eslint-disable-next-line no-sync
-			let langFilePath = !isNaN(lang) ? './stopwords/' + lang + '.json' : lang;
+			let langFilePath = !isNaN(lang) ? __dirname + '\\stopwords\\' + lang + '.json' : lang;
 			let langFileContents = fs.readFileSync(langFilePath, 'utf8');
 			let arrStopWords = JSON.parse(langFileContents); 
 
@@ -1187,7 +1187,7 @@ const NodeSuggestiveSearch = class {
 				});
 
 				arrItemsIds = this._intersection(arrItems);
-				let sair = false;
+				let leave = false;
 
 				if (arrItemsIds.length > 0) {
 					for (let i = 0; i < tempResult.length; i++) {
@@ -1204,7 +1204,7 @@ const NodeSuggestiveSearch = class {
 	
 						if (arrDictionary.length > 1 && arrDictionary[i].results.length > 0) {
 	
-							sair = true;
+							leave = true;
 	
 							for (let x = 0; x < arrDictionary[i].results.length && x < 10; x++) {
 	
@@ -1213,18 +1213,18 @@ const NodeSuggestiveSearch = class {
 								if (this._intersection([arrItemsIds, element.items]).length > 0) {
 									tempResult[i].word = this._copyWritingStyle(arrDictionary[i].word, element.word);
 									tempResult[i].items = element.items;
-									sair = false;
+									leave = false;
 									break;
 								}
 							}
 						}
 						
-						if (sair){
+						if (leave){
 							break;
 						}
 					}
 	
-					if (!sair) {
+					if (!leave) {
 						response.words = [];
 		
 						arrItems = tempResult.map(w => {
@@ -1692,11 +1692,13 @@ const NodeSuggestiveSearch = class {
 								}
 							}
 							
-							for (let index = 0; index < relatedWords.length && index < 5; index++) {
+							let suggestedCount = 0;
+							for (let index = 0; index < relatedWords.length && suggestedCount < 5; index++) {
 								if (countStopWords < relatedWords.length && relatedWords[index].isStopWord) {
 									continue;
 								}
 
+								suggestedCount++;
 								arrResponse.push(previousWords + " " + 
 												this._copyWritingStyle(arrWords[arrWords.length - 1] !== "" 
 														? arrWords[arrWords.length - 1] : arrWords[arrWords.length - 2], relatedWords[index].word));
