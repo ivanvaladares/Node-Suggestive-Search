@@ -2,7 +2,7 @@
 /* eslint-disable no-await-in-loop */
 /* eslint-disable node/no-unsupported-features */
 /*
-node-suggestive-search v1.10.2
+node-suggestive-search v1.10.3
 https://github.com/ivanvaladares/node-suggestive-search/
 by Ivan Valadares 
 http://ivanvaladares.com 
@@ -403,8 +403,8 @@ const NodeSuggestiveSearch = class {
 	_copyWritingStyle (original, copy) {
 
 		let style = "original"; 
-		let firstUpper = original[0] === original[0].toUpperCase();
-		let secondUpper = original.length > 1 && original[1] === original[1].toUpperCase();
+		let firstUpper = original[0] === original[0].toUpperCase() && isNaN(original[0]);
+		let secondUpper = original.length > 1 && original[1] === original[1].toUpperCase() && isNaN(original[1]);
   
 		if (firstUpper && secondUpper){
 			style = "upper";
@@ -435,7 +435,7 @@ const NodeSuggestiveSearch = class {
 
 		return new Promise(async (resolve, reject) => {
 
-			let cached = cache.get("_getWordsFromSoundexAndParts" + word);
+			let cached = cache.get("_getWordsFromSoundexAndParts:" + word);
 
 			if (cached !== null) {
 				return resolve(cached);
@@ -499,7 +499,7 @@ const NodeSuggestiveSearch = class {
 				});
 			}
 
-			cache.put("_getWordsFromSoundexAndParts" + word, results, 60000);
+			cache.put("_getWordsFromSoundexAndParts:" + word, results, 60000);
 
 			resolve(results);
 		});
@@ -547,6 +547,12 @@ const NodeSuggestiveSearch = class {
 
 		return new Promise(resolve => {
 
+			let cached = cache.get("_getWordsStartingWith:" + word);
+
+			if (cached !== null) {
+				return resolve(cached.slice(0, ((limit > 0) ? limit : cached.length)));
+			}
+
 			let queryCriteria = {};
 			let hasCriteria = false;
 			let cleanWord = word.latinize();
@@ -573,20 +579,22 @@ const NodeSuggestiveSearch = class {
 				if (foundWords.length > 0) {
 
 					//return item that begins with same characters, from smallest to biggest and then alphabetically
-					resolve(
-						foundWords.filter(objWord => {
-							//todo: check this oportunity to return different accents
-							this._setWordAndSimilarity(objWord, word);
-							return objWord.cleanWord.toLowerCase().indexOf(cleanWord.toLowerCase()) === 0;
-						}).sort((x, y) => {
-							if (x.word.length > y.word.length) {
-								return 1;
-							} else if (x.word.length < y.word.length) {
-								return -1;
-							}
-							return x.word > y.word;
-						}).slice(0, ((limit > 0) ? limit : foundWords.length))
-					);
+					foundWords.filter(objWord => {
+						//todo: check this oportunity to return different accents
+						this._setWordAndSimilarity(objWord, word);
+						return objWord.cleanWord.toLowerCase().indexOf(cleanWord.toLowerCase()) === 0;
+					}).sort((x, y) => {
+						if (x.word.length > y.word.length) {
+							return 1;
+						} else if (x.word.length < y.word.length) {
+							return -1;
+						}
+						return x.word > y.word;
+					});
+
+					cache.put("_getWordsStartingWith:" + word, foundWords, 60000);
+
+					resolve(foundWords.slice(0, ((limit > 0) ? limit : foundWords.length)));
 
 				} else {
 
@@ -726,8 +734,8 @@ const NodeSuggestiveSearch = class {
 	_loadStopWords (langs) {
 
 		langs.forEach(lang => {
-			// eslint-disable-next-line no-sync
 			let langFilePath = !isNaN(lang) ? path.join(__dirname, 'stopwords', lang + '.json') : lang;
+			// eslint-disable-next-line no-sync
 			let langFileContents = fs.readFileSync(langFilePath, 'utf8');
 			let arrStopWords = JSON.parse(langFileContents); 
 
@@ -1527,6 +1535,7 @@ const NodeSuggestiveSearch = class {
 			let time;
 			
 			if (arguments.length > 1){
+				// eslint-disable-next-line prefer-rest-params
 				time = arguments[1];
 			}else{
 				time = this._clock();
@@ -1540,6 +1549,13 @@ const NodeSuggestiveSearch = class {
 
 			if (arrWords.length <= 0) {
 				return reject(new Error("No word was given to search!"));
+			}
+
+
+			let cached = cache.get("getSuggestedWords:" + words);
+
+			if (cached !== null) {
+				return resolve({ suggestions: cached, timeElapsed: this._clock(time) });
 			}
 			
 			//only one word came from query and no space at the end
@@ -1575,6 +1591,8 @@ const NodeSuggestiveSearch = class {
 						}
 
 					});
+
+					cache.put("getSuggestedWords:" + words, arrResponse, 60000);
 
 					//if there is only one result, call again to get more suggestions
 					if (arrResponse.length === 1 && arguments.length === 1){
@@ -1621,13 +1639,8 @@ const NodeSuggestiveSearch = class {
 					}
 
 					let arrResponse = [];
-					let objResponse = {};
 					let lastWord = arrWords[arrWords.length - 1].toLowerCase().latinize();
 				
-					this._splitWords(previousWords).map(el => {
-						objResponse[el.toLowerCase().latinize()] = 1;
-					});
-
 					return this._db.findItems({ itemId: { $in: arrItemsIds.slice(0, 1000) } }).then(othersItems => {
 
 						//get all item's names from items returned from query and create a relatedWords dictionary
@@ -1692,22 +1705,31 @@ const NodeSuggestiveSearch = class {
 									countStopWords++;
 								}
 							}
-							
+
+							let wordToCopyStyle = "";
+							for (let index = arrWords.length - 1; index >= 0; index--) {
+								if (arrWords[index] !== "" && isNaN(arrWords[index])){
+									wordToCopyStyle = arrWords[index];
+									break;
+								}						
+							}			
+												
+							let filterStoWords = (relatedWords.length - countStopWords) >= 5;
 							let suggestedCount = 0;
 							for (let index = 0; index < relatedWords.length && suggestedCount < 5; index++) {
-								if (countStopWords < relatedWords.length && relatedWords[index].isStopWord) {
+								if (filterStoWords && relatedWords[index].isStopWord) {
 									continue;
 								}
 
 								suggestedCount++;
-								arrResponse.push(previousWords + " " + 
-												this._copyWritingStyle(arrWords[arrWords.length - 1] !== "" 
-														? arrWords[arrWords.length - 1] : arrWords[arrWords.length - 2], relatedWords[index].word));
+								arrResponse.push(previousWords + " " + this._copyWritingStyle(wordToCopyStyle, relatedWords[index].word));
 							}
 
 						}else{
 							arrResponse.push(previousWords);
 						}
+
+						cache.put("getSuggestedWords:" + words, arrResponse, 60000);
 
 						//if there is only one result, call again to get more suggestions
 						if (arrResponse.length === 1 &&  arguments.length === 1){
@@ -1764,6 +1786,14 @@ const NodeSuggestiveSearch = class {
 				}
 			}
 
+			let cached = cache.get("getSuggestedItems:" + words);
+
+			if (cached !== null) {
+				if (orderFunc !== undefined){
+					cached.sort(orderFunc);
+				}
+				return resolve({ items: cached.slice(0, limit), timeElapsed: this._clock(time) });
+			}
 
 			//only one word came from query
 			if (arrWords.length === 1) {
@@ -1787,13 +1817,15 @@ const NodeSuggestiveSearch = class {
 						let arrResponse = [];
 						if (foundItems !== null) {
 
+							cache.put("getSuggestedItems:" + words, foundItems, 60000);
+
 							//apply the ordering function
 							if (orderFunc !== undefined){
 								foundItems.sort(orderFunc);
 							}
 
 							arrResponse = foundItems.slice(0, limit);
-						}
+						}			
 
 						return resolve({ items: arrResponse, timeElapsed: this._clock(time) });
 
@@ -1835,11 +1867,6 @@ const NodeSuggestiveSearch = class {
 
 						if (foundItems !== null) {
 
-							//apply the ordering function
-							if (orderFunc !== undefined){
-								foundItems.sort(orderFunc);
-							}							
-
 							for (let i = 0; i < foundItems.length; i++){
 								let item = foundItems[i];
 
@@ -1858,11 +1885,16 @@ const NodeSuggestiveSearch = class {
 								if (foundLast){
 									arrResponse.push(item);
 								}
-
-								if (arrResponse.length > (limit - 1)){
-									break;
-								}
 							}
+
+							cache.put("getSuggestedItems:" + words, arrResponse, 60000);
+
+							//apply the ordering function
+							if (orderFunc !== undefined){
+								arrResponse.sort(orderFunc);
+							}		
+
+							arrResponse = arrResponse.slice(0, limit);
 		
 						}
 

@@ -310,8 +310,9 @@ nss.on("initialized", async () => {
 
     // q = await nss.query("Coca-Xola lata");
     // console.log(q);    
+    q = await nss.getSuggestedWords("vin");
 
-    q = await nss.getSuggestedWords("vinho");
+    q = await nss.getSuggestedWords("vin");
     console.log(q);        
 
     // await nss.query("x-14");
