@@ -38,7 +38,9 @@ const NodeSuggestiveSearch = class {
 		this._initialized = false;
 		this._options = options;
 		this._stopWords = {};
-		
+		this._cacheOn = this._options && this._options.cache;
+		this._internalCacheTimeout = 300000;
+	
 		if (options !== undefined && options.stopWords !== undefined) {
 			this._loadStopWords(options.stopWords);
 		}
@@ -435,14 +437,15 @@ const NodeSuggestiveSearch = class {
 
 		return new Promise(async (resolve, reject) => {
 
-			let cached = cache.get("_getWordsFromSoundexAndParts:" + word);
-
-			if (cached !== null) {
-				return resolve(cached);
+			let cacheKey = "_getWordsFromSoundexAndParts:" + word.latinize().toLowerCase();
+			if (this._cacheOn) {
+				let cached = cache.get(cacheKey);
+				if (cached !== null){
+					return resolve(cached);
+				}
 			}
 
 			//try to find an word is our dictionary using soundex and parts of the word
-
 			//todo: research a better way to improve the performance of this query
 
 			let _word = word.trim().replace(/^["|']/, '').replace(/["|']$/, ''); //remove quotes
@@ -499,7 +502,9 @@ const NodeSuggestiveSearch = class {
 				});
 			}
 
-			cache.put("_getWordsFromSoundexAndParts:" + word, results, 60000);
+			if (this._cacheOn){
+				cache.put(cacheKey, results, this._internalCacheTimeout);
+			}
 
 			resolve(results);
 		});
@@ -547,11 +552,13 @@ const NodeSuggestiveSearch = class {
 
 		return new Promise(resolve => {
 
-			let cached = cache.get("_getWordsStartingWith:" + word);
-
-			if (cached !== null) {
-				return resolve(cached.slice(0, ((limit > 0) ? limit : cached.length)));
-			}
+			let cacheKey = "_getWordsStartingWith:" + word.latinize().toLowerCase();
+			if (this._cacheOn) {
+				let cached = cache.get(cacheKey);
+				if (cached !== null){
+					return resolve(cached.slice(0, ((limit > 0) ? limit : cached.length)));
+				}
+			}			
 
 			let queryCriteria = {};
 			let hasCriteria = false;
@@ -592,11 +599,13 @@ const NodeSuggestiveSearch = class {
 						return x.word > y.word;
 					});
 
-					cache.put("_getWordsStartingWith:" + word, foundWords, 60000);
+					cache.put(cacheKey, foundWords, this._internalCacheTimeout);
 
 					resolve(foundWords.slice(0, ((limit > 0) ? limit : foundWords.length)));
 
 				} else {
+
+					cache.put(cacheKey, null, this._internalCacheTimeout);
 
 					resolve(null);
 
@@ -763,7 +772,9 @@ const NodeSuggestiveSearch = class {
 
 		this._checkInitialized();
 
-		cache.clear();
+		if (this._cacheOn) {
+			cache.clear();
+		}
 
 		return new Promise(resolve => {
 
@@ -903,7 +914,9 @@ const NodeSuggestiveSearch = class {
 
 		this._checkInitialized();
 	
-		cache.clear();
+		if (this._cacheOn) {
+			cache.clear();
+		}
 
 		return new Promise((resolve, reject) => {
 
@@ -1037,7 +1050,9 @@ const NodeSuggestiveSearch = class {
 
 		this._checkInitialized();
 
-		cache.clear();
+		if (this._cacheOn) {
+			cache.clear();
+		}
 
 		return new Promise((resolve, reject) => {
 
@@ -1084,7 +1099,9 @@ const NodeSuggestiveSearch = class {
 
 		this._checkInitialized();
 
-		cache.clear();
+		if (this._cacheOn) {
+			cache.clear();
+		}
 
 		return new Promise((resolve, reject) => {
 
@@ -1132,6 +1149,38 @@ const NodeSuggestiveSearch = class {
 
 			if (arrWords.length <= 0) {
 				return reject(new Error("No word was given to search!"));
+			}
+
+			let orderFunc;
+			if (orderBy !== undefined){
+				if (!_.isFunction(orderBy) && orderBy.field !== undefined){
+					orderFunc = ((x, y) => { 
+						if (orderBy.direction === "desc"){
+							return x[orderBy.field] < y[orderBy.field]; 
+						} else {
+							return x[orderBy.field] > y[orderBy.field]; 
+						}
+					});
+				}
+
+				if (_.isFunction(orderBy)){
+					orderFunc = orderBy;
+				}			
+			}
+
+			let cacheKey = "query:" + (returnItemsJson ? "items" : "ids") + ":" + words;			
+			if (this._cacheOn) {
+				let cached = cache.get(cacheKey);
+
+				if (cached !== null) {
+					if (returnItemsJson && orderFunc !== undefined && cached.items.length > 0){
+						cached.items.sort(orderFunc);
+					}
+
+					cached.timeElapsed = this._clock(time);
+
+					return resolve(cached);
+				}
 			}
 
 			let response = {};
@@ -1413,7 +1462,6 @@ const NodeSuggestiveSearch = class {
 				}
 			}
 
-
 			if (arrItemsIds.length === 0) {
 				response.words = [];
 				response.missingWords = arrWords;				
@@ -1422,7 +1470,7 @@ const NodeSuggestiveSearch = class {
 			//pos search - match quoted expressions, hyphenated words and separated by slashes
 			let quotedStrings = words.match(/"(.*?)"|'(.*?)'|((?:\w+-)+\w+)|((?:\w+\/|\\)+\w+)/g, "$1");
 
-			if ((quotedStrings !== null && quotedStrings.length > 0) || returnItemsJson === true){
+			if ((quotedStrings !== null && quotedStrings.length > 0) || returnItemsJson){
 
 				return this._db.findItems({ itemId: { $in: arrItemsIds } }).then(foundItems => {
 
@@ -1457,32 +1505,7 @@ const NodeSuggestiveSearch = class {
 						});
 					}
 
-					//apply the ordering function
-					if (orderBy !== undefined){
-						let orderFunc;
-
-						if (!_.isFunction(orderBy) && orderBy.field !== undefined){
-							orderFunc = ((x, y) => { 
-								if (orderBy.direction === "desc"){
-									return x[orderBy.field] < y[orderBy.field]; 
-								} else {
-									return x[orderBy.field] > y[orderBy.field]; 
-								}
-							});
-						}
-
-						if (_.isFunction(orderBy)){
-							orderFunc = orderBy;
-						}
-
-						if (filteredItems.length > 0){
-							filteredItems.sort(orderFunc);
-						} else {
-							foundItems.sort(orderFunc);
-						}
-					}
-
-					if (returnItemsJson === true){
+					if (returnItemsJson){
 
 						if (filteredItems.length > 0){
 							response.items = filteredItems;
@@ -1501,6 +1524,16 @@ const NodeSuggestiveSearch = class {
 						}
 
 						response.itemsId = arrItemsIds;
+
+					}
+	
+					if (this._cacheOn) {
+						cache.put(cacheKey, response, this._internalCacheTimeout);
+					}
+
+					//apply the ordering function
+					if (returnItemsJson && orderFunc !== undefined && response.items.length > 0){
+						response.items.sort(orderFunc);
 					}
 
 					response.timeElapsed = this._clock(time);
@@ -1512,6 +1545,11 @@ const NodeSuggestiveSearch = class {
 			}else{
 
 				response.itemsId = arrItemsIds;
+
+				if (this._cacheOn) {
+					cache.put(cacheKey, response, this._internalCacheTimeout);
+				}
+
 				response.timeElapsed = this._clock(time);
 
 				resolve(response);
@@ -1551,13 +1589,14 @@ const NodeSuggestiveSearch = class {
 				return reject(new Error("No word was given to search!"));
 			}
 
+			let cacheKey = "getSuggestedWords:" + words.latinize();
+			if (this._cacheOn) {
+				let cached = cache.get(cacheKey);
+				if (cached !== null) {
+					return resolve({ suggestions: cached, timeElapsed: this._clock(time) });
+				}
+			}			
 
-			let cached = cache.get("getSuggestedWords:" + words);
-
-			if (cached !== null) {
-				return resolve({ suggestions: cached, timeElapsed: this._clock(time) });
-			}
-			
 			//only one word came from query and no space at the end
 			if (arrWords.length === 1 && words.indexOf(" ") === -1) {
 
@@ -1592,7 +1631,9 @@ const NodeSuggestiveSearch = class {
 
 					});
 
-					cache.put("getSuggestedWords:" + words, arrResponse, 60000);
+					if (this._cacheOn) {
+						cache.put(cacheKey, arrResponse, this._internalCacheTimeout);
+					}
 
 					//if there is only one result, call again to get more suggestions
 					if (arrResponse.length === 1 && arguments.length === 1){
@@ -1619,6 +1660,9 @@ const NodeSuggestiveSearch = class {
 					for (let index in foundWords) {
 						if (foundWords[index] === null) {
 							//some word is not correct, break the response
+							if (this._cacheOn) {
+								cache.put(cacheKey, [], this._internalCacheTimeout);
+							}
 							return resolve({ suggestions: [], timeElapsed: this._clock(time) });
 						}
 
@@ -1635,6 +1679,9 @@ const NodeSuggestiveSearch = class {
 					//if that is true, break the response
 					if (missingWords.length > 0) {
 						//some word is not correct, break the response
+						if (this._cacheOn) {
+							cache.put(cacheKey, [], this._internalCacheTimeout);
+						}
 						return resolve({ suggestions: [], timeElapsed: this._clock(time) });
 					}
 
@@ -1729,7 +1776,9 @@ const NodeSuggestiveSearch = class {
 							arrResponse.push(previousWords);
 						}
 
-						cache.put("getSuggestedWords:" + words, arrResponse, 60000);
+						if (this._cacheOn) {
+							cache.put(cacheKey, arrResponse, this._internalCacheTimeout);
+						}
 
 						//if there is only one result, call again to get more suggestions
 						if (arrResponse.length === 1 &&  arguments.length === 1){
@@ -1786,13 +1835,15 @@ const NodeSuggestiveSearch = class {
 				}
 			}
 
-			let cached = cache.get("getSuggestedItems:" + words);
-
-			if (cached !== null) {
-				if (orderFunc !== undefined){
-					cached.sort(orderFunc);
+			let cacheKey = "getSuggestedItems:" + words.latinize().toLowerCase();			
+			if (this._cacheOn) {
+				let cached = cache.get(cacheKey);
+				if (cached !== null) {
+					if (orderFunc !== undefined){
+						cached.sort(orderFunc);
+					}
+					return resolve({ items: cached.slice(0, limit), timeElapsed: this._clock(time) });
 				}
-				return resolve({ items: cached.slice(0, limit), timeElapsed: this._clock(time) });
 			}
 
 			//only one word came from query
@@ -1815,9 +1866,16 @@ const NodeSuggestiveSearch = class {
 					return this._db.findItems({ itemId: { $in: arrItemsIds } }).then(foundItems => {
 
 						let arrResponse = [];
-						if (foundItems !== null) {
-
-							cache.put("getSuggestedItems:" + words, foundItems, 60000);
+						if (foundItems === null) {
+							if (this._cacheOn) {
+								cache.put(cacheKey, arrResponse, this._internalCacheTimeout);
+							}
+						}
+						else 
+						{
+							if (this._cacheOn) {
+								cache.put(cacheKey, foundItems, this._internalCacheTimeout);
+							}
 
 							//apply the ordering function
 							if (orderFunc !== undefined){
@@ -1845,6 +1903,9 @@ const NodeSuggestiveSearch = class {
 					for (let index in foundWords) {
 						if (foundWords[index] === null) {
 							//some word is not correct, break the response
+							if (this._cacheOn) {
+								cache.put(cacheKey, [], this._internalCacheTimeout);
+							}
 							return resolve({ items: [], timeElapsed: this._clock(time) });
 						}
 					}
@@ -1857,6 +1918,9 @@ const NodeSuggestiveSearch = class {
 					//if that is true, break the response
 					if (missingWords.length > 0) {
 						//some word is not correct, break the response
+						if (this._cacheOn) {
+							cache.put(cacheKey, [], this._internalCacheTimeout);
+						}
 						return resolve({ items: [], timeElapsed: this._clock(time) });
 					}
 
@@ -1865,8 +1929,13 @@ const NodeSuggestiveSearch = class {
 						let arrResponse = [];
 						let lastWord = arrWords[arrWords.length - 1].toLowerCase().latinize();
 
-						if (foundItems !== null) {
-
+						if (foundItems === null) {
+							if (this._cacheOn) {
+								cache.put(cacheKey, arrResponse, this._internalCacheTimeout);
+							}
+						}
+						else 
+						{
 							for (let i = 0; i < foundItems.length; i++){
 								let item = foundItems[i];
 
@@ -1887,7 +1956,9 @@ const NodeSuggestiveSearch = class {
 								}
 							}
 
-							cache.put("getSuggestedItems:" + words, arrResponse, 60000);
+							if (this._cacheOn) {
+								cache.put(cacheKey, arrResponse, this._internalCacheTimeout);
+							}
 
 							//apply the ordering function
 							if (orderFunc !== undefined){

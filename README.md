@@ -38,6 +38,11 @@ Configuration without database (in-memory):
 var nss = require('node-suggestive-search').init();
 
 ```
+Configuration without database with cache (in-memory):
+```javascript
+var nss = require('node-suggestive-search').init({ cache: true });
+
+```
 Configuration using Redis: 
 ```javascript
 var nss = require('node-suggestive-search').init(
@@ -136,29 +141,19 @@ Example of a JSON to be imported (Items.json):
 
 Load the JSON from file
 ```javascript
-
-nss.loadJson("Items.json", "utf8").then( //you can change the charset to match your file
-	data => {
-		// response: { words: 17, items: 5, timeElapsed: '4ms' }
-	},
-	err => {
-		//...
-	}
-);
+//you can change the charset to match your file
+nss.loadJson("Items.json", "utf8").then(data => {
+	// response: { words: 17, items: 5, timeElapsed: '4ms' }
+});
 
 ```
 
 Load the JSON from file with your properties names
 ```javascript
 
-nss.loadJson("Items.json", "utf8", "itemId", "itemName", "keywords").then(
-	data => {
-		// response: { words: 17, items: 5, timeElapsed: '3ms' }
-	},
-	err => {
-		//...
-	}
-);
+nss.loadJson("Items.json", "utf8", "itemId", "itemName", "keywords").then(data => {
+	// response: { words: 17, items: 5, timeElapsed: '3ms' }
+});
 
 ```
 
@@ -168,14 +163,9 @@ Load the JSON from string
 let jSonString = `[{"itemName":"WHISKY RED LABEL", "itemId":"1", "keywords": "fancy"},{  
 					"itemName":"WHISKY BLACK LABEL", "itemId":"2"}]`;
 
-nss.loadJsonString(jSonString).then(
-	data => {
-		// response: { words: 5, items: 2, timeElapsed: '1ms' }
-	},
-	err => {
-		//...
-	}
-);
+nss.loadJsonString(jSonString).then(data => {
+	// response: { words: 5, items: 2, timeElapsed: '1ms' }
+});
 
 ```
 
@@ -185,14 +175,9 @@ Load the JSON from string with additional fields (price, popularity and thumbImg
 let jSonString = `[{"itemName":"WHISKY RED LABEL", "itemId":"1", "keywords":"fancy", "price":25.57, "popularity":1, "thumbImg":"whisky-red-label.png"},{  
 					"itemName":"WHISKY BLACK LABEL", "itemId":"2", "price":19.99, "popularity":0.9, "thumbImg":"whisky-black-label.png"}]`;
 
-nss.loadJsonString(jSonString).then(
-	data => {
-		// response: { words: 5, items: 2, timeElapsed: '2ms' }
-	},
-	err => {
-		//...
-	}
-);
+nss.loadJsonString(jSonString).then(data => {
+	// response: { words: 5, items: 2, timeElapsed: '2ms' }
+});
 
 ```
 
@@ -203,14 +188,9 @@ Load the JSON from string with your properties names
 let jSonString = `[{"nm":"WHISKY RED LABEL", "id":"1", "kw": "fancy"},{  
 					"nm":"WHISKY BLACK LABEL", "id":"2"}]`;
 
-nss.loadJsonString(jSonString, "id", "nm", "kw").then(
-	data => {
-		// response: { words: 5, items: 2, timeElapsed: '2ms' }
-	},
-	err => {
-		//...
-	}
-);
+nss.loadJsonString(jSonString, "id", "nm", "kw").then(data => {
+	// response: { words: 5, items: 2, timeElapsed: '2ms' }
+});
 
 ```
 
@@ -220,14 +200,9 @@ Load the JSON from string with your properties names and additional fields (pric
 let jSonString = `[{"nm":"WHISKY RED LABEL", "id":"1", "kw":"fancy", "price":25.57, "popularity":1, "thumbImg":"whisky-red-label.png"},{  
 					"nm":"WHISKY BLACK LABEL", "id":"2", "price":19.99, "popularity":0.9, "thumbImg":"whisky-black-label.png"}]`;
 
-nss.loadJsonString(jSonString, "id", "nm", "kw").then(
-	data => {
-		// response: { words: 5, items: 2, timeElapsed: '2ms' }
-	},
-	err => {
-		//...
-	}
-);
+nss.loadJsonString(jSonString, "id", "nm", "kw").then(data => {
+	// response: { words: 5, items: 2, timeElapsed: '2ms' }
+});
 
 ```
 
@@ -240,135 +215,81 @@ Getting itemsId from searched words.
 Examples of how to call the api and responses:
 ```javascript
 
-nss.query("whisky").then(
-	data => {
-		//response:  { query: 'whisky', words: [ 'WHISKY' ], missingWords: [], expressions: [], missingExpressions: [], itemsId: [ '1', '2' ], timeElapsed: '1ms' }
-	},
-	err => {
-		//...
-	}
-);
+nss.query("whisky").then(data => {
+	//response:  { query: 'whisky', words: [ 'whisky' ], missingWords: [], expressions: [], missingExpressions: [], itemsId: [ '1', '2' ], timeElapsed: '1ms' }
+});
 
-//did you mean search result
-nss.query("wisk").then( //misspelled search criteria
-	data => {
-		//response: { query: 'wisk', words: [ 'WHISKY' ], missingWords: [], expressions: [], missingExpressions: [], itemsId: [ '1', '2' ], timeElapsed: '1ms' }
-	},
-	err => {
-		//...
-	}
-);
+//did you mean search result with misspelled search criteria
+nss.query("wisk").then(data => {
+	//response: { query: 'wisk', words: [ 'whisky' ], missingWords: ['wisk'], expressions: [], missingExpressions: [], itemsId: [ '1', '2' ], timeElapsed: '1ms' }
+});
 
-//did you mean search result
-nss.query("wisk read lbel").then( //misspelled search criteria
-	data => {
-		//response: { query: 'wisk read labl', words: [ 'WHISKY', 'RED', 'LABEL' ], missingWords: [], expressions: [], missingExpressions: [], itemsId: [ '1' ], timeElapsed: '2ms' }
-	},
-	err => {
-		//...
-	}
-);
+//did you mean search result with misspelled search criteria
+nss.query("wisk read lbel").then(data => {
+	//response: { query: 'Wisk Read Labl', words: [ 'Whisky', 'Red', 'Label' ], missingWords: ['Wisk', 'Read', 'Labl'], expressions: [], missingExpressions: [], itemsId: [ '1' ], timeElapsed: '2ms' }
+});
 
 //query with paramenter returnItemsJson = true  
-nss.query("whisky", true).then(
-	data => {
-		/*response:  { query: 'whisky', words: [ 'WHISKY' ], missingWords: [], expressions: [], missingExpressions: [], 
-			[ 
-				{ itemName: 'WHISKY RED LABEL', itemId: '1', keywords: 'fancy' },
-				{ itemName: 'WHISKY BLACK LABEL', itemId: '2' } 
-			], 
-			timeElapsed: '1ms' }
-			*/
-	},
-	err => {
-		//...
-	}
-);
+nss.query("whisky", true).then(data => {
+	/*response:  { query: 'whisky', words: [ 'whisky' ], missingWords: [], expressions: [], missingExpressions: [], 
+		[ 
+			{ itemName: 'WHISKY RED LABEL', itemId: '1', keywords: 'fancy' },
+			{ itemName: 'WHISKY BLACK LABEL', itemId: '2' } 
+		], 
+		timeElapsed: '1ms' }
+	*/
+});
 
 //query with paramenter returnItemsJson = true and ordering by popularity, desc using an object on a database loaded with additional fields
 let orderByObject = {field: "popularity", direction: "desc"};
 
-nss.query("whisky", true, orderByObject).then(
-	data => {
-		/*response:  { query: 'whisky', words: [ 'WHISKY' ], missingWords: [], expressions: [], missingExpressions: [], 
-			[ 
-				{ itemName: 'WHISKY RED LABEL', itemId: '1', keywords: 'fancy', price: 25.57, popularity: 1, thumbImg: 'whisky-red-label.png' },
-				{ itemName: 'WHISKY BLACK LABEL', itemId: '2', price: 19.99, popularity: 0.9, thumbImg: 'whisky-black-label.png' } 
-			], 
-			timeElapsed: '1ms' }
-			*/
-	},
-	err => {
-		//...
-	}
+nss.query("whisky", true, orderByObject).then(data => {
+	/*response:  { query: 'whisky', words: [ 'whisky' ], missingWords: [], expressions: [], missingExpressions: [], 
+		[ 
+			{ itemName: 'WHISKY RED LABEL', itemId: '1', keywords: 'fancy', price: 25.57, popularity: 1, thumbImg: 'whisky-red-label.png' },
+			{ itemName: 'WHISKY BLACK LABEL', itemId: '2', price: 19.99, popularity: 0.9, thumbImg: 'whisky-black-label.png' } 
+		], 
+		timeElapsed: '1ms' }
+	*/
+});
 
 //query with paramenter returnItemsJson = true and ordering by popularity, desc using a function on a database loaded with additional fields
 let orderByFunc = ((x, y) => { return x.popularity < y.popularity; });
 
-nss.query("whisky", true, orderByFunc).then(
-	data => {
-		/*response:  { query: 'whisky', words: [ 'WHISKY' ], missingWords: [], expressions: [], missingExpressions: [], 
-			[ 
-				{ itemName: 'WHISKY RED LABEL', itemId: '1', keywords: 'fancy', price: 25.57, popularity: 1, thumbImg: 'whisky-red-label.png' },
-				{ itemName: 'WHISKY BLACK LABEL', itemId: '2', price: 19.99, popularity: 0.9, thumbImg: 'whisky-black-label.png' } 
-			], 
-			timeElapsed: '1ms' }
-			*/
-	},
-	err => {
-		//...
-	}
-);
+nss.query("whisky", true, orderByFunc).then(data => {
+	/*response:  { query: 'whisky', words: [ 'WHISKY' ], missingWords: [], expressions: [], missingExpressions: [], 
+		[ 
+			{ itemName: 'WHISKY RED LABEL', itemId: '1', keywords: 'fancy', price: 25.57, popularity: 1, thumbImg: 'whisky-red-label.png' },
+			{ itemName: 'WHISKY BLACK LABEL', itemId: '2', price: 19.99, popularity: 0.9, thumbImg: 'whisky-black-label.png' } 
+		], 
+		timeElapsed: '1ms' }
+	*/
+});
 
 //quoted search criteria
-nss.query("'red label'").then(
-	data => {
-		//response: { query: '\'red label\'', words: [ 'RED', 'LABEL' ], missingWords: [], expressions: [ 'red label' ], missingExpressions: [], itemsId: [ '1' ], timeElapsed: '1ms' }
-	},
-	err => {
-		//...
-	}
-);
+nss.query("'red label'").then(data => {
+	//response: { query: '\'RED LABEL\'', words: [ 'RED', 'LABEL' ], missingWords: [], expressions: [ 'RED LABEL' ], missingExpressions: [], itemsId: [ '1' ], timeElapsed: '1ms' }
+});
 
 //quoted search criteria
-nss.query("'label red'").then(
-	data => {
-		//response: { query: '\'label red\'', words: [ 'LABEL', 'RED' ], missingWords: [], expressions: [], missingExpressions: [ 'label red' ], itemsId: [ '1' ], timeElapsed: '2ms' }
-	},
-	err => {
-		//...
-	}
-);
+nss.query("'label red'").then(data => {
+	//response: { query: '\'label red\'', words: [ 'label', 'red' ], missingWords: [], expressions: [], missingExpressions: [ 'label red' ], itemsId: [ '1' ], timeElapsed: '2ms' }
+});
 
 //dashed search criteria
-nss.query("Red-Blood").then(
-	data => {
-		//response: { query: 'Red-Blood', words: [ 'RED' ], missingWords: [ 'Blood' ], expressions: [], missingExpressions: [ 'Red-Blood' ], itemsId: [ '1' ], timeElapsed: '2ms' }
-	},
-	err => {
-		//...
-	}
-);
+nss.query("Red-Blood").then(data => {
+	//response: { query: 'Red-Blood', words: [ 'Red' ], missingWords: [ 'Blood' ], expressions: [], missingExpressions: [ 'Red-Blood' ], itemsId: [ '1' ], timeElapsed: '2ms' }
+});
 
 //slashed search criteria
-nss.query("HAM L/S").then(
-	data => {
-		//response: { query: 'HAM L/S', words: [ 'HAM', 'L', 'S' ], missingWords: [], expressions: [ 'L/S' ], missingExpressions: [], itemsId: [ '3' ], timeElapsed: '2ms' }
-	},
-	err => {
-		//...
-	}
-);
+nss.query("HAM L/S").then(data => {
+	//response: { query: 'HAM L/S', words: [ 'HAM', 'L', 'S' ], missingWords: [], expressions: [ 'L/S' ], missingExpressions: [], itemsId: [ '3' ], timeElapsed: '2ms' }
+});
 
 //double quoted search criteria
-nss.query("\"HAM L/S\"").then(
-	data => {
-		//response: { query: '"HAM L/S"', words: [ 'HAM', 'L', 'S' ], missingWords: [], expressions: [ 'HAM L/S' ], missingExpressions: [], itemsId: [ '3' ], timeElapsed: '2ms' }
-	},
-	err => {
-		//...
-	}
-);
+nss.query("\"HAM L/S\"").then(data => {
+	//response: { query: '"HAM L/S"', words: [ 'HAM', 'L', 'S' ], missingWords: [], expressions: [ 'HAM L/S' ], missingExpressions: [], itemsId: [ '3' ], timeElapsed: '2ms' }
+});
 
   
 ```
@@ -380,32 +301,17 @@ Getting words suggestions to fill dropdown boxes or type-ahead text fields.
 Examples of how to call the api and responses:
 ```javascript
 
-nss.getSuggestedWords("la").then(
-	data => {
-		//response: { suggestions: [ 'LABEL', 'LABELY' ], timeElapsed: '1ms' }
-	},
-	err => {
-		//...
-	}
-)
+nss.getSuggestedWords("La").then(data => {
+	//response: { suggestions: [ 'Label', 'Labely' ], timeElapsed: '1ms' }
+});
 
-nss.getSuggestedWords("whi").then(
-	data => {
-		//response: { suggestions: [ 'WHISKY LABEL', 'WHISKY RED', 'WHISKY BLACK' ], timeElapsed: '1ms' }
-	},
-	err => {
-		//...
-	}
-)
+nss.getSuggestedWords("whi").then(data => {
+	//response: { suggestions: [ 'whisky label', 'whisky red', 'whisky black' ], timeElapsed: '1ms' }
+});
 
-nss.getSuggestedWords("whisky re").then(
-	data => {
-		//response: { suggestions: [ 'WHISKY RED' ], timeElapsed: '2ms' }
-	},
-	err => {
-		//...
-	}
-)
+nss.getSuggestedWords("whisky re").then(data => {
+	//response: { suggestions: [ 'whisky red' ], timeElapsed: '2ms' }
+});
   
 ```
 
@@ -417,65 +323,35 @@ Getting items suggestions to fill dropdown boxes or type-ahead text fields.
 Examples of how to call the api and responses:
 ```javascript
 
-nss.getSuggestedItems("parme").then(
-	data => {
-		//response: { items: [ { itemId: '4', itemName: 'PESTO PARMESAN HAM' } ], timeElapsed: '2ms' }
-	},
-	err => {
-		//...
-	}
-)
+nss.getSuggestedItems("PARME").then(data => {
+	//response: { items: [ { itemId: '4', itemName: 'PESTO PARMESAN HAM' } ], timeElapsed: '2ms' }
+});
 
-nss.getSuggestedItems("whisky fancy").then(
-	data => {
-		//response: { items: [ { itemId: '1', itemName:'WHISKY RED LABEL' } ], timeElapsed: '1ms' }
-	},
-	err => {
-		//...
-	}
-)
+nss.getSuggestedItems("Whisky fancy").then(data => {
+	//response: { items: [ { itemId: '1', itemName:'WHISKY RED LABEL' } ], timeElapsed: '1ms' }
+});
 
-nss.getSuggestedItems("whisky re").then(
-	data => {
-		//response: { items:[ { itemId: '1', itemName: 'WHISKY RED LABEL' } ], timeElapsed: '1ms' }
-	},
-	err => {
-		//...
-	}
-)
+nss.getSuggestedItems("whisky re").then(data => {
+	//response: { items:[ { itemId: '1', itemName: 'WHISKY RED LABEL' } ], timeElapsed: '1ms' }
+});
 
-nss.getSuggestedItems("whisky label").then(
-	data => {
-		//response: { items: [ {itemId: '1', itemName: 'WHISKY RED LABEL' }, { itemId: '2', itemName: 'WHISKY BLACK LABEL' } ], timeElapsed: '2ms' }
-	},
-	err => {
-		//...
-	}
-)
+nss.getSuggestedItems("whisky label").then(data => {
+	//response: { items: [ {itemId: '1', itemName: 'WHISKY RED LABEL' }, { itemId: '2', itemName: 'WHISKY BLACK LABEL' } ], timeElapsed: '2ms' }
+});
 
 //get one item suggestions ordering by price, asc using a function and omitting the direction.
 let orderByObject = {field: "price"};
 
-nss.getSuggestedItems("whisky label", 1, orderByObject).then(
-	data => {
-		//response: { items: [ { itemName: 'WHISKY BLACK LABEL', itemId: '2', price: 19.99, popularity: 0.9, thumbImg: 'whisky-black-label.png' } ], timeElapsed: '2ms' }
-	},
-	err => {
-		//...
-	}
-)
+nss.getSuggestedItems("whisky label", 1, orderByObject).then(data => {
+	//response: { items: [ { itemName: 'WHISKY BLACK LABEL', itemId: '2', price: 19.99, popularity: 0.9, thumbImg: 'whisky-black-label.png' } ], timeElapsed: '2ms' }
+});
   
 //get one item suggestions ordering by price, asc using a function.
 let orderByFunc = ((x, y) => { return x.price > y.price; });
 
-nss.getSuggestedItems("whisky label", 1, orderByFunc).then(
-	data => {
-		//response: { items: [ { itemName: 'WHISKY BLACK LABEL', itemId: '2', price: 19.99, popularity: 0.9, thumbImg: 'whisky-black-label.png' } ], timeElapsed: '2ms' }
-	},
-	err => {
-		//...
-	}
-)
+nss.getSuggestedItems("whisky label", 1, orderByFunc).then(data => {
+	//response: { items: [ { itemName: 'WHISKY BLACK LABEL', itemId: '2', price: 19.99, popularity: 0.9, thumbImg: 'whisky-black-label.png' } ], timeElapsed: '2ms' }
+});
   
   
 ```
@@ -493,14 +369,9 @@ let newItem = {
 	"keywords": "Keyword1, keyword2..."
 	};
 
-nss.insertItem(newItem).then(
-	data => {
-		//response: { timeElapsed: '2ms' }
-	},
-	err => {
-		//...
-	}
-);
+nss.insertItem(newItem).then(data => {
+	//response: { timeElapsed: '2ms' }
+});
 
 ```
 
@@ -513,14 +384,9 @@ let newItem = {
 	"kw": "Keyword1, keyword2..."
 	};
 
-nss.insertItem(newItem, "id", "nm", "kw").then(
-	data => {
-		//response: { timeElapsed: '2ms' }
-	},
-	err => {
-		//...
-	}
-);
+nss.insertItem(newItem, "id", "nm", "kw").then(data => {
+	//response: { timeElapsed: '2ms' }
+});
 
 ```
 
@@ -536,14 +402,9 @@ let newItem = {
 	"thumbImg": "vodka-absolute.png"
 	};
 
-nss.insertItem(newItem).then(
-	data => {
-		//response: { timeElapsed: '2ms' }
-	},
-	err => {
-		//...
-	}
-);
+nss.insertItem(newItem).then(data => {
+	//response: { timeElapsed: '2ms' }
+});
 
 ```
 
@@ -556,25 +417,19 @@ Examples of how to call the api and responses:
 
 let itemId = "6";
 
-nss.removetItem(itemId).then(
-	data => {
-		//response: { timeElapsed: '2ms' }
-	},
-	err => {
-		//...
-	}
-);
+nss.removetItem(itemId).then(data => {
+	//response: { timeElapsed: '2ms' }
+});
 
 ```
 
 
 ## Roadmap
-* catalog (several dictionaries)
+* Catalog (several dictionaries)
 * More databases support
 * Inject your database plugin
-* filter stopwords
 * Browser version.
-
+* Translate JS to TS 
 
 ## Pull requests
 If you submit a pull request, thanks! There are a couple of rules to follow to make it manageable:

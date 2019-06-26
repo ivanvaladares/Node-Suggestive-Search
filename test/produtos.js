@@ -11,7 +11,7 @@ describe('Test produtos.json -', () => {
     before(done => {
 
         //tests using memory
-        nss = require('../index.js').init({ stopWords: ["1033", "1046"] });    
+        nss = require('../index.js').init({ stopWords: ["1033", "1046"], cache: true });    
 
         //tests using redis
         // nss = require("../index.js").init(
@@ -385,8 +385,7 @@ describe('Test produtos.json -', () => {
                     "Error on get words suggestions for: vinh"
                 );
             });
-    });
-    
+    });   
 
     it('get words suggestions for: Vinh', () => {
         return nss.getSuggestedWords("Vinh")
