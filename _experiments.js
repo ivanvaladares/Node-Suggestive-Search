@@ -310,12 +310,8 @@ nss.on("initialized", async () => {
 
     // q = await nss.query("Coca-Xola lata");
     // console.log(q);    
-    q = await nss.query("DANETTi", true);
-    q = await nss.query("DANETTi", true);
-    //console.log(q);  
-
-    q = await nss.query("DANETTí", true);
-    //console.log(q);        
+    q = await nss.getSuggestedWords("DANE");
+    console.log(q);        
 
     // await nss.query("x-14");
     // await nss.query("REFRIGERANTE coca-xola 'EMBALAGEM COM 6 UNIDADES'");

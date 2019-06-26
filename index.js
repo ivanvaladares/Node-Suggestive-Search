@@ -2,7 +2,7 @@
 /* eslint-disable no-await-in-loop */
 /* eslint-disable node/no-unsupported-features */
 /*
-node-suggestive-search v1.10.4
+node-suggestive-search v1.10.5
 https://github.com/ivanvaladares/node-suggestive-search/
 by Ivan Valadares 
 http://ivanvaladares.com 
@@ -316,90 +316,6 @@ const NodeSuggestiveSearch = class {
 				});
 			}), true);
 		}, [[]]);
-	}
-
-	_matchWordsByItemsIds (wordItems, finalWordItems) {
-	
-		let maxSimilarity = -1;
-		let wordItem = null;
-
-		if (finalWordItems === undefined){
-
-			finalWordItems = {};
-			finalWordItems.wordsObjects = [];
-			finalWordItems.itemsIds = [];
-			finalWordItems.finalWords = _.fill(Array(wordItems.length), "");
-			finalWordItems.missingWords = [];
-
-			
-			//choosing the best column to start
-			wordItems.map((word, index) => {
-				word.index = index;
-				if (word.results.length > 0 && word.results[0].similarity > maxSimilarity){
-					maxSimilarity = word.results[0].similarity;
-					wordItem = word;
-				}
-			});
-
-			if (wordItem !== null){
-				wordItem.processed = true;
-				wordItem.results = wordItem.results[0];
-				finalWordItems.itemsIds = wordItem.results.items;
-
-				finalWordItems.finalWords[wordItem.index] = wordItem.results.word;
-				finalWordItems.wordsObjects.push(wordItem);
-				return this._matchWordsByItemsIds(wordItems, finalWordItems);
-			}else{
-				return this._matchWordsByItemsIds(wordItems, finalWordItems);
-			}
-
-		}else{
-			//choosing the best column to continue
-			wordItems.map(word => {
-				if (word.results.length > 0 && word.processed === undefined){
-					if (word.results[0].similarity > maxSimilarity){
-						maxSimilarity = word.results[0].similarity;
-						wordItem = word;
-					}
-				}
-			});
-
-			//there are no more words to process
-			if (wordItem === null){
-				finalWordItems.finalWords = finalWordItems.finalWords.filter((word, index) => {
-					if (word === "") {
-						finalWordItems.missingWords.push(wordItems[index].word);
-					}
-					return word !== "";
-				});
-				return finalWordItems;
-			}
-
-			wordItem.processed = true;
-
-			for (let i = 0; i < wordItem.results.length && i < 25; i++){
-				//discard if is a repeated suggestion without a repeated query
-				if (finalWordItems.finalWords.indexOf(wordItem.results[i].word) > -1 &&
-					wordItem.results[i].word.toLowerCase() !== wordItem.word.toLowerCase()){ 
-					continue;
-				}
-
-				let arr = this._intersection([wordItem.results[i].items, finalWordItems.itemsIds]);
-		
-				if (arr.length > 0){	
-					wordItem.results = wordItem.results[i];
-					finalWordItems.itemsIds = arr;
-					finalWordItems.finalWords[wordItem.index] = wordItem.results.word;
-					finalWordItems.wordsObjects.push(wordItem);
-					return this._matchWordsByItemsIds(wordItems, finalWordItems);
-				}
-			}
-	
-			//did not find itemsId for this words, go to the next
-			return this._matchWordsByItemsIds(wordItems, finalWordItems);
-
-		}
-
 	}
 
 	_copyWritingStyle (original, copy) {
@@ -751,8 +667,7 @@ const NodeSuggestiveSearch = class {
 			arrStopWords.map(word => {
 
 				let cleanWord = word.toLowerCase().latinize();
-
-				if (this._stopWords[cleanWord] === undefined && typeof this._stopWords[cleanWord] !== "string" && typeof this._stopWords[cleanWord] !== "number") {
+				if (cleanWord !== "") {
 					this._stopWords[cleanWord] = 1;
 				}
 
@@ -940,7 +855,7 @@ const NodeSuggestiveSearch = class {
 					let arrWords = this._splitWords(itemObject.itemName);
 
 					//get keywords
-					if (itemObject[keywords] !== undefined){
+					if (itemObject[keywords] !== undefined && itemObject.keywords !== undefined){
 						arrWords = arrWords.concat(this._splitWords(itemObject.keywords));
 					}
 					
@@ -1654,36 +1569,36 @@ const NodeSuggestiveSearch = class {
 				//now, lets resolve all promises from the array of promises
 				return Promise.all(promises).then(foundWords => {
 
-					let previousWords = "";
+					let arrItemsIds = [];
 
-					//test if all words exists
-					for (let index in foundWords) {
-						if (foundWords[index] === null) {
-							//some word is not correct, break the response
-							if (this._cacheOn) {
-								cache.put(cacheKey, [], this._internalCacheTimeout);
-							}
-							return resolve({ suggestions: [], timeElapsed: this._clock(time) });
-						}
+					if (!_.some(foundWords, (x) => x === null)) {
 
-						previousWords += this._copyWritingStyle(arrWords[index], foundWords[index].word) + " ";
+						let arrItems = foundWords.map(w => {
+							return _.flatten(w.results.map(i => {
+								return i.items;
+							}));	
+						});
+		
+						arrItemsIds = this._intersection(arrItems);
 					}
-
-					previousWords = previousWords.trim();
-
-					let objFinal = this._matchWordsByItemsIds(foundWords);
-					let arrItemsIds = objFinal.itemsIds;
-					let missingWords = objFinal.missingWords;
 
 					//after this query, one or more words could be missing because its items did not match
 					//if that is true, break the response
-					if (missingWords.length > 0) {
+					if (arrItemsIds.length === 0) {
 						//some word is not correct, break the response
 						if (this._cacheOn) {
 							cache.put(cacheKey, [], this._internalCacheTimeout);
 						}
 						return resolve({ suggestions: [], timeElapsed: this._clock(time) });
 					}
+
+					let previousWords = "";
+
+					foundWords.map((foundWord, index) => {
+						previousWords += this._copyWritingStyle(arrWords[index], foundWord.word) + " ";
+					});
+
+					previousWords = previousWords.trim();
 
 					let arrResponse = [];
 					let lastWord = arrWords[arrWords.length - 1].toLowerCase().latinize();
@@ -1898,25 +1813,23 @@ const NodeSuggestiveSearch = class {
 
 				//now, lets resolve all promises from the array of promises
 				return Promise.all(promises).then(foundWords => {
-					
-					//test if all words exists
-					for (let index in foundWords) {
-						if (foundWords[index] === null) {
-							//some word is not correct, break the response
-							if (this._cacheOn) {
-								cache.put(cacheKey, [], this._internalCacheTimeout);
-							}
-							return resolve({ items: [], timeElapsed: this._clock(time) });
-						}
-					}
 
-					let objFinal = this._matchWordsByItemsIds(foundWords);
-					let arrItemsIds = objFinal.itemsIds;
-					let missingWords = objFinal.missingWords;
+					let arrItemsIds = [];
+
+					if (!_.some(foundWords, (x) => x === null)) {
+
+						let arrItems = foundWords.map(w => {
+							return _.flatten(w.results.map(i => {
+								return i.items;
+							}));	
+						});
+		
+						arrItemsIds = this._intersection(arrItems);
+					}
 
 					//after this query, one or more words could be missing because its items did not match
 					//if that is true, break the response
-					if (missingWords.length > 0) {
+					if (arrItemsIds.length === 0) {
 						//some word is not correct, break the response
 						if (this._cacheOn) {
 							cache.put(cacheKey, [], this._internalCacheTimeout);
