@@ -2,7 +2,7 @@
 /* eslint-disable no-await-in-loop */
 /* eslint-disable node/no-unsupported-features */
 /*
-node-suggestive-search v1.10.5
+node-suggestive-search v1.10.6
 https://github.com/ivanvaladares/node-suggestive-search/
 by Ivan Valadares 
 http://ivanvaladares.com 
@@ -271,14 +271,21 @@ const NodeSuggestiveSearch = class {
 		let output = [];
 		let cntObj = {};
 
-		arrays.map((array, i) => {
-			array.map(item => {
+		for (let index = 0; index < arrays.length; index++) {
+			let foundSome = false;
+
+			arrays[index].map(item => {
 				let cnt = cntObj[item] || 0;
-				if (cnt === i) {
+				if (cnt === index) {
+					foundSome = true;
 					cntObj[item] = cnt + 1;
 				}
 			});
-		});
+
+			if (!foundSome) {
+				return [];
+			}
+		}
 
 		for (let item in cntObj) {
 			if (cntObj[item] === arrays.length) {
@@ -354,56 +361,65 @@ const NodeSuggestiveSearch = class {
 		return new Promise(async (resolve, reject) => {
 
 			let cacheKey = "_getWordsFromSoundexAndParts:" + word.latinize().toLowerCase();
+			let results = null;
+			let foundCached = false;
+
 			if (this._cacheOn) {
 				let cached = cache.get(cacheKey);
 				if (cached !== null){
-					return resolve(cached);
+					foundCached = true;
+					results = cached;
 				}
 			}
 
-			//try to find an word is our dictionary using soundex and parts of the word
-			//todo: research a better way to improve the performance of this query
+			if (results === null) {
 
-			let _word = word.trim().replace(/^["|']/, '').replace(/["|']$/, ''); //remove quotes
-
-			let queryCriteria = [{ soundex: this._soundex(_word) }];
-
-			let wordWithoutAccents = _word.latinize();
-
-			for (let i = 4; i > 1; i--) {
-
-				if (wordWithoutAccents.length >= i) {
-
-					let objCriteriaIni = {};
-					objCriteriaIni[`p${i}i`] = wordWithoutAccents.substr(0, i).toLowerCase();
-					queryCriteria.push(objCriteriaIni);
-
-					let objCriteriaEnd = {};
-					objCriteriaEnd[`p${i}e`] = wordWithoutAccents.substr(wordWithoutAccents.length - i, wordWithoutAccents.length).toLowerCase();				
-					queryCriteria.push(objCriteriaEnd);
+				//try to find an word is our dictionary using soundex and parts of the word
+				//todo: research a better way to improve the performance of this query
+				let _word = word.trim().replace(/^["|']/, '').replace(/["|']$/, ''); //remove quotes
+				let queryCriteria = [{ soundex: this._soundex(_word) }];
+				let wordWithoutAccents = _word.latinize();
+	
+				for (let i = 4; i > 1; i--) {
+	
+					if (wordWithoutAccents.length >= i) {
+	
+						let objCriteriaIni = {};
+						objCriteriaIni[`p${i}i`] = wordWithoutAccents.substr(0, i).toLowerCase();
+						queryCriteria.push(objCriteriaIni);
+	
+						let objCriteriaEnd = {};
+						objCriteriaEnd[`p${i}e`] = wordWithoutAccents.substr(wordWithoutAccents.length - i, wordWithoutAccents.length).toLowerCase();				
+						queryCriteria.push(objCriteriaEnd);
+					}
+	
 				}
+
+				results = await this._db.findWords({ $or: queryCriteria }).then(foundWords => {
+
+					if (foundWords && foundWords.length > 0) {
+	
+						//before return the result, lets give a similarity rank for each result	
+						//and filter top 50 most similar result 
+						return foundWords.map(obj => {
+								this._setWordAndSimilarity(obj, _word);
+								return obj;
+							}).sort((x, y) => {
+								return ((x.similarity > y.similarity) ? -1 : 1);
+							}).slice(0, 50);
+	
+					}
+	
+					return null;
+				}).catch(err => {
+					return reject(err);
+				});
 
 			}
 
-			let results = await this._db.findWords({ $or: queryCriteria }).then(foundWords => {
-
-				if (foundWords && foundWords.length > 0) {
-
-					//before return the result, lets give a similarity rank for each result	
-					//and filter top 50 most similar result 
-					return foundWords.map(obj => {
-							this._setWordAndSimilarity(obj, _word);
-							return obj;
-						}).sort((x, y) => {
-							return ((x.similarity > y.similarity) ? -1 : 1);
-						}).slice(0, 50);
-
-				}
-
-				return null;
-			}).catch(err => {
-				return reject(err);
-			});
+			if (this._cacheOn && !foundCached){
+				cache.put(cacheKey, results === null ? results : results.slice(0), this._internalCacheTimeout);
+			}
 
 			if (!results || results.length <= 0) {
 
@@ -418,10 +434,6 @@ const NodeSuggestiveSearch = class {
 				});
 			}
 
-			if (this._cacheOn){
-				cache.put(cacheKey, results, this._internalCacheTimeout);
-			}
-
 			resolve(results);
 		});
 
@@ -430,32 +442,48 @@ const NodeSuggestiveSearch = class {
 	_getWordsFromCleanWords (arrWords){
 
 		let promises = arrWords.map(word => {
-			
-			return new Promise(resolve => {
 
-				//try to find the exact word in our dictionary
-				return this._db.findWords({ cleanWord: word.toLowerCase().latinize() }).then(foundWords => {
+			return new Promise(async resolve => {
 
-					if (!foundWords || foundWords.length <= 0) {
+				let cleanWord = word.latinize().toLowerCase();
+				let cacheKey = "_getWordsFromCleanWords:" + cleanWord;
+				let results = null;
+				let foundCached = false;
 
-						resolve(null);
-
-					} else {
-
-						//sort to return the best match
-						foundWords = foundWords.map((obj) => {
-							this._setWordAndSimilarity(obj, word);
-							return obj;
-						}).sort((x, y) => {
-							return ((x.similarity > y.similarity) ? -1 : 1);
-						}).slice(0, 1);
-
-						//returning the best match
-						resolve({ word, results: foundWords });
-
+				if (this._cacheOn) {
+					let cached = cache.get(cacheKey);
+					if (cached !== null){
+						foundCached = true;
+						results = cached;
 					}
+				}
 
-				});
+				if (results === null && !foundCached) {
+					//try to find the exact word in our dictionary
+					results = await this._db.findWords({ cleanWord });
+				}
+			
+				if (this._cacheOn && !foundCached){
+					cache.put(cacheKey, results.slice(0), this._internalCacheTimeout);
+				}
+
+				let result = null;
+
+				if (results && results.length > 0) {
+
+					//sort to return the best match
+					results = results.map((obj) => {
+						this._setWordAndSimilarity(obj, word);
+						return obj;
+					}).sort((x, y) => {
+						return ((x.similarity > y.similarity) ? -1 : 1);
+					}).slice(0, 1);
+
+					//returning the best match
+					result = { word, results: results };
+				}
+				
+				resolve(result);
 
 			});
 
@@ -466,68 +494,70 @@ const NodeSuggestiveSearch = class {
 
 	_getWordsStartingWith (word, limit) {
 
-		return new Promise(resolve => {
+		return new Promise(async resolve => {
 
 			let cacheKey = "_getWordsStartingWith:" + word.latinize().toLowerCase();
+			let cleanWord = word.latinize().toLowerCase();
+			let results = null;
+			let foundCached = false;
+
 			if (this._cacheOn) {
 				let cached = cache.get(cacheKey);
 				if (cached !== null){
-					return resolve(cached.slice(0, ((limit > 0) ? limit : cached.length)));
-				}
-			}			
-
-			let queryCriteria = {};
-			let hasCriteria = false;
-			let cleanWord = word.latinize();
-
-			//create a search criteria from 4 to 2 letters to try to find words that starts like this one
-			for (let i = 4; i > 1; i--) {
-				if (cleanWord.length >= i) {
-
-					queryCriteria[`p${i}i`] = cleanWord.substr(0, i).toLowerCase();
-
-					hasCriteria = true;
-					//lets search with only one criteria
-					break;
+					foundCached = true;
+					results = cached;
 				}
 			}
 
-			if (!hasCriteria) {
-				return resolve(null);
-			}
+			if (results === null && !foundCached) {
 
-			//execute the query
-			return this._db.findWords(queryCriteria).then(foundWords => {
+				let queryCriteria = {};
+				let hasCriteria = false;
 
-				if (foundWords.length > 0) {
+				//create a search criteria from 4 to 2 letters to try to find words that starts like this one
+				for (let i = 4; i > 1; i--) {
+					if (cleanWord.length >= i) {
 
-					//return item that begins with same characters, from smallest to biggest and then alphabetically
-					foundWords.filter(objWord => {
-						//todo: check this oportunity to return different accents
-						this._setWordAndSimilarity(objWord, word);
-						return objWord.cleanWord.toLowerCase().indexOf(cleanWord.toLowerCase()) === 0;
-					}).sort((x, y) => {
-						if (x.word.length > y.word.length) {
-							return 1;
-						} else if (x.word.length < y.word.length) {
-							return -1;
-						}
-						return x.word > y.word;
-					});
+						queryCriteria[`p${i}i`] = cleanWord.substr(0, i).toLowerCase();
 
-					cache.put(cacheKey, foundWords, this._internalCacheTimeout);
-
-					resolve(foundWords.slice(0, ((limit > 0) ? limit : foundWords.length)));
-
-				} else {
-
-					cache.put(cacheKey, null, this._internalCacheTimeout);
-
-					resolve(null);
-
+						hasCriteria = true;
+						//lets search with only one criteria
+						break;
+					}
 				}
 
-			});
+				if (!hasCriteria) {
+					return resolve(null);
+				}
+
+				//execute the query
+				results = await this._db.findWords(queryCriteria);
+				
+			}
+
+			if (this._cacheOn && !foundCached) {
+				cache.put(cacheKey, results === null ? results : results.slice(0), this._internalCacheTimeout);
+			}
+
+			if (results !== null) {
+
+				//return item that begins with same characters, from smallest to biggest and then alphabetically
+				results = results.filter(objWord => {
+					//todo: check this oportunity to return different accents
+					this._setWordAndSimilarity(objWord, word);
+					return objWord.cleanWord.toLowerCase().indexOf(cleanWord) === 0;
+				}).sort((x, y) => {
+					if (x.word.length > y.word.length) {
+						return 1;
+					} else if (x.word.length < y.word.length) {
+						return -1;
+					}
+					return x.word > y.word;
+				});
+
+			}
+
+			resolve(results === null ? null : results.slice(0, ((limit > 0) ? limit : results.length)));
 
 		});
 
@@ -1443,7 +1473,7 @@ const NodeSuggestiveSearch = class {
 					}
 	
 					if (this._cacheOn) {
-						cache.put(cacheKey, response, this._internalCacheTimeout);
+						cache.put(cacheKey, Object.assign({}, response), this._internalCacheTimeout);
 					}
 
 					//apply the ordering function
@@ -1504,7 +1534,7 @@ const NodeSuggestiveSearch = class {
 				return reject(new Error("No word was given to search!"));
 			}
 
-			let cacheKey = "getSuggestedWords:" + words.latinize();
+			let cacheKey = "getSuggestedWords:" + words;
 			if (this._cacheOn) {
 				let cached = cache.get(cacheKey);
 				if (cached !== null) {
@@ -1789,7 +1819,7 @@ const NodeSuggestiveSearch = class {
 						else 
 						{
 							if (this._cacheOn) {
-								cache.put(cacheKey, foundItems, this._internalCacheTimeout);
+								cache.put(cacheKey, foundItems.slice(0), this._internalCacheTimeout);
 							}
 
 							//apply the ordering function
@@ -1870,7 +1900,7 @@ const NodeSuggestiveSearch = class {
 							}
 
 							if (this._cacheOn) {
-								cache.put(cacheKey, arrResponse, this._internalCacheTimeout);
+								cache.put(cacheKey, arrResponse.slice(0), this._internalCacheTimeout);
 							}
 
 							//apply the ordering function
