@@ -305,13 +305,16 @@ nss.on("initialized", async () => {
     // q = await nss.query("abjabajbajba Coca Cola refri");
     // console.log(q);
 
-    // q = await nss.query("refrigerante Coca-Xola 'EMBALAGEM COM 6 UNIDADES'");
-    // console.log(q);
+    q = await nss.query("refrigerante Coca-Xola 'EMBALAGEM COM 6 UNIDADES'");
+    console.log(q);
 
     // q = await nss.query("Coca-Xola lata");
     // console.log(q);    
-    q = await nss.getSuggestedWords("DANE");
-    console.log(q);        
+    // await nss.getSuggestedItems("whisky red l").then(q => {
+    //     console.log(q);        
+    // }).catch(err => {
+    //     console.log(err);
+    // });
 
     // await nss.query("x-14");
     // await nss.query("REFRIGERANTE coca-xola 'EMBALAGEM COM 6 UNIDADES'");
@@ -376,4 +379,36 @@ nss.on("initialized", async () => {
 //        nss.destroy();
 
 //     console.log(" done ");
+// });
+
+
+// let s = `[{"nm":"WHISKY RED LABEL","id":"1","kw": "fancy", "price": 25.57, "popularity": 1, "thumbImg": "whisky-red-label.png"},
+// {"nm":"WHISKY BLACK LABEL","id":"2", "price": 19.99, "popularity": 0.9, "thumbImg": "whisky-black-label.png"},
+// {"nm":"BLACK FOREST BEECHWOOD HAM L/S","id":"3", "price": 19.99, "popularity": 1, "thumbImg": "black-forest-beechwood-ham-l-s.png"},
+// {"nm":"PESTO PARMESAN HAM","id":"4", "price": 19.99, "popularity": 1, "thumbImg": "pesto-parmesan-ham.png"},
+// {"nm":"DELI SWEET SLICE SMOKED HAM","id":"5", "price": 19.99, "popularity": 1, "thumbImg": "deli-sweet-slice-smoked-ham.png"},
+// {"nm":"LABELY BUTTER","id":"7", "price": 19.99, "popularity": 1, "thumbImg": "labely-butter.png"},
+// {"nm":"WINE D'VINE","id":"8", "price": 19.99, "popularity": 1, "thumbImg": "wine-dvine.png"},
+// {"nm":"WINE RÉD OLD LABEL","id":"9", "price": 19.99, "popularity": 1, "thumbImg": "wine-red-old-label.png"},
+// {"nm":"BLOOD-RED WINE","id":"10", "price": 19.99, "popularity": 1, "thumbImg": "blood-red-wine.png"},
+// {"nm":"COFFE MEU CAFÉ BRASILEIRO","id":"11", "price": 19.99, "popularity": 1, "thumbImg": "coffe-meu-cafe-brasileiro.png"},
+// {"nm":"X-14 ULTRA CLEANER","id":"12", "price": 19.99, "popularity": 1, "thumbImg": "x-14-ultra-cleaner.png"},
+// {"nm":"Cafe melita","id":"13", "price": 10.99, "popularity": 1, "thumbImg": "cafe.png"}]`;
+
+// nss.on("initialized", () => {
+
+//     return nss.loadJsonString(s, "id", "nm", "kw").then(async () => {
+
+//         await nss.getSuggestedItems("whisky red l").then(q => {
+//             console.log(q);        
+//         }).catch(err => {
+//             console.log(err);
+//         });
+        
+//         console.log(" done ");
+
+//         nss.destroy();
+
+//     });
+
 // });

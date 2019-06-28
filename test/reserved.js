@@ -12,7 +12,7 @@ describe('Test reserved.json -', () => {
     before(done => {
             
         //tests using memory
-        nss = require('../index.js').init({ cache: true });       
+        nss = require('../index.js').init();       
         
         //tests using redis
         // nss = require("../index.js").init(
@@ -132,6 +132,44 @@ describe('Test reserved.json -', () => {
                     data.itemsId.length == 1 &&
                     data.itemsId[0] == "50",
                     "Error on query for: export"
+                );
+            });
+    });
+    
+    it('query for: length', () => {
+        return nss.query("length")
+            .then(data => {
+                assert(
+                    data != null &&
+                    data.words.length == 1 &&
+                    data.words[0] == "length" &&
+                    data.itemsId.length == 1 &&
+                    data.itemsId[0] == "108",
+                    "Error on query for: length"
+                );
+            });
+    });   
+    
+    it('getSuggestedWords for: leng', () => {
+        return nss.getSuggestedWords("leng")
+            .then(data => {
+                assert(
+                    data != null &&
+                    data.suggestions.length == 1 &&
+                    data.suggestions[0] == "length",
+                    "Error on getSuggestedWords for: leng"
+                );
+            });
+    }); 
+    
+    it('getSuggestedItems for: length', () => {
+        return nss.getSuggestedItems("length")
+            .then(data => {
+                assert(
+                    data != null &&
+                    data.items.length == 1 &&
+                    data.items[0].itemName == "length",
+                    "Error on getSuggestedItems for: length"
                 );
             });
     });

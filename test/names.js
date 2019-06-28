@@ -51,13 +51,13 @@ describe('Test names.json -', () => {
         nss.destroy();
     });
 
-    it('load json file names.json with 50003 items and 3452 words', () => {
+    it('load json file names.json with 50004 items and 3454 words', () => {
         return nss.loadJson("test/names.json")
             .then(data => {
                 assert(
                     data != null &&
-                    data.words == 3452 &&
-                    data.items == 50003,
+                    data.words == 3454 &&
+                    data.items == 50004,
                     "Could not load json file."
                 );
             });
@@ -221,6 +221,30 @@ describe('Test names.json -', () => {
                     data.items[1].itemName == "Ivan Campos" &&
                     data.items[2].itemName == "Ivan Valentino",
                     "Error on get items suggestions for: ivan v"
+                );
+            });
+    });
+
+    it('get items suggestions for: Karlos Henrique Ca', () => {
+        return nss.getSuggestedItems("Karlos Henrique Ca")
+            .then(data => {       
+                assert(
+                    data != null &&
+                    data.items.length == 1 &&
+                    data.items[0].itemName == "Karlos Henrique Campos Valadares",
+                    "Error on get items suggestions for: Karlos Henrique Ca"
+                );
+            });
+    });
+
+    it('get items suggestions for: Karlos Henrique Campos V', () => {
+        return nss.getSuggestedItems("Karlos Henrique Campos V")
+            .then(data => {       
+                assert(
+                    data != null &&
+                    data.items.length == 1 &&
+                    data.items[0].itemName == "Karlos Henrique Campos Valadares",
+                    "Error on get items suggestions for: Karlos Henrique Campos V"
                 );
             });
     });

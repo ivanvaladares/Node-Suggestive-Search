@@ -2,7 +2,7 @@
 /* eslint-disable no-await-in-loop */
 /* eslint-disable node/no-unsupported-features */
 /*
-node-suggestive-search v1.10.6
+node-suggestive-search v1.10.7
 https://github.com/ivanvaladares/node-suggestive-search/
 by Ivan Valadares 
 http://ivanvaladares.com 
@@ -356,213 +356,6 @@ const NodeSuggestiveSearch = class {
 
 	}
 
-	_getWordsFromSoundexAndParts (word) {
-
-		return new Promise(async (resolve, reject) => {
-
-			let cacheKey = "_getWordsFromSoundexAndParts:" + word.latinize().toLowerCase();
-			let results = null;
-			let foundCached = false;
-
-			if (this._cacheOn) {
-				let cached = cache.get(cacheKey);
-				if (cached !== null){
-					foundCached = true;
-					results = cached;
-				}
-			}
-
-			if (results === null) {
-
-				//try to find an word is our dictionary using soundex and parts of the word
-				//todo: research a better way to improve the performance of this query
-				let _word = word.trim().replace(/^["|']/, '').replace(/["|']$/, ''); //remove quotes
-				let queryCriteria = [{ soundex: this._soundex(_word) }];
-				let wordWithoutAccents = _word.latinize();
-	
-				for (let i = 4; i > 1; i--) {
-	
-					if (wordWithoutAccents.length >= i) {
-	
-						let objCriteriaIni = {};
-						objCriteriaIni[`p${i}i`] = wordWithoutAccents.substr(0, i).toLowerCase();
-						queryCriteria.push(objCriteriaIni);
-	
-						let objCriteriaEnd = {};
-						objCriteriaEnd[`p${i}e`] = wordWithoutAccents.substr(wordWithoutAccents.length - i, wordWithoutAccents.length).toLowerCase();				
-						queryCriteria.push(objCriteriaEnd);
-					}
-	
-				}
-
-				results = await this._db.findWords({ $or: queryCriteria }).then(foundWords => {
-
-					if (foundWords && foundWords.length > 0) {
-	
-						//before return the result, lets give a similarity rank for each result	
-						//and filter top 50 most similar result 
-						return foundWords.map(obj => {
-								this._setWordAndSimilarity(obj, _word);
-								return obj;
-							}).sort((x, y) => {
-								return ((x.similarity > y.similarity) ? -1 : 1);
-							}).slice(0, 50);
-	
-					}
-	
-					return null;
-				}).catch(err => {
-					return reject(err);
-				});
-
-			}
-
-			if (this._cacheOn && !foundCached){
-				cache.put(cacheKey, results === null ? results : results.slice(0), this._internalCacheTimeout);
-			}
-
-			if (!results || results.length <= 0) {
-
-				await Promise.all(this._getWordsFromCleanWords([word])).then(cleanWord => {
-
-					if (cleanWord.length > 0 && cleanWord[0]) {
-						results = [cleanWord[0].results[0]];
-					}
-	
-				}).catch(err => {
-					return reject(err);
-				});
-			}
-
-			resolve(results);
-		});
-
-	}
-
-	_getWordsFromCleanWords (arrWords){
-
-		let promises = arrWords.map(word => {
-
-			return new Promise(async resolve => {
-
-				let cleanWord = word.latinize().toLowerCase();
-				let cacheKey = "_getWordsFromCleanWords:" + cleanWord;
-				let results = null;
-				let foundCached = false;
-
-				if (this._cacheOn) {
-					let cached = cache.get(cacheKey);
-					if (cached !== null){
-						foundCached = true;
-						results = cached;
-					}
-				}
-
-				if (results === null && !foundCached) {
-					//try to find the exact word in our dictionary
-					results = await this._db.findWords({ cleanWord });
-				}
-			
-				if (this._cacheOn && !foundCached){
-					cache.put(cacheKey, results.slice(0), this._internalCacheTimeout);
-				}
-
-				let result = null;
-
-				if (results && results.length > 0) {
-
-					//sort to return the best match
-					results = results.map((obj) => {
-						this._setWordAndSimilarity(obj, word);
-						return obj;
-					}).sort((x, y) => {
-						return ((x.similarity > y.similarity) ? -1 : 1);
-					}).slice(0, 1);
-
-					//returning the best match
-					result = { word, results: results };
-				}
-				
-				resolve(result);
-
-			});
-
-		});
-
-		return promises;
-	}
-
-	_getWordsStartingWith (word, limit) {
-
-		return new Promise(async resolve => {
-
-			let cacheKey = "_getWordsStartingWith:" + word.latinize().toLowerCase();
-			let cleanWord = word.latinize().toLowerCase();
-			let results = null;
-			let foundCached = false;
-
-			if (this._cacheOn) {
-				let cached = cache.get(cacheKey);
-				if (cached !== null){
-					foundCached = true;
-					results = cached;
-				}
-			}
-
-			if (results === null && !foundCached) {
-
-				let queryCriteria = {};
-				let hasCriteria = false;
-
-				//create a search criteria from 4 to 2 letters to try to find words that starts like this one
-				for (let i = 4; i > 1; i--) {
-					if (cleanWord.length >= i) {
-
-						queryCriteria[`p${i}i`] = cleanWord.substr(0, i).toLowerCase();
-
-						hasCriteria = true;
-						//lets search with only one criteria
-						break;
-					}
-				}
-
-				if (!hasCriteria) {
-					return resolve(null);
-				}
-
-				//execute the query
-				results = await this._db.findWords(queryCriteria);
-				
-			}
-
-			if (this._cacheOn && !foundCached) {
-				cache.put(cacheKey, results === null ? results : results.slice(0), this._internalCacheTimeout);
-			}
-
-			if (results !== null) {
-
-				//return item that begins with same characters, from smallest to biggest and then alphabetically
-				results = results.filter(objWord => {
-					//todo: check this oportunity to return different accents
-					this._setWordAndSimilarity(objWord, word);
-					return objWord.cleanWord.toLowerCase().indexOf(cleanWord) === 0;
-				}).sort((x, y) => {
-					if (x.word.length > y.word.length) {
-						return 1;
-					} else if (x.word.length < y.word.length) {
-						return -1;
-					}
-					return x.word > y.word;
-				});
-
-			}
-
-			resolve(results === null ? null : results.slice(0, ((limit > 0) ? limit : results.length)));
-
-		});
-
-	}
-
 	_acumulateWordsObjects (dictionary, word, itemId){
 
 		let strCleanWord = word.toLowerCase().latinize();
@@ -589,80 +382,6 @@ const NodeSuggestiveSearch = class {
 			dictionary[strCleanWord] = objWord;
 
 		}
-	}
-
-	_populateDatabase (itemsJson, itemId, itemName, keywords) {
-
-		return new Promise((resolve, reject) => {
-
-			//create a dictionary like object
-			let itemsArray = [];
-			let wordsArray = [];			
-			let objWords = {};
-
-			return this._db.cleanDatabase().then(() => {		
-				
-				itemsJson.map(item => {
-
-					try {
-						itemsArray.push(this._createItemObject(item, itemId, itemName, keywords));
-					} catch (err) {
-						return reject(err);
-					}
-
-				});
-
-				//insert all items in the database
-				return this._db.insertItem(itemsArray).then(itemsInserted => {
-
-					itemsInserted.map(itemObject => {
-
-						//get words from each item
-						let arrWords = this._splitWords(itemObject.itemName);
-
-						//get keywords
-						if (itemObject.keywords){
-							arrWords = arrWords.concat(this._splitWords(itemObject.keywords));
-						}
-
-						arrWords = _.uniq(arrWords);
-
-						let itemId = itemObject.itemId;
-
-						//associate each word with items. ex: {word, [item1, item2, item3...]}
-						arrWords.map(word => {
-
-							this._acumulateWordsObjects(objWords, word, itemId);
-
-						});
-
-					});
-
-					//create a database compatible JSON array from the above dictionary
-					for (let item in objWords) {
-						//transform the key/value itemsId into an array of the keys
-						objWords[item].items = _.keys(objWords[item].items);
-
-						wordsArray.push(objWords[item]);
-					}
-
-					//insert all words at once in database
-					return this._db.insertWord(wordsArray).then(() => {
-
-						//let the database create the indexes but don't wait for it
-						this._db.createIndexes();
-
-						//return some information about this process
-						resolve({ words: wordsArray.length });
-
-					});					
-
-				});
-
-			});						
-
-		});
-
 	}
 
 	_filterWordsFromItem (item, arrWords) {
@@ -704,6 +423,261 @@ const NodeSuggestiveSearch = class {
 			});
 
 		});
+	}
+
+	async _getWordsFromSoundexAndParts (word) {
+
+		let cacheKey = "_getWordsFromSoundexAndParts:" + word.latinize().toLowerCase();
+		let results = null;
+		let foundCached = false;
+
+		if (this._cacheOn) {
+			let cached = cache.get(cacheKey);
+			if (cached !== null){
+				foundCached = true;
+				results = cached;
+			}
+		}
+
+		if (results === null) {
+
+			//try to find an word is our dictionary using soundex and parts of the word
+			//todo: research a better way to improve the performance of this query
+			let _word = word.trim().replace(/^["|']/, '').replace(/["|']$/, ''); //remove quotes
+			let queryCriteria = [{ soundex: this._soundex(_word) }];
+			let wordWithoutAccents = _word.latinize();
+
+			for (let i = 4; i > 1; i--) {
+
+				if (wordWithoutAccents.length >= i) {
+
+					let objCriteriaIni = {};
+					objCriteriaIni[`p${i}i`] = wordWithoutAccents.substr(0, i).toLowerCase();
+					queryCriteria.push(objCriteriaIni);
+
+					let objCriteriaEnd = {};
+					objCriteriaEnd[`p${i}e`] = wordWithoutAccents.substr(wordWithoutAccents.length - i, wordWithoutAccents.length).toLowerCase();				
+					queryCriteria.push(objCriteriaEnd);
+				}
+
+			}
+
+			let foundWords = await this._db.findWords({ $or: queryCriteria });
+			
+			if (foundWords && foundWords.length > 0) {
+
+				//before return the result, lets give a similarity rank for each result	
+				//and filter top 50 most similar result 
+				results = foundWords.map(obj => {
+						this._setWordAndSimilarity(obj, _word);
+						return obj;
+					}).sort((x, y) => {
+						return ((x.similarity > y.similarity) ? -1 : 1);
+					}).slice(0, 50);
+
+			}
+
+		}
+
+		if (this._cacheOn && !foundCached){
+			cache.put(cacheKey, results === null ? results : results.slice(0), this._internalCacheTimeout);
+		}
+
+		if (!results || results.length <= 0) {
+
+			let cleanWord = await this._getWordsFromCleanWords([word]);
+
+			if (cleanWord.length > 0 && cleanWord[0]) {
+				results = [cleanWord[0].results[0]];
+			}
+		}
+
+		return results;
+
+	}
+
+	async _getWordsFromCleanWords (arrWords) {
+
+		let response = [];
+
+		for (const word of arrWords) {
+
+			let cleanWord = word.latinize().toLowerCase();
+			let cacheKey = "_getWordsFromCleanWords:" + cleanWord;
+			let results = null;
+			let foundCached = false;
+
+			if (this._cacheOn) {
+				let cached = cache.get(cacheKey);
+				if (cached !== null){
+					foundCached = true;
+					results = cached;
+				}
+			}
+
+			if (results === null && !foundCached) {
+				//try to find the exact word in our dictionary
+				results = await this._db.findWords({ cleanWord });
+			}
+		
+			if (this._cacheOn && !foundCached){
+				cache.put(cacheKey, results.slice(0), this._internalCacheTimeout);
+			}
+
+			let wordObj = null;
+
+			if (results && results.length > 0) {
+
+				//sort to return the best match
+				results = results.map((obj) => {
+					this._setWordAndSimilarity(obj, word);
+					return obj;
+				}).sort((x, y) => {
+					return ((x.similarity > y.similarity) ? -1 : 1);
+				}).slice(0, 1);
+
+				//returning the best match
+				wordObj = { word, results: results };
+			}
+
+			response = response.concat(wordObj);
+		}
+
+		return response;
+	}
+
+	async _getWordsStartingWith (word, limit) {
+
+		let cacheKey = "_getWordsStartingWith:" + word.latinize().toLowerCase();
+		let cleanWord = word.latinize().toLowerCase();
+		let results = null;
+		let foundCached = false;
+
+		if (this._cacheOn) {
+			let cached = cache.get(cacheKey);
+			if (cached !== null){
+				foundCached = true;
+				results = cached;
+			}
+		}
+
+		if (results === null && !foundCached) {
+
+			let queryCriteria = {};
+			let hasCriteria = false;
+
+			//create a search criteria from 4 to 2 letters to try to find words that starts like this one
+			for (let i = 4; i > 1; i--) {
+				if (cleanWord.length >= i) {
+
+					queryCriteria[`p${i}i`] = cleanWord.substr(0, i).toLowerCase();
+
+					hasCriteria = true;
+					//lets search with only one criteria
+					break;
+				}
+			}
+
+			if (!hasCriteria) {
+				return null;
+			}
+
+			//execute the query
+			results = await this._db.findWords(queryCriteria);
+			
+		}
+
+		if (this._cacheOn && !foundCached) {
+			cache.put(cacheKey, results === null ? results : results.slice(0), this._internalCacheTimeout);
+		}
+
+		if (results !== null) {
+
+			//return item that begins with same characters, from smallest to biggest and then alphabetically
+			results = results.filter(objWord => {
+				//todo: check this oportunity to return different accents
+				this._setWordAndSimilarity(objWord, word);
+				return objWord.cleanWord.toLowerCase().indexOf(cleanWord) === 0;
+			}).sort((x, y) => {
+				if (x.word.length > y.word.length) {
+					return 1;
+				} else if (x.word.length < y.word.length) {
+					return -1;
+				}
+				return x.word > y.word;
+			});
+
+		}
+
+		return (results === null ? null : results.slice(0, ((limit > 0) ? limit : results.length)));
+
+	}
+
+	async _populateDatabase (itemsJson, itemId, itemName, keywords) {
+
+		//create a dictionary like object
+		let itemsArray = [];
+		let wordsArray = [];			
+		let objWords = {};
+		let result = null;
+
+		await this._db.cleanDatabase().then(async () => {
+			
+			itemsJson.map(item => {
+				itemsArray.push(this._createItemObject(item, itemId, itemName, keywords));
+			});
+
+			//insert all items in the database
+			await this._db.insertItem(itemsArray).then(async itemsInserted => {
+
+				itemsInserted.map(itemObject => {
+
+					//get words from each item
+					let arrWords = this._splitWords(itemObject.itemName);
+
+					//get keywords
+					if (itemObject.keywords){
+						arrWords = arrWords.concat(this._splitWords(itemObject.keywords));
+					}
+
+					arrWords = _.uniq(arrWords);
+
+					let itemId = itemObject.itemId;
+
+					//associate each word with items. ex: {word, [item1, item2, item3...]}
+					arrWords.map(word => {
+
+						this._acumulateWordsObjects(objWords, word, itemId);
+
+					});
+
+				});
+
+				//create a database compatible JSON array from the above dictionary
+				for (let item in objWords) {
+					//transform the key/value itemsId into an array of the keys
+					objWords[item].items = _.keys(objWords[item].items);
+
+					wordsArray.push(objWords[item]);
+				}
+
+				//insert all words at once in database
+				await this._db.insertWord(wordsArray).then(() => {
+
+					//let the database create the indexes but don't wait for it
+					this._db.createIndexes();
+
+				});					
+
+				//return some information about this process
+				result = { words: wordsArray.length };
+
+			});
+
+		});						
+
+		return result;
+
 	}
 	
 	//#endregion
@@ -1010,18 +984,16 @@ const NodeSuggestiveSearch = class {
 			.on("data", data => {
 				itemsJson.push(data);
 			})
-			.on("end", () => {
+			.on("end", async () => {
 
 				//from the items, lets extract our dictionary 
-				return this._populateDatabase(itemsJson, itemId, itemName, keywords).then(information => {
+				let information = await this._populateDatabase(itemsJson, itemId, itemName, keywords);
 
-					information.items = itemsJson.length;
-					information.timeElapsed = this._clock(time);
+				information.items = itemsJson.length;
+				information.timeElapsed = this._clock(time);
 
-					//return some information about this process
-					resolve(information);
-
-				});
+				//return some information about this process
+				resolve(information);
 
 			}).on("error", (err) => {
 				itemsJson = null;
@@ -1048,7 +1020,7 @@ const NodeSuggestiveSearch = class {
 			cache.clear();
 		}
 
-		return new Promise((resolve, reject) => {
+		return new Promise(async (resolve, reject) => {
 
 			let time = this._clock();
 			
@@ -1063,14 +1035,13 @@ const NodeSuggestiveSearch = class {
 			}
 
 			//from the items, lets extract our dictionary 
-			return this._populateDatabase(itemsJson, itemId, itemName, keywords).then(information => {
+			let information = await this._populateDatabase(itemsJson, itemId, itemName, keywords);
 
-				information.items = itemsJson.length;
-				information.timeElapsed = this._clock(time);
+			information.items = itemsJson.length;
+			information.timeElapsed = this._clock(time);
 
-				//return some information about this process
-				resolve(information);
-			});
+			//return some information about this process
+			resolve(information);
 
 		});
 
@@ -1200,10 +1171,9 @@ const NodeSuggestiveSearch = class {
 							continue;
 						}
 	
-						await this._getWordsFromSoundexAndParts(arrWords[i]).then(foundItems  => {
-							arrDictionary[i].word = arrWords[i];
-							arrDictionary[i].results = (foundItems !== null) ? foundItems.slice(0, arrWords.length > 1 ? 50 : 1) : [];
-						});
+						let foundItems = await this._getWordsFromSoundexAndParts(arrWords[i]);
+						arrDictionary[i].word = arrWords[i];
+						arrDictionary[i].results = (foundItems !== null) ? foundItems.slice(0, arrWords.length > 1 ? 50 : 1) : [];
 	
 						if (arrDictionary.length > 1 && arrDictionary[i].results.length > 0) {
 	
@@ -1248,11 +1218,9 @@ const NodeSuggestiveSearch = class {
 
 				for (let i = 0; i < arrDictionary.length; i++) {
 					if (arrDictionary[i].results === undefined) {
-
-						await this._getWordsFromSoundexAndParts(arrWords[i]).then(foundItems  => {
-							arrDictionary[i].word = arrWords[i];
-							arrDictionary[i].results = (foundItems !== null) ? foundItems.slice(0, arrWords.length > 1 ? 50 : 1) : [];							
-						});
+						let foundItems = await this._getWordsFromSoundexAndParts(arrWords[i]);
+						arrDictionary[i].word = arrWords[i];
+						arrDictionary[i].results = (foundItems !== null) ? foundItems.slice(0, arrWords.length > 1 ? 50 : 1) : [];						
 					}
 				}
 
@@ -1513,7 +1481,7 @@ const NodeSuggestiveSearch = class {
 
 		this._checkInitialized();
 
-		return new Promise((resolve, reject) => {
+		return new Promise(async (resolve, reject) => {
 
 			let time;
 			
@@ -1546,42 +1514,180 @@ const NodeSuggestiveSearch = class {
 			if (arrWords.length === 1 && words.indexOf(" ") === -1) {
 
 				//try to get more words like this one. Limit 5
-				return this._getWordsStartingWith(arrWords[0], 5).then(queryResponse => {
+				let queryResponse = await this._getWordsStartingWith(arrWords[0], 5);
+				let arrResponse = [];
 
-					let arrResponse = [];
+				if (queryResponse !== null) {
+					for (let index = 0; index < queryResponse.length; index++) {
+						arrResponse.push(this._copyWritingStyle(arrWords[0], queryResponse[index].word));
+					}
+				}
 
-					if (queryResponse !== null) {
-						for (let index = 0; index < queryResponse.length; index++) {
-							arrResponse.push(this._copyWritingStyle(arrWords[0], queryResponse[index].word));
+				arrResponse.sort((x, y) => {
+					//sort by length and alphabetically
+					if (x.length < y.length) {
+						return -1;
+					}
+					else if (x.length > y.length) {
+						return 1;
+					}
+					else {
+						if (x > y) {
+							return -1;
+						}
+						else if (x < y) {
+							return 1;
+						}
+						return 0;
+					}
+
+				});
+
+				if (this._cacheOn) {
+					cache.put(cacheKey, arrResponse, this._internalCacheTimeout);
+				}
+
+				//if there is only one result, call again to get more suggestions
+				if (arrResponse.length === 1 && arguments.length === 1){
+					return this.getSuggestedWords(arrResponse[0] + " ", time).then(moreResults => {
+						resolve(moreResults);
+					});
+				}else{
+					resolve({ suggestions: arrResponse, timeElapsed: this._clock(time) });
+				}
+
+			} else { //one word with space at the end or more words came from the query.
+
+				//make a promise for each word from query, but last one, and create an array of promises
+				let foundWords = await this._getWordsFromCleanWords(arrWords.slice(0, arrWords.length - 1));
+				let arrItemsIds = [];
+
+				if (!_.some(foundWords, (x) => x === null)) {
+
+					let arrItems = foundWords.map(w => {
+						return _.flatten(w.results.map(i => {
+							return i.items;
+						}));	
+					});
+	
+					arrItemsIds = this._intersection(arrItems);
+				}
+
+				//after this query, one or more words could be missing because its items did not match
+				//if that is true, break the response
+				if (arrItemsIds.length === 0) {
+					//some word is not correct, break the response
+					if (this._cacheOn) {
+						cache.put(cacheKey, [], this._internalCacheTimeout);
+					}
+					return resolve({ suggestions: [], timeElapsed: this._clock(time) });
+				}
+
+				let previousWords = "";
+
+				foundWords.map((foundWord, index) => {
+					previousWords += this._copyWritingStyle(arrWords[index], foundWord.word) + " ";
+				});
+
+				previousWords = previousWords.trim();
+
+				let arrResponse = [];
+				let lastWord = arrWords[arrWords.length - 1].toLowerCase().latinize();
+			
+				return this._db.findItems({ itemId: { $in: arrItemsIds.slice(0, 1000) } }).then(othersItems => {
+
+					//get all item's names from items returned from query and create a relatedWords dictionary
+					let objRelatedWords = {};
+
+					for (let countWords = 0, i = 0; i < othersItems.length && countWords < 50; i++){
+						let item = othersItems[i];
+
+						//filter out the words from this item using words from the query
+						let arrItemWords = this._filterWordsFromItem(item, arrWords.slice(0, arrWords.length - 1));
+
+						//the rest of the words will be compared with the last words from the query
+						for (let y = 0; y < arrItemWords.length; y++){
+							let word = arrItemWords[y];
+
+							if (lastWord === "" || word.toLowerCase().latinize().indexOf(lastWord) === 0){
+								if (objRelatedWords[word] !== undefined && typeof objRelatedWords[word] === "string") {
+									objRelatedWords[word]++;
+								} else {
+									objRelatedWords[word] = 1;
+									countWords++;
+								}
+							}
 						}
 					}
 
-					arrResponse.sort((x, y) => {
-						//sort by length and alphabetically
-						if (x.length < y.length) {
-							return -1;
-						}
-						else if (x.length > y.length) {
-							return 1;
-						}
-						else {
-							if (x > y) {
+					// First create the array of keys/values with relatedWords so that we can sort it
+					let relatedWords = [];
+					for (let key in objRelatedWords) {
+						relatedWords.push({ word: key, value: objRelatedWords[key] });
+					}
+
+					if (relatedWords.length > 0) {
+
+						// And then sort it by popularity and alphabetically
+						relatedWords.sort((x, y) => {
+
+							if (x.value > y.value) {
 								return -1;
 							}
-							else if (x < y) {
+							else if (x.value < y.value) {
 								return 1;
 							}
-							return 0;
+							else {
+								if (x.word > y.word) {
+									return -1;
+								}
+								else if (x.word < y.word) {
+									return 1;
+								}
+								return 0;
+							}
+
+						});
+
+						//remove stopwords from suggestions if there are more results to show
+						let countStopWords = 0;
+						for (let index = 0; index < relatedWords.length; index++) {
+							let cleanWord = relatedWords[index].word.toLowerCase().latinize();
+							if (this._stopWords[cleanWord] !== undefined && (typeof this._stopWords[cleanWord] === "string" || typeof this._stopWords[cleanWord] === "number")) {
+								relatedWords[index].isStopWord = true;
+								countStopWords++;
+							}
 						}
 
-					});
+						let wordToCopyStyle = "";
+						for (let index = arrWords.length - 1; index >= 0; index--) {
+							if (arrWords[index] !== "" && isNaN(arrWords[index])){
+								wordToCopyStyle = arrWords[index];
+								break;
+							}						
+						}			
+											
+						let filterStoWords = (relatedWords.length - countStopWords) >= 5;
+						let suggestedCount = 0;
+						for (let index = 0; index < relatedWords.length && suggestedCount < 5; index++) {
+							if (filterStoWords && relatedWords[index].isStopWord) {
+								continue;
+							}
+
+							suggestedCount++;
+							arrResponse.push(previousWords + " " + this._copyWritingStyle(wordToCopyStyle, relatedWords[index].word));
+						}
+
+					}else{
+						arrResponse.push(previousWords);
+					}
 
 					if (this._cacheOn) {
 						cache.put(cacheKey, arrResponse, this._internalCacheTimeout);
 					}
 
 					//if there is only one result, call again to get more suggestions
-					if (arrResponse.length === 1 && arguments.length === 1){
+					if (arrResponse.length === 1 &&  arguments.length === 1){
 						return this.getSuggestedWords(arrResponse[0] + " ", time).then(moreResults => {
 							resolve(moreResults);
 						});
@@ -1589,152 +1695,6 @@ const NodeSuggestiveSearch = class {
 						resolve({ suggestions: arrResponse, timeElapsed: this._clock(time) });
 					}
 
-				});
-
-			} else { //one word with space at the end or more words came from the query.
-
-				//make a promise for each word from query, but last one, and create an array of promises
-				let promises = this._getWordsFromCleanWords(arrWords.slice(0, arrWords.length - 1));
-				
-				//now, lets resolve all promises from the array of promises
-				return Promise.all(promises).then(foundWords => {
-
-					let arrItemsIds = [];
-
-					if (!_.some(foundWords, (x) => x === null)) {
-
-						let arrItems = foundWords.map(w => {
-							return _.flatten(w.results.map(i => {
-								return i.items;
-							}));	
-						});
-		
-						arrItemsIds = this._intersection(arrItems);
-					}
-
-					//after this query, one or more words could be missing because its items did not match
-					//if that is true, break the response
-					if (arrItemsIds.length === 0) {
-						//some word is not correct, break the response
-						if (this._cacheOn) {
-							cache.put(cacheKey, [], this._internalCacheTimeout);
-						}
-						return resolve({ suggestions: [], timeElapsed: this._clock(time) });
-					}
-
-					let previousWords = "";
-
-					foundWords.map((foundWord, index) => {
-						previousWords += this._copyWritingStyle(arrWords[index], foundWord.word) + " ";
-					});
-
-					previousWords = previousWords.trim();
-
-					let arrResponse = [];
-					let lastWord = arrWords[arrWords.length - 1].toLowerCase().latinize();
-				
-					return this._db.findItems({ itemId: { $in: arrItemsIds.slice(0, 1000) } }).then(othersItems => {
-
-						//get all item's names from items returned from query and create a relatedWords dictionary
-						let objRelatedWords = {};
-
-						for (let countWords = 0, i = 0; i < othersItems.length && countWords < 50; i++){
-							let item = othersItems[i];
-
-							//filter out the words from this item using words from the query
-							let arrItemWords = this._filterWordsFromItem(item, arrWords.slice(0, arrWords.length - 1));
-
-							//the rest of the words will be compared with the last words from the query
-							for (let y = 0; y < arrItemWords.length; y++){
-								let word = arrItemWords[y];
-
-								if (lastWord === "" || word.toLowerCase().latinize().indexOf(lastWord) === 0){
-									if (objRelatedWords[word] !== undefined && typeof objRelatedWords[word] === "string") {
-										objRelatedWords[word]++;
-									} else {
-										objRelatedWords[word] = 1;
-										countWords++;
-									}
-								}
-							}
-						}
-
-						// First create the array of keys/values with relatedWords so that we can sort it
-						let relatedWords = [];
-						for (let key in objRelatedWords) {
-							relatedWords.push({ word: key, value: objRelatedWords[key] });
-						}
-
-						if (relatedWords.length > 0) {
-
-							// And then sort it by popularity and alphabetically
-							relatedWords.sort((x, y) => {
-
-								if (x.value > y.value) {
-									return -1;
-								}
-								else if (x.value < y.value) {
-									return 1;
-								}
-								else {
-									if (x.word > y.word) {
-										return -1;
-									}
-									else if (x.word < y.word) {
-										return 1;
-									}
-									return 0;
-								}
-
-							});
-
-							//remove stopwords from suggestions if there are more results to show
-							let countStopWords = 0;
-							for (let index = 0; index < relatedWords.length; index++) {
-								let cleanWord = relatedWords[index].word.toLowerCase().latinize();
-								if (this._stopWords[cleanWord] !== undefined && (typeof this._stopWords[cleanWord] === "string" || typeof this._stopWords[cleanWord] === "number")) {
-									relatedWords[index].isStopWord = true;
-									countStopWords++;
-								}
-							}
-
-							let wordToCopyStyle = "";
-							for (let index = arrWords.length - 1; index >= 0; index--) {
-								if (arrWords[index] !== "" && isNaN(arrWords[index])){
-									wordToCopyStyle = arrWords[index];
-									break;
-								}						
-							}			
-												
-							let filterStoWords = (relatedWords.length - countStopWords) >= 5;
-							let suggestedCount = 0;
-							for (let index = 0; index < relatedWords.length && suggestedCount < 5; index++) {
-								if (filterStoWords && relatedWords[index].isStopWord) {
-									continue;
-								}
-
-								suggestedCount++;
-								arrResponse.push(previousWords + " " + this._copyWritingStyle(wordToCopyStyle, relatedWords[index].word));
-							}
-
-						}else{
-							arrResponse.push(previousWords);
-						}
-
-						if (this._cacheOn) {
-							cache.put(cacheKey, arrResponse, this._internalCacheTimeout);
-						}
-
-						//if there is only one result, call again to get more suggestions
-						if (arrResponse.length === 1 &&  arguments.length === 1){
-							return this.getSuggestedWords(arrResponse[0] + " ", time).then(moreResults => {
-								resolve(moreResults);
-							});
-						}else{
-							resolve({ suggestions: arrResponse, timeElapsed: this._clock(time) });
-						}
-
-					});
 				});
 			}
 		});
@@ -1751,7 +1711,7 @@ const NodeSuggestiveSearch = class {
 
 		this._checkInitialized();
 
-		return new Promise((resolve, reject) => {
+		return new Promise(async (resolve, reject) => {
 
 			let time = this._clock();
 
@@ -1795,126 +1755,117 @@ const NodeSuggestiveSearch = class {
 			if (arrWords.length === 1) {
 
 				//try to get more words like this one. Limit 5
-				return this._getWordsStartingWith(arrWords[0], 10).then(queryResponse => {
+				let queryResponse = await this._getWordsStartingWith(arrWords[0], 10);
+				let arrItemsIds = [];
 
-					let arrItemsIds = [];
-
-					if (queryResponse !== null) {
-						queryResponse.map(item => {
-							arrItemsIds = arrItemsIds.concat(item.items);
-						});
-					}
-
-					//remove duplications
-					arrItemsIds = _.uniq(arrItemsIds);					
-
-					return this._db.findItems({ itemId: { $in: arrItemsIds } }).then(foundItems => {
-
-						let arrResponse = [];
-						if (foundItems === null) {
-							if (this._cacheOn) {
-								cache.put(cacheKey, arrResponse, this._internalCacheTimeout);
-							}
-						}
-						else 
-						{
-							if (this._cacheOn) {
-								cache.put(cacheKey, foundItems.slice(0), this._internalCacheTimeout);
-							}
-
-							//apply the ordering function
-							if (orderFunc !== undefined){
-								foundItems.sort(orderFunc);
-							}
-
-							arrResponse = foundItems.slice(0, limit);
-						}			
-
-						return resolve({ items: arrResponse, timeElapsed: this._clock(time) });
-
+				if (queryResponse !== null) {
+					queryResponse.map(item => {
+						arrItemsIds = arrItemsIds.concat(item.items);
 					});
+				}
+
+				//remove duplications
+				arrItemsIds = _.uniq(arrItemsIds);					
+
+				return this._db.findItems({ itemId: { $in: arrItemsIds } }).then(foundItems => {
+
+					let arrResponse = [];
+					if (foundItems === null) {
+						if (this._cacheOn) {
+							cache.put(cacheKey, arrResponse, this._internalCacheTimeout);
+						}
+					}
+					else 
+					{
+						if (this._cacheOn) {
+							cache.put(cacheKey, foundItems.slice(0), this._internalCacheTimeout);
+						}
+
+						//apply the ordering function
+						if (orderFunc !== undefined){
+							foundItems.sort(orderFunc);
+						}
+
+						arrResponse = foundItems.slice(0, limit);
+					}			
+
+					return resolve({ items: arrResponse, timeElapsed: this._clock(time) });
 
 				});
 
 			} else { //two or more words came from the query.
 
 				//make a promise for each word from query, but last one and create an array of promises
-				let promises = this._getWordsFromCleanWords(arrWords.slice(0, arrWords.length - 1));
+				let foundWords = await this._getWordsFromCleanWords(arrWords.slice(0, arrWords.length - 1));
+				let arrItemsIds = [];
 
-				//now, lets resolve all promises from the array of promises
-				return Promise.all(promises).then(foundWords => {
+				if (!_.some(foundWords, (x) => x === null)) {
 
-					let arrItemsIds = [];
-
-					if (!_.some(foundWords, (x) => x === null)) {
-
-						let arrItems = foundWords.map(w => {
-							return _.flatten(w.results.map(i => {
-								return i.items;
-							}));	
-						});
-		
-						arrItemsIds = this._intersection(arrItems);
-					}
-
-					//after this query, one or more words could be missing because its items did not match
-					//if that is true, break the response
-					if (arrItemsIds.length === 0) {
-						//some word is not correct, break the response
-						if (this._cacheOn) {
-							cache.put(cacheKey, [], this._internalCacheTimeout);
-						}
-						return resolve({ items: [], timeElapsed: this._clock(time) });
-					}
-
-					return this._db.findItems({ itemId: { $in: arrItemsIds } }).then(foundItems => {
-
-						let arrResponse = [];
-						let lastWord = arrWords[arrWords.length - 1].toLowerCase().latinize();
-
-						if (foundItems === null) {
-							if (this._cacheOn) {
-								cache.put(cacheKey, arrResponse, this._internalCacheTimeout);
-							}
-						}
-						else 
-						{
-							for (let i = 0; i < foundItems.length; i++){
-								let item = foundItems[i];
-
-								//filter out the words from this item using words from the query
-								let arrItemWords = this._filterWordsFromItem(item, arrWords.slice(0, arrWords.length - 1));
-								
-								//the rest of the words will be compared with the last words from the query
-								let foundLast = false;
-								for (let y = 0; y < arrItemWords.length; y++){
-									if (arrItemWords[y].toLowerCase().latinize().indexOf(lastWord) === 0){
-										foundLast = true;
-										break;
-									}
-								}
-
-								if (foundLast){
-									arrResponse.push(item);
-								}
-							}
-
-							if (this._cacheOn) {
-								cache.put(cacheKey, arrResponse.slice(0), this._internalCacheTimeout);
-							}
-
-							//apply the ordering function
-							if (orderFunc !== undefined){
-								arrResponse.sort(orderFunc);
-							}		
-
-							arrResponse = arrResponse.slice(0, limit);
-		
-						}
-
-						resolve({ items: arrResponse, timeElapsed: this._clock(time) });
-
+					let arrItems = foundWords.map(w => {
+						return _.flatten(w.results.map(i => {
+							return i.items;
+						}));	
 					});
+	
+					arrItemsIds = this._intersection(arrItems);
+				}
+
+				//after this query, one or more words could be missing because its items did not match
+				//if that is true, break the response
+				if (arrItemsIds.length === 0) {
+					//some word is not correct, break the response
+					if (this._cacheOn) {
+						cache.put(cacheKey, [], this._internalCacheTimeout);
+					}
+					return resolve({ items: [], timeElapsed: this._clock(time) });
+				}
+
+				return this._db.findItems({ itemId: { $in: arrItemsIds } }).then(foundItems => {
+
+					let arrResponse = [];
+					let lastWord = arrWords[arrWords.length - 1].toLowerCase().latinize();
+
+					if (foundItems === null) {
+						if (this._cacheOn) {
+							cache.put(cacheKey, arrResponse, this._internalCacheTimeout);
+						}
+					}
+					else 
+					{
+						for (let i = 0; i < foundItems.length; i++){
+							let item = foundItems[i];
+
+							//filter out the words from this item using words from the query
+							let arrItemWords = this._filterWordsFromItem(item, arrWords.slice(0, arrWords.length - 1));
+							
+							//the rest of the words will be compared with the last words from the query
+							let foundLast = false;
+							for (let y = 0; y < arrItemWords.length; y++){
+								if (arrItemWords[y].toLowerCase().latinize().indexOf(lastWord) === 0){
+									foundLast = true;
+									break;
+								}
+							}
+
+							if (foundLast){
+								arrResponse.push(item);
+							}
+						}
+
+						if (this._cacheOn) {
+							cache.put(cacheKey, arrResponse.slice(0), this._internalCacheTimeout);
+						}
+
+						//apply the ordering function
+						if (orderFunc !== undefined){
+							arrResponse.sort(orderFunc);
+						}		
+
+						arrResponse = arrResponse.slice(0, limit);
+	
+					}
+
+					resolve({ items: arrResponse, timeElapsed: this._clock(time) });
 
 				});
 
